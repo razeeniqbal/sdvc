@@ -32,6 +32,7 @@ export default function AdminBookingsPage() {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ search: '', session: '', bookingStatus: '', paymentStatus: '' });
+  const [hideCancelled, setHideCancelled] = useState(true);
   const [selected, setSelected] = useState<AdminBooking | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [amountInput, setAmountInput] = useState('');
@@ -46,27 +47,37 @@ export default function AdminBookingsPage() {
     window.open(url, '_blank', 'noopener,noreferrer');
   }
 
+  // Booking reference and guest name/phone live on the bookings table; the booker's own
+  // name/phone live on the joined profile, so this resolves matching profile ids up front.
+  async function getSearchUserIds(term: string): Promise<string[]> {
+    const { data: matchedProfiles } = await supabase
+      .from('profiles')
+      .select('id')
+      .or(`full_name.ilike.%${term}%,phone_number.ilike.%${term}%`);
+    return (matchedProfiles || []).map((p: { id: string }) => p.id);
+  }
+
+  // Deliberately synchronous — the Supabase query builder is "thenable" (calling .then()
+  // on it fires the request), so returning it from an async function would make `await`
+  // silently unwrap it into the already-executed {data, count} result instead of the
+  // builder, breaking any further chaining like .range() on the caller's side.
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase's PostgrestFilterBuilder
   // generics don't compose cleanly through a shared helper; narrow typing happens at the call sites.
-  async function applyFilters(query: any) {
+  function applyFilters(query: any, term: string, userIds: string[]) {
     let q = query;
     if (filters.session) q = q.eq('session_id', filters.session);
     if (filters.bookingStatus) q = q.eq('booking_status', filters.bookingStatus);
     if (filters.paymentStatus) q = q.eq('payment_status', filters.paymentStatus);
 
-    const term = sanitizeSearchTerm(filters.search);
     if (term) {
-      // Booking reference and guest name/phone live on this table; the booker's own
-      // name/phone live on the joined profile, so resolve matching profile ids first,
-      // then OR everything into one filter.
-      const { data: matchedProfiles } = await supabase
-        .from('profiles')
-        .select('id')
-        .or(`full_name.ilike.%${term}%,phone_number.ilike.%${term}%`);
-      const userIds = (matchedProfiles || []).map((p: { id: string }) => p.id);
       const orParts = [`booking_reference.ilike.%${term}%`, `guest_name.ilike.%${term}%`, `guest_phone.ilike.%${term}%`];
       if (userIds.length > 0) orParts.push(`user_id.in.(${userIds.join(',')})`);
       q = q.or(orParts.join(','));
+    }
+    // Only apply the default cancelled-hiding when the admin hasn't explicitly asked
+    // for a specific status — an explicit "Cancelled by Player" filter should still work.
+    if (hideCancelled && !filters.bookingStatus) {
+      q = q.not('booking_status', 'in', '("Cancelled by Player","Cancelled by Admin")');
     }
     return q;
   }
@@ -75,12 +86,14 @@ export default function AdminBookingsPage() {
     setLoading(true);
     const from = page * PAGE_SIZE;
     const to = from + PAGE_SIZE - 1;
+    const term = sanitizeSearchTerm(filters.search);
+    const userIds = term ? await getSearchUserIds(term) : [];
 
     let query = supabase
       .from('bookings')
       .select('*, session:sessions(*), profile:profiles(*)', { count: 'exact' })
       .order('created_at', { ascending: false });
-    query = await applyFilters(query);
+    query = applyFilters(query, term, userIds);
 
     const { data, count } = await query.range(from, to);
     setBookings((data || []) as unknown as AdminBooking[]);
@@ -101,15 +114,17 @@ export default function AdminBookingsPage() {
     const handle = setTimeout(() => { load(); }, 300);
     return () => clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, filters.search, filters.session, filters.bookingStatus, filters.paymentStatus]);
+  }, [page, filters.search, filters.session, filters.bookingStatus, filters.paymentStatus, hideCancelled]);
 
   async function exportCSV() {
     setExporting(true);
+    const term = sanitizeSearchTerm(filters.search);
+    const userIds = term ? await getSearchUserIds(term) : [];
     let query = supabase
       .from('bookings')
       .select('*, session:sessions(*), profile:profiles(*)')
       .order('created_at', { ascending: false });
-    query = await applyFilters(query);
+    query = applyFilters(query, term, userIds);
     const { data } = await query;
     const rows = ((data || []) as unknown as AdminBooking[]).map((b) => [
       b.booking_reference,
@@ -237,7 +252,7 @@ export default function AdminBookingsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Booking Management</h1>
           <p className="text-slate-500 text-sm mt-1">View, search, and manage all bookings</p>
         </div>
-        <button onClick={exportCSV} disabled={exporting} className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-50 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors disabled:opacity-60">
+        <button onClick={exportCSV} disabled={exporting} className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors disabled:opacity-60">
           {exporting ? <Spinner className="h-5 w-5" /> : <Download className="h-5 w-5" />}
           {exporting ? 'Exporting...' : 'Export CSV'}
         </button>
@@ -261,6 +276,15 @@ export default function AdminBookingsPage() {
           <option value="">All payment statuses</option>
           {['Pending', 'Paid', 'Failed', 'Cancelled', 'Refunded', 'Partially Refunded', 'Manual Payment Pending Verification'].map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
+        <label className="flex items-center gap-2 text-sm text-slate-600 sm:col-span-2 lg:col-span-4">
+          <input
+            type="checkbox"
+            checked={hideCancelled}
+            onChange={(e) => { setPage(0); setHideCancelled(e.target.checked); }}
+            className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+          />
+          Hide cancelled bookings
+        </label>
       </div>
 
       {bookings.length === 0 ? (
