@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Search, Download, Eye, RefreshCw, XCircle, DollarSign, RotateCcw } from 'lucide-react';
+import { Search, Download, Eye, RefreshCw, XCircle, DollarSign, RotateCcw, ChevronLeft, ChevronRight, Receipt } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
-import { formatCurrency, formatDate, formatTime, formatDateTime } from '@/lib/format';
+import { bookingDisplayName, formatCurrency, formatDate, formatTime, formatDateTime } from '@/lib/format';
+import { getReceiptSignedUrl } from '@/lib/receipts';
 import { notifyGroup } from '@/lib/notifications';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -14,50 +15,107 @@ interface AdminBooking extends Booking {
   profile: Profile;
 }
 
+const PAGE_SIZE = 20;
+
+// Search text is spliced into a PostgREST .or() filter string, where commas and
+// parentheses are syntax. Strip anything but safe search characters so a stray
+// comma can't break the query (RLS still bounds what admins can see either way).
+function sanitizeSearchTerm(raw: string): string {
+  return raw.replace(/[^a-zA-Z0-9 _-]/g, '').trim();
+}
+
 export default function AdminBookingsPage() {
   const { show } = useToast();
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
+  const [totalCount, setTotalCount] = useState(0);
+  const [page, setPage] = useState(0);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({ search: '', session: '', bookingStatus: '', paymentStatus: '' });
   const [selected, setSelected] = useState<AdminBooking | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
   const [amountInput, setAmountInput] = useState('');
+  const [exporting, setExporting] = useState(false);
+  const [viewingReceipt, setViewingReceipt] = useState(false);
+
+  async function viewReceipt(path: string) {
+    setViewingReceipt(true);
+    const url = await getReceiptSignedUrl(path, 3600);
+    setViewingReceipt(false);
+    if (!url) { show('Failed to load receipt', 'error'); return; }
+    window.open(url, '_blank', 'noopener,noreferrer');
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- Supabase's PostgrestFilterBuilder
+  // generics don't compose cleanly through a shared helper; narrow typing happens at the call sites.
+  async function applyFilters(query: any) {
+    let q = query;
+    if (filters.session) q = q.eq('session_id', filters.session);
+    if (filters.bookingStatus) q = q.eq('booking_status', filters.bookingStatus);
+    if (filters.paymentStatus) q = q.eq('payment_status', filters.paymentStatus);
+
+    const term = sanitizeSearchTerm(filters.search);
+    if (term) {
+      // Booking reference and guest name/phone live on this table; the booker's own
+      // name/phone live on the joined profile, so resolve matching profile ids first,
+      // then OR everything into one filter.
+      const { data: matchedProfiles } = await supabase
+        .from('profiles')
+        .select('id')
+        .or(`full_name.ilike.%${term}%,phone_number.ilike.%${term}%`);
+      const userIds = (matchedProfiles || []).map((p: { id: string }) => p.id);
+      const orParts = [`booking_reference.ilike.%${term}%`, `guest_name.ilike.%${term}%`, `guest_phone.ilike.%${term}%`];
+      if (userIds.length > 0) orParts.push(`user_id.in.(${userIds.join(',')})`);
+      q = q.or(orParts.join(','));
+    }
+    return q;
+  }
 
   async function load() {
-    const { data } = await supabase
+    setLoading(true);
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    let query = supabase
       .from('bookings')
-      .select('*, session:sessions(*), profile:profiles(*)')
+      .select('*, session:sessions(*), profile:profiles(*)', { count: 'exact' })
       .order('created_at', { ascending: false });
+    query = await applyFilters(query);
+
+    const { data, count } = await query.range(from, to);
     setBookings((data || []) as unknown as AdminBooking[]);
-    const { data: sess } = await supabase.from('sessions').select('*').order('session_date', { ascending: false });
-    setSessions((sess || []) as Session[]);
+    setTotalCount(count ?? 0);
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    supabase.from('sessions').select('*').order('session_date', { ascending: false }).then(({ data }) => {
+      setSessions((data || []) as Session[]);
+    });
+  }, []);
 
-  const filtered = bookings.filter((b) => {
-    if (filters.search) {
-      const q = filters.search.toLowerCase();
-      const match = b.booking_reference.toLowerCase().includes(q) ||
-        b.session.title.toLowerCase().includes(q) ||
-        b.profile.full_name.toLowerCase().includes(q) ||
-        (b.profile.phone_number || '').includes(q);
-      if (!match) return false;
-    }
-    if (filters.session && b.session_id !== filters.session) return false;
-    if (filters.bookingStatus && b.booking_status !== filters.bookingStatus) return false;
-    if (filters.paymentStatus && b.payment_status !== filters.paymentStatus) return false;
-    return true;
-  });
+  // Single debounced trigger for every filter + page change. The debounce is
+  // short enough to feel instant for dropdown clicks while still coalescing
+  // keystrokes in the search box into one query instead of one per key.
+  useEffect(() => {
+    const handle = setTimeout(() => { load(); }, 300);
+    return () => clearTimeout(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, filters.search, filters.session, filters.bookingStatus, filters.paymentStatus]);
 
-  function exportCSV() {
-    const headers = ['Reference', 'Player', 'Phone', 'Session', 'Date', 'Booking Status', 'Payment Status', 'Total Amount', 'Created At'];
-    const rows = filtered.map((b) => [
+  async function exportCSV() {
+    setExporting(true);
+    let query = supabase
+      .from('bookings')
+      .select('*, session:sessions(*), profile:profiles(*)')
+      .order('created_at', { ascending: false });
+    query = await applyFilters(query);
+    const { data } = await query;
+    const rows = ((data || []) as unknown as AdminBooking[]).map((b) => [
       b.booking_reference,
-      b.profile.full_name,
-      b.profile.phone_number || '',
+      bookingDisplayName(b, b.profile),
+      (b.is_guest ? b.guest_phone : b.profile.phone_number) || '',
+      b.is_guest ? `${b.profile.short_name || b.profile.full_name} (booker)` : '',
       b.session.title,
       b.session.session_date,
       b.booking_status,
@@ -65,6 +123,9 @@ export default function AdminBookingsPage() {
       b.total_amount.toFixed(2),
       b.created_at,
     ]);
+    setExporting(false);
+
+    const headers = ['Reference', 'Player', 'Phone', 'Booked By (if guest)', 'Session', 'Date', 'Booking Status', 'Payment Status', 'Total Amount', 'Created At'];
     const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -155,7 +216,7 @@ export default function AdminBookingsPage() {
     setSelected(null);
   }
 
-  if (loading) {
+  if (loading && bookings.length === 0) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Spinner className="h-8 w-8 text-orange-500" />
@@ -165,6 +226,9 @@ export default function AdminBookingsPage() {
 
   const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none';
   const isTbc = !!selected && selected.total_amount === 0 && selected.payment_status !== 'Paid';
+  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const rangeStart = totalCount === 0 ? 0 : page * PAGE_SIZE + 1;
+  const rangeEnd = Math.min(totalCount, (page + 1) * PAGE_SIZE);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -173,33 +237,33 @@ export default function AdminBookingsPage() {
           <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Booking Management</h1>
           <p className="text-slate-500 text-sm mt-1">View, search, and manage all bookings</p>
         </div>
-        <button onClick={exportCSV} className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors">
-          <Download className="h-5 w-5" />
-          Export CSV
+        <button onClick={exportCSV} disabled={exporting} className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-50 hover:bg-slate-700 text-white font-bold rounded-xl transition-colors disabled:opacity-60">
+          {exporting ? <Spinner className="h-5 w-5" /> : <Download className="h-5 w-5" />}
+          {exporting ? 'Exporting...' : 'Export CSV'}
         </button>
       </div>
 
       {/* Filters */}
       <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="relative sm:col-span-2 lg:col-span-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input placeholder="Search name, phone, ref..." className={`${inputClass} pl-9`} value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <input placeholder="Search name, phone, ref..." className={`${inputClass} pl-9`} value={filters.search} onChange={(e) => { setPage(0); setFilters({ ...filters, search: e.target.value }); }} />
         </div>
-        <select className={inputClass} value={filters.session} onChange={(e) => setFilters({ ...filters, session: e.target.value })}>
+        <select className={inputClass} value={filters.session} onChange={(e) => { setPage(0); setFilters({ ...filters, session: e.target.value }); }}>
           <option value="">All sessions</option>
           {sessions.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
         </select>
-        <select className={inputClass} value={filters.bookingStatus} onChange={(e) => setFilters({ ...filters, bookingStatus: e.target.value })}>
+        <select className={inputClass} value={filters.bookingStatus} onChange={(e) => { setPage(0); setFilters({ ...filters, bookingStatus: e.target.value }); }}>
           <option value="">All booking statuses</option>
           {['Pending Payment', 'Confirmed', 'Cancelled by Player', 'Cancelled by Admin', 'Completed', 'No Show', 'Refunded'].map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        <select className={inputClass} value={filters.paymentStatus} onChange={(e) => setFilters({ ...filters, paymentStatus: e.target.value })}>
+        <select className={inputClass} value={filters.paymentStatus} onChange={(e) => { setPage(0); setFilters({ ...filters, paymentStatus: e.target.value }); }}>
           <option value="">All payment statuses</option>
           {['Pending', 'Paid', 'Failed', 'Cancelled', 'Refunded', 'Partially Refunded', 'Manual Payment Pending Verification'].map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
       </div>
 
-      {filtered.length === 0 ? (
+      {bookings.length === 0 ? (
         <div className="text-center py-16">
           <p className="text-slate-500">No bookings found.</p>
         </div>
@@ -207,7 +271,7 @@ export default function AdminBookingsPage() {
         <>
         {/* Mobile card list */}
         <div className="sm:hidden space-y-3">
-          {filtered.map((b) => (
+          {bookings.map((b) => (
             <button
               key={b.id}
               onClick={() => { setSelected(b); setAmountInput(b.total_amount.toString()); }}
@@ -215,15 +279,19 @@ export default function AdminBookingsPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-semibold text-slate-900 text-sm truncate">{b.profile.full_name}</p>
-                  <p className="text-xs text-slate-500">{b.profile.phone_number || 'N/A'}</p>
-                  <p className="font-mono text-xs text-slate-400 mt-1">{b.booking_reference}</p>
+                  <p className="font-semibold text-slate-900 text-sm truncate">
+                    {bookingDisplayName(b, b.profile)}
+                    {b.is_guest && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium align-middle">Guest</span>}
+                  </p>
+                  <p className="text-xs text-slate-500">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
+                  <p className="font-mono text-xs text-slate-500 mt-1">{b.booking_reference}</p>
                 </div>
                 <p className="text-sm font-bold text-slate-900 flex-shrink-0">{formatCurrency(b.total_amount)}</p>
               </div>
               <p className="text-xs text-slate-500 mt-2 truncate">{b.session.title} · {formatDate(b.session.session_date)}</p>
-              <div className="mt-2">
+              <div className="mt-2 flex items-center gap-2">
                 <StatusBadge status={b.booking_status} />
+                {b.receipt_path && <Receipt className="h-3.5 w-3.5 text-blue-500" />}
               </div>
             </button>
           ))}
@@ -244,17 +312,23 @@ export default function AdminBookingsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {filtered.map((b) => (
+              {bookings.map((b) => (
                 <tr key={b.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 font-mono text-xs text-slate-900">{b.booking_reference}</td>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-slate-900 text-sm">{b.profile.full_name}</p>
-                    <p className="text-xs text-slate-500">{b.profile.phone_number || 'N/A'}</p>
+                    <p className="font-medium text-slate-900 text-sm">
+                      {bookingDisplayName(b, b.profile)}
+                      {b.is_guest && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium align-middle">Guest</span>}
+                    </p>
+                    <p className="text-xs text-slate-500">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell text-sm text-slate-600">{b.session.title}</td>
                   <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-600">{formatDate(b.session.session_date)}</td>
                   <td className="px-4 py-3 text-center">
-                    <StatusBadge status={b.booking_status} />
+                    <div className="inline-flex items-center gap-1.5">
+                      <StatusBadge status={b.booking_status} />
+                      {b.receipt_path && <Receipt className="h-3.5 w-3.5 text-blue-500" />}
+                    </div>
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-bold text-slate-900">{formatCurrency(b.total_amount)}</td>
                   <td className="px-4 py-3 text-right">
@@ -267,6 +341,28 @@ export default function AdminBookingsPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
+        <div className="flex items-center justify-between mt-4 text-sm text-slate-500">
+          <span>Showing {rangeStart}–{rangeEnd} of {totalCount}</span>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setPage((p) => Math.max(0, p - 1))}
+              disabled={page === 0 || loading}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              <ChevronLeft className="h-4 w-4" /> Previous
+            </button>
+            <span className="px-2">Page {page + 1} of {totalPages}</span>
+            <button
+              onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
+              disabled={page + 1 >= totalPages || loading}
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              Next <ChevronRight className="h-4 w-4" />
+            </button>
+          </div>
+        </div>
         </>
       )}
 
@@ -274,7 +370,7 @@ export default function AdminBookingsPage() {
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 py-4 overflow-y-auto" onClick={() => setSelected(null)}>
           <div className="bg-white rounded-2xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
-            <div className="bg-slate-950 p-5 sticky top-0 z-10">
+            <div className="bg-slate-900 p-5 sticky top-0 z-10">
               <div className="flex items-center justify-between">
                 <div>
                   <h2 className="text-lg font-bold text-white">Booking Details</h2>
@@ -289,10 +385,16 @@ export default function AdminBookingsPage() {
             <div className="p-6 space-y-5">
               {/* Player */}
               <div>
-                <h3 className="font-bold text-slate-900 mb-2 text-sm">Player</h3>
+                <h3 className="font-bold text-slate-900 mb-2 text-sm flex items-center gap-2">
+                  Player
+                  {selected.is_guest && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium">Guest</span>}
+                </h3>
                 <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
-                  <p><span className="text-slate-500">Name:</span> <span className="font-medium">{selected.profile.full_name}</span></p>
-                  <p><span className="text-slate-500">Phone:</span> <span className="font-medium">{selected.profile.phone_number || 'N/A'}</span></p>
+                  <p><span className="text-slate-500">Name:</span> <span className="font-medium">{bookingDisplayName(selected, selected.profile)}</span></p>
+                  <p><span className="text-slate-500">Phone:</span> <span className="font-medium">{(selected.is_guest ? selected.guest_phone : selected.profile.phone_number) || 'N/A'}</span></p>
+                  {selected.is_guest && (
+                    <p><span className="text-slate-500">Booked by:</span> <span className="font-medium">{selected.profile.short_name || selected.profile.full_name}</span></p>
+                  )}
                 </div>
               </div>
 
@@ -331,6 +433,26 @@ export default function AdminBookingsPage() {
                   <div className="flex justify-between pt-2 border-t border-slate-200"><span className="text-slate-500">Status</span><StatusBadge status={selected.booking_status} /></div>
                 </div>
               </div>
+
+              {/* Payment receipt */}
+              {selected.receipt_path && (
+                <div>
+                  <h3 className="font-bold text-slate-900 mb-2 text-sm">Payment Receipt</h3>
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm flex items-center justify-between gap-2">
+                    <span className="text-blue-800">
+                      {selected.receipt_uploaded_at ? `Uploaded ${formatDateTime(selected.receipt_uploaded_at)}` : 'Receipt uploaded'}
+                    </span>
+                    <button
+                      onClick={() => viewReceipt(selected.receipt_path!)}
+                      disabled={viewingReceipt}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-60 flex-shrink-0"
+                    >
+                      <Receipt className="h-3.5 w-3.5" />
+                      {viewingReceipt ? 'Loading...' : 'View Receipt'}
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {selected.cancelled_at && (
                 <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm">
@@ -403,7 +525,7 @@ function AdminNotes({ booking, onUpdate }: { booking: AdminBooking; onUpdate: ()
     <div>
       <h3 className="font-bold text-slate-900 mb-2 text-sm">Admin Notes</h3>
       <textarea
-        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
         rows={2}
         value={notes}
         onChange={(e) => setNotes(e.target.value)}

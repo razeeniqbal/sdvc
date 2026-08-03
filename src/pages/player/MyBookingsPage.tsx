@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock, MapPin, Ticket, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
@@ -15,6 +16,7 @@ interface BookingWithSession extends Booking {
 type Tab = 'upcoming' | 'past' | 'cancelled' | 'all';
 
 export default function MyBookingsPage() {
+  const { t } = useTranslation();
   const { profile } = useAuth();
   const [loading, setLoading] = useState(true);
   const [bookings, setBookings] = useState<BookingWithSession[]>([]);
@@ -57,36 +59,36 @@ export default function MyBookingsPage() {
   }
 
   const tabs: { key: Tab; label: string }[] = [
-    { key: 'upcoming', label: 'Upcoming' },
-    { key: 'past', label: 'Past Sessions' },
-    { key: 'cancelled', label: 'Cancelled' },
-    { key: 'all', label: 'All' },
+    { key: 'upcoming', label: t('myBookings.tabUpcoming') },
+    { key: 'past', label: t('myBookings.tabPast') },
+    { key: 'cancelled', label: t('myBookings.tabCancelled') },
+    { key: 'all', label: t('myBookings.tabAll') },
   ];
 
   return (
     <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">My Bookings</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">{t('myBookings.title')}</h1>
 
       {/* Tabs */}
       <div className="flex flex-wrap gap-2 mb-4">
-        {tabs.map((t) => (
+        {tabs.map((tb) => (
           <button
-            key={t.key}
-            onClick={() => setTab(t.key)}
+            key={tb.key}
+            onClick={() => setTab(tb.key)}
             className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              tab === t.key ? 'bg-orange-500 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
+              tab === tb.key ? 'bg-orange-500 text-white' : 'bg-white text-slate-600 border border-slate-200 hover:bg-slate-50'
             }`}
           >
-            {t.label}
+            {tb.label}
           </button>
         ))}
       </div>
 
       {/* Search */}
       <div className="relative mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
         <input
-          placeholder="Search by booking reference or session name..."
+          placeholder={t('myBookings.searchPlaceholder')}
           className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -98,10 +100,10 @@ export default function MyBookingsPage() {
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-4">
             <Ticket className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1">No bookings found</h3>
-          <p className="text-slate-500 text-sm mb-4">Browse sessions and book your next game.</p>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1">{t('myBookings.noBookingsFound')}</h3>
+          <p className="text-slate-500 text-sm mb-4">{t('myBookings.browseAndBook')}</p>
           <Link to="/sessions" className="inline-flex items-center gap-2 px-5 py-2.5 bg-orange-500 hover:bg-orange-600 text-white font-bold rounded-xl transition-colors">
-            Browse Sessions
+            {t('myBookings.browseSessions')}
           </Link>
         </div>
       ) : (
@@ -116,7 +118,12 @@ export default function MyBookingsPage() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-slate-900 truncate">{b.session.title}</p>
-                    <span className="font-mono text-xs text-slate-400">{b.booking_reference}</span>
+                    <span className="font-mono text-xs text-slate-500">{b.booking_reference}</span>
+                    {b.is_guest && (
+                      <span className="flex-shrink-0 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium">
+                        {t('myBookings.bookingFor', { name: b.guest_name })}
+                      </span>
+                    )}
                   </div>
                   <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
                     <span className="flex items-center gap-1"><CalendarDays className="h-3.5 w-3.5" />{formatDate(b.session.session_date)}</span>

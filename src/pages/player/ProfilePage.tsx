@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react';
+import { useTranslation } from 'react-i18next';
 import { User, Phone, AlertCircle, Save } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyProfileError } from '@/lib/auth';
@@ -7,6 +8,7 @@ import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
 
 export default function ProfilePage() {
+  const { t } = useTranslation();
   const { profile, refreshProfile } = useAuth();
   const { show } = useToast();
   const [saving, setSaving] = useState(false);
@@ -32,7 +34,7 @@ export default function ProfilePage() {
     setSaving(false);
     if (error) { show(friendlyProfileError(error), 'error'); return; }
     refreshProfile();
-    show('Profile updated!', 'success');
+    show(t('profile.profileUpdated'), 'success');
   }
 
   if (!profile) return null;
@@ -43,14 +45,14 @@ export default function ProfilePage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">My Profile</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">{t('profile.title')}</h1>
 
       {!isComplete && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-start gap-3">
           <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
           <div>
-            <p className="font-semibold text-amber-900 text-sm">Complete your profile</p>
-            <p className="text-amber-700 text-sm mt-0.5">Fill in your phone number to book sessions.</p>
+            <p className="font-semibold text-amber-900 text-sm">{t('profile.completeProfile')}</p>
+            <p className="text-amber-700 text-sm mt-0.5">{t('profile.completeProfileDesc')}</p>
           </div>
         </div>
       )}
@@ -62,11 +64,11 @@ export default function ProfilePage() {
           </div>
           <div>
             <p className="font-bold text-slate-900 text-lg">{profile.short_name || profile.full_name}</p>
-            <p className="text-sm text-slate-500 flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{profile.phone_number || 'No phone number'}</p>
+            <p className="text-sm text-slate-500 flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{profile.phone_number || t('profile.noPhoneNumber')}</p>
             <p className="text-sm text-slate-500 flex items-center gap-1.5 mt-0.5">
               <User className="h-3.5 w-3.5" />
               <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${profile.role === 'admin' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
-                {profile.role === 'admin' ? 'Administrator' : 'Player'}
+                {profile.role === 'admin' ? t('profile.administrator') : t('profile.player')}
               </span>
             </p>
           </div>
@@ -75,34 +77,34 @@ export default function ProfilePage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Display Name (nickname)</label>
+              <label className={labelClass}>{t('profile.displayNameLabel')}</label>
               <input className={inputClass} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} required />
             </div>
             <div>
-              <label className={labelClass}>Full Name</label>
+              <label className={labelClass}>{t('profile.fullNameLabel')}</label>
               <input className={inputClass} value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} />
             </div>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>Phone Number</label>
+              <label className={labelClass}>{t('profile.phoneNumberLabel')}</label>
               <input className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
             </div>
             <div>
-              <label className={labelClass}>Emergency Contact Name (optional)</label>
+              <label className={labelClass}>{t('profile.emergencyContactNameLabel')}</label>
               <input className={inputClass} value={form.emergency_contact_name} onChange={(e) => setForm({ ...form, emergency_contact_name: e.target.value })} />
             </div>
           </div>
 
           <div>
-            <label className={labelClass}>Emergency Contact Phone (optional)</label>
+            <label className={labelClass}>{t('profile.emergencyContactPhoneLabel')}</label>
             <input className={inputClass} value={form.emergency_contact_phone} onChange={(e) => setForm({ ...form, emergency_contact_phone: e.target.value })} />
           </div>
 
           <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60">
             {saving ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
-            {saving ? 'Saving...' : 'Save Changes'}
+            {saving ? t('profile.saving') : t('profile.saveChanges')}
           </button>
         </form>
       </div>

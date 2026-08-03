@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CalendarDays, Clock, MapPin, Tag, Users, ArrowLeft, CheckCircle2, Info, MessageCircle, Phone, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate, formatTime, getDayName } from '@/lib/format';
@@ -15,7 +16,16 @@ interface SessionPlayer {
   booking_status: BookingStatus;
 }
 
+const sessionStatusKeyMap: Record<string, string> = {
+  Available: 'sessionStatus.available',
+  'Almost Full': 'sessionStatus.almostFull',
+  'Fully Booked': 'sessionStatus.fullyBooked',
+  'Booking Closed': 'sessionStatus.bookingClosed',
+  Cancelled: 'sessionStatus.cancelled',
+};
+
 export default function SessionDetailsPage() {
+  const { t } = useTranslation();
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { show } = useToast();
@@ -31,7 +41,7 @@ export default function SessionDetailsPage() {
     (async () => {
       const { data, error } = await supabase.from('sessions').select('*').eq('id', id).maybeSingle();
       if (error || !data) {
-        show('Session not found', 'error');
+        show(t('sessionDetails.sessionNotFound'), 'error');
         navigate('/sessions');
         return;
       }
@@ -55,7 +65,7 @@ export default function SessionDetailsPage() {
       .eq('status', 'Waiting')
       .maybeSingle();
     if (existing) {
-      show('You are already on the waiting list', 'info');
+      show(t('sessionDetails.alreadyOnWaitlist'), 'info');
       return;
     }
     const { count } = await supabase
@@ -73,7 +83,7 @@ export default function SessionDetailsPage() {
       return;
     }
     setOnWaitlist(true);
-    show('Added to the waiting list! We will notify you if a slot opens up.', 'success');
+    show(t('sessionDetails.addedToWaitlist'), 'success');
   }
 
   if (loading || !session) {
@@ -87,13 +97,14 @@ export default function SessionDetailsPage() {
   const status = getSessionStatus(session, session.confirmed_count);
   const canBook = status === 'Available' || status === 'Almost Full';
   const available = session.maximum_capacity - session.confirmed_count;
-  const requiredItems = ['Sports shoes', 'Water bottle', 'Comfortable sports attire', 'Towel'];
+  const requiredItems = [t('sessionDetails.itemShoes'), t('sessionDetails.itemWaterBottle'), t('sessionDetails.itemAttire'), t('sessionDetails.itemTowel')];
+  const rules = [t('sessionDetails.rule1'), t('sessionDetails.rule2'), t('sessionDetails.rule3'), t('sessionDetails.rule4')];
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <Link to="/sessions" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4">
         <ArrowLeft className="h-4 w-4" />
-        Back to sessions
+        {t('sessionDetails.backToSessions')}
       </Link>
 
       <div className="glass-card rounded-2xl border border-white/50 shadow-sm overflow-hidden">
@@ -109,7 +120,7 @@ export default function SessionDetailsPage() {
               status === 'Fully Booked' ? 'bg-red-100 text-red-700 border-red-200' :
               'bg-slate-100 text-slate-600 border-slate-200'
             }`}>
-              {status}
+              {t(sessionStatusKeyMap[status] || status)}
             </span>
           </div>
         </div>
@@ -117,28 +128,28 @@ export default function SessionDetailsPage() {
         <div className="p-6 sm:p-8 space-y-6">
           {session.description && (
             <div>
-              <h2 className="font-bold text-slate-900 mb-2">About this session</h2>
+              <h2 className="font-bold text-slate-900 mb-2">{t('sessionDetails.aboutSession')}</h2>
               <p className="text-slate-600 leading-relaxed">{session.description}</p>
             </div>
           )}
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <InfoRow icon={CalendarDays} label="Date" value={formatDate(session.session_date)} />
-            <InfoRow icon={Clock} label="Time" value={`${formatTime(session.start_time)} - ${formatTime(session.end_time)}`} />
-            <InfoRow icon={MapPin} label="Venue" value={session.venue_name} />
-            <InfoRow icon={Tag} label="Court" value={session.court_number || 'Not specified'} />
-            <InfoRow icon={Users} label="Capacity" value={`${session.confirmed_count} / ${session.maximum_capacity} (${available} slots left)`} />
+            <InfoRow icon={CalendarDays} label={t('sessionDetails.dateLabel')} value={formatDate(session.session_date)} />
+            <InfoRow icon={Clock} label={t('sessionDetails.timeLabel')} value={`${formatTime(session.start_time)} - ${formatTime(session.end_time)}`} />
+            <InfoRow icon={MapPin} label={t('sessionDetails.venueLabel')} value={session.venue_name} />
+            <InfoRow icon={Tag} label={t('sessionDetails.courtLabel')} value={session.court_number || t('common.notSpecified')} />
+            <InfoRow icon={Users} label={t('sessionDetails.capacityLabel')} value={t('sessionDetails.capacityValue', { confirmed: session.confirmed_count, max: session.maximum_capacity, available })} />
           </div>
 
           {players.length > 0 && (
             <div>
               <h2 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <Users className="h-5 w-5 text-rose-500" /> Who's Playing ({players.length})
+                <Users className="h-5 w-5 text-rose-500" /> {t('sessionDetails.whosPlaying', { count: players.length })}
               </h2>
               <div className="space-y-1.5">
                 {players.map((p, i) => (
                   <div key={i} className="flex items-center justify-between gap-2 bg-slate-50 rounded-xl px-3 py-2">
-                    <span className="flex items-center gap-2 text-sm text-slate-700 min-w-0">
+                    <span className="flex items-center gap-2 text-sm text-slate-600 min-w-0">
                       <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-orange-400 text-white text-[10px] font-bold">
                         {p.display_name.charAt(0).toUpperCase()}
                       </span>
@@ -153,32 +164,31 @@ export default function SessionDetailsPage() {
 
           {session.venue_address && (
             <div>
-              <h2 className="font-bold text-slate-900 mb-2">Venue Address</h2>
+              <h2 className="font-bold text-slate-900 mb-2">{t('sessionDetails.venueAddress')}</h2>
               <p className="text-slate-600">{session.venue_address}</p>
               {session.maps_link && (
                 <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-orange-600 font-medium text-sm mt-2 hover:underline">
                   <MapPin className="h-4 w-4" />
-                  View on Google Maps
+                  {t('sessionDetails.viewOnMaps')}
                 </a>
               )}
             </div>
           )}
 
           <div>
-            <h2 className="font-bold text-slate-900 mb-2">Session Rules</h2>
+            <h2 className="font-bold text-slate-900 mb-2">{t('sessionDetails.sessionRules')}</h2>
             <ul className="space-y-1.5 text-sm text-slate-600">
-              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-rose-500 flex-shrink-0 mt-0.5" /> Please arrive 10 minutes before the session starts.</li>
-              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-rose-500 flex-shrink-0 mt-0.5" /> Cancel at least 24 hours before to free your slot.</li>
-              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-rose-500 flex-shrink-0 mt-0.5" /> All bookings are non-refundable.</li>
-              <li className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-rose-500 flex-shrink-0 mt-0.5" /> Respect all players — we're here for fun!</li>
+              {rules.map((rule) => (
+                <li key={rule} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-rose-500 flex-shrink-0 mt-0.5" /> {rule}</li>
+              ))}
             </ul>
           </div>
 
           <div>
-            <h2 className="font-bold text-slate-900 mb-2">What to Bring</h2>
+            <h2 className="font-bold text-slate-900 mb-2">{t('sessionDetails.whatToBring')}</h2>
             <div className="flex flex-wrap gap-2">
               {requiredItems.map((item) => (
-                <span key={item} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-700">
+                <span key={item} className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 rounded-lg text-sm text-slate-600">
                   <CheckCircle2 className="h-4 w-4 text-green-500" />
                   {item}
                 </span>
@@ -191,7 +201,7 @@ export default function SessionDetailsPage() {
               <div className="flex items-start gap-2">
                 <Info className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-blue-900 text-sm mb-1">Notes from the club</p>
+                  <p className="font-semibold text-blue-900 text-sm mb-1">{t('sessionDetails.notesFromClub')}</p>
                   <p className="text-blue-700 text-sm">{session.notes}</p>
                 </div>
               </div>
@@ -202,17 +212,17 @@ export default function SessionDetailsPage() {
           <div className="bg-green-50 border border-green-200 rounded-xl p-4">
             <div className="flex items-center gap-2 mb-2">
               <Phone className="h-5 w-5 text-green-600" />
-              <p className="font-semibold text-green-900 text-sm">Need help? Contact us</p>
+              <p className="font-semibold text-green-900 text-sm">{t('sessionDetails.needHelp')}</p>
             </div>
             <div className="flex flex-wrap gap-3">
               <a
-                href={whatsappLink(settings?.contact_whatsapp || '0137441727', `Hi, I have a question about the session "${session.title}" on ${formatDate(session.session_date)}.`)}
+                href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('sessionDetails.whatsappQuestion', { title: session.title, date: formatDate(session.session_date) }))}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm font-medium rounded-lg transition-colors"
               >
                 <MessageCircle className="h-4 w-4" />
-                WhatsApp {settings?.contact_whatsapp || '0137441727'}
+                {t('sessionDetails.whatsappBtn', { number: settings?.contact_whatsapp || '0137441727' })}
               </a>
               {settings?.whatsapp_group_link && (
                 <a
@@ -222,7 +232,7 @@ export default function SessionDetailsPage() {
                   className="inline-flex items-center gap-1.5 px-4 py-2 bg-white border border-green-300 hover:bg-green-50 text-green-700 text-sm font-medium rounded-lg transition-colors"
                 >
                   <MessageCircle className="h-4 w-4" />
-                  Join Group
+                  {t('sessionDetails.joinGroup')}
                 </a>
               )}
             </div>
@@ -231,14 +241,14 @@ export default function SessionDetailsPage() {
           <div className="border-t border-slate-200 pt-6">
             <div className="flex items-center justify-between mb-4">
               <div>
-                <p className="text-sm text-slate-500">Price per player</p>
+                <p className="text-sm text-slate-500">{t('sessionDetails.pricePerPlayer')}</p>
                 <p className="text-3xl font-bold text-slate-900">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</p>
-                {session.price === 0 && <p className="text-xs text-amber-600 mt-0.5">Final price depends on turnout — confirmed by admin</p>}
+                {session.price === 0 && <p className="text-xs text-amber-600 mt-0.5">{t('sessionDetails.tbcNote')}</p>}
               </div>
               <div className="text-right text-sm text-slate-500">
-                <p>Booking deadline: {session.booking_close_at ? formatDate(session.booking_close_at) : 'None'}</p>
-                <p>Cancellation deadline: 24h before session</p>
-                <p className="text-rose-600 font-medium">Non-refundable</p>
+                <p>{t('sessionDetails.bookingDeadline', { date: session.booking_close_at ? formatDate(session.booking_close_at) : t('common.none') })}</p>
+                <p>{t('sessionDetails.cancellationDeadline')}</p>
+                <p className="text-rose-600 font-medium">{t('sessionDetails.nonRefundable')}</p>
               </div>
             </div>
 
@@ -247,24 +257,24 @@ export default function SessionDetailsPage() {
                 onClick={() => navigate(`/checkout/${session.id}`)}
                 className="w-full py-4 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all"
               >
-                Book This Session
+                {t('sessionDetails.bookThisSession')}
               </button>
             ) : status === 'Fully Booked' ? (
               onWaitlist ? (
                 <div className="w-full py-4 bg-amber-50 border border-amber-200 text-amber-800 font-bold rounded-xl text-center">
-                  You are on the waiting list
+                  {t('sessionDetails.onWaitlist')}
                 </div>
               ) : (
                 <button
                   onClick={handleJoinWaitlist}
                   className="w-full py-4 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl text-lg transition-colors"
                 >
-                  Join Waiting List
+                  {t('sessionDetails.joinWaitlist')}
                 </button>
               )
             ) : (
               <div className="w-full py-4 bg-slate-100 text-slate-500 font-bold rounded-xl text-center">
-                {status}
+                {t(sessionStatusKeyMap[status] || status)}
               </div>
             )}
           </div>
@@ -277,7 +287,7 @@ export default function SessionDetailsPage() {
 function InfoRow({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3">
-      <Icon className="h-5 w-5 text-slate-400 flex-shrink-0 mt-0.5" />
+      <Icon className="h-5 w-5 text-slate-500 flex-shrink-0 mt-0.5" />
       <div>
         <p className="text-xs text-slate-500">{label}</p>
         <p className="text-sm font-medium text-slate-900">{value}</p>

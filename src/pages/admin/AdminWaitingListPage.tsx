@@ -102,7 +102,7 @@ export default function AdminWaitingListPage() {
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
                       <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{entry.profile.phone_number || 'N/A'}</span>
                     </div>
-                    <p className="text-xs text-slate-400 mt-0.5">Joined {formatDateTime(entry.created_at)}</p>
+                    <p className="text-xs text-slate-500 mt-0.5">Joined {formatDateTime(entry.created_at)}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

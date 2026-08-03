@@ -5,7 +5,7 @@ const bookingStatusStyles: Record<BookingStatus, string> = {
   Confirmed: 'bg-green-100 text-green-800 border-green-200',
   'Cancelled by Player': 'bg-red-100 text-red-700 border-red-200',
   'Cancelled by Admin': 'bg-red-100 text-red-700 border-red-200',
-  Completed: 'bg-blue-100 text-blue-800 border-blue-200',
+  Completed: 'bg-blue-100 text-blue-700 border-blue-200',
   'No Show': 'bg-slate-100 text-slate-600 border-slate-200',
   Refunded: 'bg-purple-100 text-purple-700 border-purple-200',
 };

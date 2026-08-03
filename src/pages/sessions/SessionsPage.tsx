@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CalendarDays, MapPin, Clock, Users, Filter } from 'lucide-react';
 import { fetchSessionsWithCounts, getSessionStatus, type SessionWithCount } from '@/lib/sessions';
 import { formatCurrency, formatDate, formatTime, getDayName } from '@/lib/format';
@@ -13,7 +14,16 @@ const statusStyles: Record<string, string> = {
   Cancelled: 'bg-red-100 text-red-700 border-red-200',
 };
 
+const sessionStatusKeyMap: Record<string, string> = {
+  Available: 'sessionStatus.available',
+  'Almost Full': 'sessionStatus.almostFull',
+  'Fully Booked': 'sessionStatus.fullyBooked',
+  'Booking Closed': 'sessionStatus.bookingClosed',
+  Cancelled: 'sessionStatus.cancelled',
+};
+
 export default function SessionsPage() {
+  const { t } = useTranslation();
   const [sessions, setSessions] = useState<SessionWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
@@ -56,38 +66,38 @@ export default function SessionsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Upcoming Sessions</h1>
-          <p className="text-slate-500 text-sm mt-1">Browse and book your next volleyball session</p>
+          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{t('sessions.title')}</h1>
+          <p className="text-slate-500 text-sm mt-1">{t('sessions.subtitle')}</p>
         </div>
         <button
           onClick={() => setShowFilters(!showFilters)}
-          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-700 hover:bg-slate-50"
+          className="flex items-center gap-2 px-4 py-2 bg-white border border-slate-200 rounded-xl text-sm font-medium text-slate-600 hover:bg-slate-50"
         >
           <Filter className="h-4 w-4" />
-          Filters
+          {t('sessions.filters')}
         </button>
       </div>
 
       {showFilters && (
         <div className="bg-white rounded-xl border border-slate-200 p-4 mb-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Venue</label>
-            <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" value={filters.venue} onChange={(e) => setFilters({ ...filters, venue: e.target.value })}>
-              <option value="">All venues</option>
+            <label className="block text-xs font-medium text-slate-600 mb-1">{t('sessions.venue')}</label>
+            <select className="w-full rounded-lg border border-slate-300 bg-white text-slate-900 px-3 py-2 text-sm" value={filters.venue} onChange={(e) => setFilters({ ...filters, venue: e.target.value })}>
+              <option value="">{t('sessions.allVenues')}</option>
               {venues.map((v) => <option key={v} value={v}>{v}</option>)}
             </select>
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Date</label>
-            <input type="date" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" value={filters.date} onChange={(e) => setFilters({ ...filters, date: e.target.value })} />
+            <label className="block text-xs font-medium text-slate-600 mb-1">{t('sessions.date')}</label>
+            <input type="date" className="w-full rounded-lg border border-slate-300 bg-white text-slate-900 px-3 py-2 text-sm" value={filters.date} onChange={(e) => setFilters({ ...filters, date: e.target.value })} />
           </div>
           <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Availability</label>
-            <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" value={filters.availability} onChange={(e) => setFilters({ ...filters, availability: e.target.value })}>
-              <option value="">Any</option>
-              <option value="available">Available</option>
-              <option value="almost">Almost Full</option>
-              <option value="booked">Fully Booked</option>
+            <label className="block text-xs font-medium text-slate-600 mb-1">{t('sessions.availability')}</label>
+            <select className="w-full rounded-lg border border-slate-300 bg-white text-slate-900 px-3 py-2 text-sm" value={filters.availability} onChange={(e) => setFilters({ ...filters, availability: e.target.value })}>
+              <option value="">{t('sessions.any')}</option>
+              <option value="available">{t('sessionStatus.available')}</option>
+              <option value="almost">{t('sessionStatus.almostFull')}</option>
+              <option value="booked">{t('sessionStatus.fullyBooked')}</option>
             </select>
           </div>
         </div>
@@ -98,8 +108,8 @@ export default function SessionsPage() {
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-4">
             <CalendarDays className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1">No sessions found</h3>
-          <p className="text-slate-500 text-sm">Try adjusting your filters or check back later.</p>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1">{t('sessions.noSessionsFound')}</h3>
+          <p className="text-slate-500 text-sm">{t('sessions.tryAdjusting')}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -124,7 +134,7 @@ export default function SessionsPage() {
                       <p className="text-xs text-slate-500 mt-0.5">{getDayName(session.session_date)}</p>
                     </div>
                     <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${statusStyles[status]}`}>
-                      {status}
+                      {t(sessionStatusKeyMap[status] || status)}
                     </span>
                   </div>
 
@@ -144,19 +154,19 @@ export default function SessionsPage() {
                     <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-slate-400 flex-shrink-0" />
                       <span className={available <= 3 && canBook ? 'text-amber-600 font-semibold' : ''}>
-                        {available} of {session.maximum_capacity} slots left
+                        {t('sessions.slotsLeft', { count: available, max: session.maximum_capacity })}
                       </span>
                     </div>
                   </div>
 
-                  <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
+                  <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
                     <span className="text-2xl font-bold text-slate-900">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</span>
                     <span className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       canBook
                         ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white'
                         : 'bg-slate-100 text-slate-400'
                     }`}>
-                      {canBook ? 'Book Now' : status === 'Fully Booked' ? 'Waitlist' : 'View'}
+                      {canBook ? t('sessions.bookNow') : status === 'Fully Booked' ? t('sessions.waitlist') : t('sessions.view')}
                     </span>
                   </div>
                 </div>

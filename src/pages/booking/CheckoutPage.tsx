@@ -1,17 +1,24 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
-import { ArrowLeft, ShieldCheck, Clock } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
+import { ArrowLeft, ShieldCheck, Clock, UserPlus, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { formatDate, formatTime } from '@/lib/format';
+import { formatCurrency, formatDate, formatTime } from '@/lib/format';
 import { notifyGroup } from '@/lib/notifications';
 import { friendlyProfileError } from '@/lib/auth';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
-import type { Session } from '@/types/database';
+import type { Session, Booking } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
+interface Companion {
+  name: string;
+  phone: string;
+}
+
 export default function CheckoutPage() {
+  const { t } = useTranslation();
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const { profile, refreshProfile } = useAuth();
@@ -25,13 +32,14 @@ export default function CheckoutPage() {
     full_name: '',
     phone_number: '',
   });
+  const [companions, setCompanions] = useState<Companion[]>([]);
 
   useEffect(() => {
     if (!sessionId || !profile) return;
     (async () => {
       const { data, error } = await supabase.from('sessions').select('*').eq('id', sessionId).maybeSingle();
       if (error || !data) {
-        show('Session not found', 'error');
+        show(t('checkout.errorSessionNotFound'), 'error');
         navigate('/sessions');
         return;
       }
@@ -47,25 +55,44 @@ export default function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, profile]);
 
+  function addCompanion() {
+    setCompanions([...companions, { name: '', phone: '' }]);
+  }
+
+  function updateCompanion(i: number, field: keyof Companion, value: string) {
+    setCompanions(companions.map((c, idx) => (idx === i ? { ...c, [field]: value } : c)));
+  }
+
+  function removeCompanion(i: number) {
+    setCompanions(companions.filter((_, idx) => idx !== i));
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!agreed) {
-      show('Please agree to the booking and cancellation policy', 'error');
+      show(t('checkout.errorAgree'), 'error');
+      return;
+    }
+    if (companions.some((c) => !c.name.trim())) {
+      show(t('checkout.errorCompanionName'), 'error');
       return;
     }
     if (!session || !profile) return;
 
     setSubmitting(true);
 
+    const totalSlotsRequested = 1 + companions.length;
+
     // Check capacity before booking. Uses the SECURITY DEFINER count function so the
     // check sees every booking, not just the caller's own (which RLS would otherwise limit to).
     const { data: activeCountData } = await supabase.rpc('confirmed_booking_count', { p_session_id: session.id });
     const activeCount = (activeCountData as number) || 0;
+    const available = session.maximum_capacity - activeCount;
 
-    if (activeCount >= session.maximum_capacity) {
-      show('Sorry, this session is fully booked', 'error');
+    if (totalSlotsRequested > available) {
+      show(available <= 0 ? t('checkout.errorFullyBooked') : t('checkout.errorNotEnoughSlots', { available }), 'error');
       setSubmitting(false);
-      navigate(`/sessions/${session.id}`);
+      if (available <= 0) navigate(`/sessions/${session.id}`);
       return;
     }
 
@@ -75,11 +102,12 @@ export default function CheckoutPage() {
       .select('id')
       .eq('session_id', session.id)
       .eq('user_id', profile.id)
+      .eq('is_guest', false)
       .in('booking_status', ['Pending Payment', 'Confirmed'])
       .maybeSingle();
 
     if (existing) {
-      show('You already have an active booking for this session', 'error');
+      show(t('checkout.errorAlreadyBooked'), 'error');
       setSubmitting(false);
       navigate(`/sessions/${session.id}`);
       return;
@@ -94,31 +122,55 @@ export default function CheckoutPage() {
     if (profileError) show(friendlyProfileError(profileError), 'error');
     refreshProfile();
 
-    // Lock the slot; admin will manually confirm the booking. No processing fee —
+    // Lock the slot(s); admin will manually confirm each booking. No processing fee —
     // payment is collected manually (bank transfer/cash), not via an online processor.
-    const { data: booking, error } = await supabase.from('bookings').insert({
+    // Companions share a booking_group_id purely for display grouping; each still gets
+    // its own row so admins can confirm/cancel and track attendance per person.
+    const bookingGroupId = companions.length > 0 ? crypto.randomUUID() : null;
+    // Every row must set the same keys explicitly — PostgREST's bulk insert sends a
+    // literal NULL (not the column default) for any key missing from a given row when
+    // the batch's rows don't share an identical key set, which trips the is_guest
+    // NOT NULL constraint on the self-booking row as soon as companions are added.
+    const baseRow = {
       session_id: session.id,
-      booking_status: 'Pending Payment',
-      payment_status: 'Manual Payment Pending Verification',
+      booking_status: 'Pending Payment' as const,
+      payment_status: 'Manual Payment Pending Verification' as const,
       subtotal: session.price,
       processing_fee: 0,
       discount_amount: 0,
       total_amount: session.price,
       reserved_until: null,
-    }).select().single();
+      booking_group_id: bookingGroupId,
+      is_guest: false,
+      guest_name: null as string | null,
+      guest_phone: null as string | null,
+    };
+    const rows = [
+      baseRow,
+      ...companions.map((c) => ({
+        ...baseRow,
+        is_guest: true,
+        guest_name: c.name.trim(),
+        guest_phone: c.phone.trim() || null,
+      })),
+    ];
 
-    if (error || !booking) {
-      show(error?.message || 'Failed to create booking', 'error');
+    const { data: bookings, error } = await supabase.from('bookings').insert(rows).select();
+
+    if (error || !bookings || bookings.length === 0) {
+      show(error?.message || t('checkout.errorFailedBooking'), 'error');
       setSubmitting(false);
       return;
     }
 
+    const selfBooking = (bookings as Booking[]).find((b) => !b.is_guest) || (bookings as Booking[])[0];
+
     await supabase.from('notifications').insert({
       user_id: profile.id,
-      booking_id: booking.id,
+      booking_id: selfBooking.id,
       notification_type: 'booking_locked',
       title: 'Slot Locked',
-      message: `Your slot for "${session.title}" is locked under booking ${booking.booking_reference}. The club admin will confirm it shortly.`,
+      message: `Your slot for "${session.title}" is locked under booking ${selfBooking.booking_reference}. The club admin will confirm it shortly.`,
       delivery_channel: 'in_app',
       delivery_status: 'Sent',
       sent_at: new Date().toISOString(),
@@ -128,7 +180,7 @@ export default function CheckoutPage() {
     await notifyGroup(buildRosterMessage(session, roster));
 
     setSubmitting(false);
-    navigate(`/confirmation/${booking.id}`);
+    navigate(`/confirmation/${selfBooking.id}`);
   }
 
   if (loading || !session) {
@@ -141,49 +193,93 @@ export default function CheckoutPage() {
 
   const inputClass = 'w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-colors';
   const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
+  const totalPlayers = 1 + companions.length;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4">
         <ArrowLeft className="h-4 w-4" />
-        Back to session
+        {t('checkout.backToSession')}
       </Link>
 
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">Confirm Your Booking</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">{t('checkout.title')}</h1>
 
       <div className="grid lg:grid-cols-3 gap-6">
         {/* Player details */}
         <div className="lg:col-span-2">
           <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <h2 className="font-bold text-slate-900 mb-4">Player Details</h2>
+            <h2 className="font-bold text-slate-900 mb-4">{t('checkout.playerDetails')}</h2>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="grid sm:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>Display Name</label>
+                  <label className={labelClass}>{t('checkout.displayName')}</label>
                   <input className={inputClass} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} required />
                 </div>
                 <div>
-                  <label className={labelClass}>Phone Number</label>
+                  <label className={labelClass}>{t('checkout.phoneNumber')}</label>
                   <input className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
                 </div>
               </div>
+
+              {/* Companions */}
+              <div className="border-t border-slate-200 pt-4">
+                <h3 className="font-semibold text-slate-900 text-sm">{t('checkout.companionsTitle')}</h3>
+                <p className="text-xs text-slate-500 mb-3">{t('checkout.companionsSubtitle')}</p>
+                <div className="space-y-3">
+                  {companions.map((c, i) => (
+                    <div key={i} className="flex items-start gap-2">
+                      <div className="grid sm:grid-cols-2 gap-2 flex-1">
+                        <input
+                          className={inputClass}
+                          placeholder={t('checkout.companionNamePlaceholder')}
+                          value={c.name}
+                          onChange={(e) => updateCompanion(i, 'name', e.target.value)}
+                        />
+                        <input
+                          className={inputClass}
+                          placeholder={t('checkout.companionPhone')}
+                          value={c.phone}
+                          onChange={(e) => updateCompanion(i, 'phone', e.target.value)}
+                        />
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => removeCompanion(i)}
+                        title={t('checkout.removeCompanion')}
+                        className="mt-2.5 p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={addCompanion}
+                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:text-orange-700"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  {t('checkout.addCompanion')}
+                </button>
+              </div>
+
               {/* Cancellation policy */}
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <div className="flex items-start gap-2 mb-3">
                   <ShieldCheck className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <div>
-                    <p className="font-semibold text-amber-900 text-sm mb-1">Booking & Cancellation Policy</p>
+                    <p className="font-semibold text-amber-900 text-sm mb-1">{t('checkout.policyTitle')}</p>
                     <ul className="text-xs text-amber-800 space-y-1">
-                      <li>• Cancel at least 24 hours before the session to free your slot.</li>
-                      <li>• All bookings are non-refundable.</li>
-                      <li>• Your slot is locked once you submit, pending admin confirmation.</li>
-                      <li>• The club admin will verify your payment and confirm your booking.</li>
+                      <li>• {t('checkout.policyRule1')}</li>
+                      <li>• {t('checkout.policyRule2')}</li>
+                      <li>• {t('checkout.policyRule3')}</li>
+                      <li>• {t('checkout.policyRule4')}</li>
                     </ul>
                   </div>
                 </div>
                 <label className="flex items-start gap-2 cursor-pointer">
                   <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" />
-                  <span className="text-sm text-amber-900">I have read and agree to the club booking and cancellation policy.</span>
+                  <span className="text-sm text-amber-900">{t('checkout.agreeLabel')}</span>
                 </label>
               </div>
 
@@ -193,7 +289,7 @@ export default function CheckoutPage() {
                 className="w-full py-3.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
               >
                 {submitting && <Spinner className="h-5 w-5" />}
-                {submitting ? 'Locking slot...' : 'Lock My Slot'}
+                {submitting ? t('checkout.lockingSlot') : totalPlayers > 1 ? t('checkout.lockSlotsButton', { count: totalPlayers }) : t('checkout.lockMySlot')}
               </button>
             </form>
           </div>
@@ -202,25 +298,35 @@ export default function CheckoutPage() {
         {/* Summary */}
         <div>
           <div className="bg-white rounded-2xl border border-slate-200 p-6 sticky top-20">
-            <h2 className="font-bold text-slate-900 mb-4">Booking Summary</h2>
+            <h2 className="font-bold text-slate-900 mb-4">{t('checkout.bookingSummary')}</h2>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="text-slate-500">Session</p>
+                <p className="text-slate-500">{t('checkout.sessionLabel')}</p>
                 <p className="font-semibold text-slate-900">{session.title}</p>
               </div>
               <div>
-                <p className="text-slate-500">Date & Time</p>
+                <p className="text-slate-500">{t('checkout.dateTimeLabel')}</p>
                 <p className="font-medium text-slate-900">{formatDate(session.session_date)}</p>
                 <p className="text-slate-600">{formatTime(session.start_time)} - {formatTime(session.end_time)}</p>
               </div>
               <div>
-                <p className="text-slate-500">Venue</p>
+                <p className="text-slate-500">{t('checkout.venueLabel')}</p>
                 <p className="font-medium text-slate-900">{session.venue_name}</p>
               </div>
+              <div className="flex justify-between pt-3 border-t border-slate-200">
+                <span className="text-slate-500">{t('checkout.totalPlayers')}</span>
+                <span className="font-semibold text-slate-900">{totalPlayers}</span>
+              </div>
+              {session.price > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t('bookingConfirmation.amountDue')}</span>
+                  <span className="font-bold text-slate-900">{formatCurrency(session.price * totalPlayers)}</span>
+                </div>
+              )}
             </div>
             <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg p-3">
               <Clock className="h-4 w-4 text-orange-500" />
-              Your slot is locked once submitted, pending admin confirmation.
+              {t('checkout.lockedNotice')}
             </div>
           </div>
         </div>

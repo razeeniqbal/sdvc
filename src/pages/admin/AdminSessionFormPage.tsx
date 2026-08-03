@@ -290,7 +290,7 @@ export default function AdminSessionFormPage() {
               <div className="space-y-3">
                 <label className="flex items-center gap-2 cursor-pointer">
                   <input type="checkbox" checked={recurring.enabled} onChange={(e) => setRecurring({ ...recurring, enabled: e.target.checked })} className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" />
-                  <span className="text-sm text-slate-700">Repeat weekly on the same day and time</span>
+                  <span className="text-sm text-slate-600">Repeat weekly on the same day and time</span>
                 </label>
                 {recurring.enabled && (
                   <div>

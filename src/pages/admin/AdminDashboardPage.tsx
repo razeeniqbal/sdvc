@@ -104,7 +104,7 @@ export default function AdminDashboardPage() {
         {/* Weekly bookings chart */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-slate-400" />
+            <BarChart3 className="h-5 w-5 text-slate-500" />
             Weekly Bookings (Last 7 Days)
           </h2>
           <div className="flex items-end justify-between gap-2 h-40">
@@ -122,7 +122,7 @@ export default function AdminDashboardPage() {
         {/* Booking status distribution */}
         <div className="bg-white rounded-2xl border border-slate-200 p-5">
           <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
-            <BarChart3 className="h-5 w-5 text-slate-400" />
+            <BarChart3 className="h-5 w-5 text-slate-500" />
             Booking Status Distribution
           </h2>
           <div className="space-y-3">

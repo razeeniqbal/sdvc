@@ -1,3 +1,12 @@
+import type { Booking, Profile } from '@/types/database';
+
+// Companion bookings carry their own guest_name; self-bookings fall back to
+// the booker's profile (short_name preferred for the casual, first-name-ish feel).
+export function bookingDisplayName(booking: Pick<Booking, 'is_guest' | 'guest_name'>, profile?: Pick<Profile, 'short_name' | 'full_name'> | null): string {
+  if (booking.is_guest && booking.guest_name) return booking.guest_name;
+  return profile?.short_name || profile?.full_name || 'Player';
+}
+
 export function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-MY', {
     style: 'currency',

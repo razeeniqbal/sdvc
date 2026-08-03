@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, XCircle, UserX, Search, QrCode, Users, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
-import { formatDate, formatTime } from '@/lib/format';
+import { bookingDisplayName, formatDate, formatTime } from '@/lib/format';
 import { Spinner } from '@/components/LoadingScreen';
 import { StatusBadge } from '@/components/StatusBadge';
 import type { Session, Booking, Profile, Attendance, AttendanceStatus } from '@/types/database';
@@ -89,7 +89,7 @@ export default function AdminAttendancePage() {
   const filtered = bookings.filter((b) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return b.profile.full_name.toLowerCase().includes(q) || b.booking_reference.toLowerCase().includes(q);
+    return bookingDisplayName(b, b.profile).toLowerCase().includes(q) || b.booking_reference.toLowerCase().includes(q);
   });
 
   const attended = bookings.filter((b) => attendanceMap.get(b.id)?.attendance_status === 'Attended').length;
@@ -132,7 +132,7 @@ export default function AdminAttendancePage() {
             <span className="font-bold text-slate-900">{attended}/{bookings.length}</span>
             <span className="text-slate-500">checked in</span>
           </div>
-          <button className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-500 rounded-lg text-sm font-medium cursor-not-allowed" title="QR check-in coming soon">
+          <button className="inline-flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-400 rounded-lg text-sm font-medium cursor-not-allowed" title="QR check-in coming soon">
             <QrCode className="h-4 w-4" />
             QR Check-in
           </button>
@@ -141,7 +141,7 @@ export default function AdminAttendancePage() {
 
       {/* Search */}
       <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
         <input
           placeholder="Search by name or booking reference..."
           className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
@@ -167,10 +167,13 @@ export default function AdminAttendancePage() {
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-full bg-orange-100 text-orange-600 font-bold text-sm">
-                      {b.profile.full_name.charAt(0).toUpperCase()}
+                      {bookingDisplayName(b, b.profile).charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900">{b.profile.full_name}</p>
+                      <p className="font-semibold text-slate-900">
+                        {bookingDisplayName(b, b.profile)}
+                        {b.is_guest && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium align-middle">Guest</span>}
+                      </p>
                       <div className="flex items-center gap-2 text-xs text-slate-500">
                         <span className="font-mono">{b.booking_reference}</span>
                         <StatusBadge status={b.booking_status} />

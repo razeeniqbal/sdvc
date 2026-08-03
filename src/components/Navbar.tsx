@@ -1,11 +1,14 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Menu, X, CalendarDays, Ticket, User as UserIcon, LogOut, ShieldCheck, Settings } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchClubSettings } from '@/lib/settings';
+import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import type { ClubSettings } from '@/types/database';
 
 export function Navbar() {
+  const { t } = useTranslation();
   const { profile, isAdmin, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -15,9 +18,9 @@ export function Navbar() {
   useEffect(() => { fetchClubSettings().then(setSettings); }, []);
 
   const playerLinks = [
-    { to: '/sessions', label: 'Sessions', icon: CalendarDays },
-    { to: '/bookings', label: 'My Bookings', icon: Ticket },
-    { to: '/profile', label: 'Profile', icon: UserIcon },
+    { to: '/sessions', label: t('nav.sessions'), icon: CalendarDays },
+    { to: '/bookings', label: t('nav.myBookings'), icon: Ticket },
+    { to: '/profile', label: t('nav.profile'), icon: UserIcon },
   ];
 
   const adminLinks = [
@@ -60,17 +63,22 @@ export function Navbar() {
                   );
                 })}
                 <button onClick={handleSignOut} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
-                  <LogOut className="h-4 w-4" /> Sign Out
+                  <LogOut className="h-4 w-4" /> {t('nav.signOut')}
+                </button>
+                <LanguageSwitcher className="ml-1" />
+              </div>
+              <div className="md:hidden flex items-center gap-2">
+                <LanguageSwitcher />
+                <button onClick={() => setOpen(!open)} className="text-slate-300 hover:text-white p-2">
+                  {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
                 </button>
               </div>
-              <button onClick={() => setOpen(!open)} className="md:hidden text-slate-300 hover:text-white p-2">
-                {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-              </button>
             </>
           ) : (
             <div className="flex items-center gap-2">
-              <Link to="/login" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">Log In</Link>
-              <Link to="/register" className="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 rounded-lg transition-all">Sign Up</Link>
+              <LanguageSwitcher />
+              <Link to="/login" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">{t('nav.logIn')}</Link>
+              <Link to="/register" className="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 rounded-lg transition-all">{t('nav.signUp')}</Link>
             </div>
           )}
         </div>
@@ -87,7 +95,7 @@ export function Navbar() {
               );
             })}
             <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10">
-              <LogOut className="h-4 w-4" /> Sign Out
+              <LogOut className="h-4 w-4" /> {t('nav.signOut')}
             </button>
           </div>
         )}

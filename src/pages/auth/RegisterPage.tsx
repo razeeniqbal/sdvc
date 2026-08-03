@@ -1,11 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
 import { Zap } from 'lucide-react';
 
+const CLUB_NAME = 'Volleyball Sdn Bhd';
+
 export default function RegisterPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { show } = useToast();
   const [loading, setLoading] = useState(false);
@@ -14,13 +18,13 @@ export default function RegisterPage() {
 
   function validate(): boolean {
     const e: Record<string, string> = {};
-    if (!form.short_name.trim()) e.short_name = 'Name is required';
+    if (!form.short_name.trim()) e.short_name = t('auth.register.errorNameRequired');
     const digits = form.phone.replace(/[^0-9]/g, '');
-    if (!digits) e.phone = 'Phone number is required';
-    else if (digits.length < 9) e.phone = 'Enter a valid phone number';
-    if (!form.password) e.password = 'Password is required';
-    else if (form.password.length < 6) e.password = 'Password must be at least 6 characters';
-    if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match';
+    if (!digits) e.phone = t('auth.register.errorPhoneRequired');
+    else if (digits.length < 9) e.phone = t('auth.register.errorPhoneInvalid');
+    if (!form.password) e.password = t('auth.register.errorPasswordRequired');
+    else if (form.password.length < 6) e.password = t('auth.register.errorPasswordLength');
+    if (form.password !== form.confirmPassword) e.confirmPassword = t('auth.register.errorPasswordMismatch');
     setErrors(e);
     return Object.keys(e).length === 0;
   }
@@ -43,7 +47,7 @@ export default function RegisterPage() {
 
     if (!res.ok) {
       setLoading(false);
-      show(body.error || 'Failed to create account', 'error');
+      show(body.error || t('auth.register.errorFailedSignup'), 'error');
       return;
     }
 
@@ -51,13 +55,13 @@ export default function RegisterPage() {
     setLoading(false);
     if (error) { show(error.message, 'error'); return; }
 
-    show('Welcome to Volleyball Sdn Bhd! Complete your profile to book sessions.', 'success');
+    show(t('auth.register.welcomeMessage', { clubName: CLUB_NAME }), 'success');
     navigate('/profile');
   }
 
   const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none transition-all bg-white/80';
-  const labelClass = 'block text-sm font-medium text-slate-600 mb-1.5';
-  const errorClass = 'text-rose-500 text-xs mt-1';
+  const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
+  const errorClass = 'text-rose-600 text-xs mt-1';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 flex items-center justify-center px-4 py-8">
@@ -67,40 +71,40 @@ export default function RegisterPage() {
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white mb-3 shadow-lg">
               <Zap className="h-7 w-7" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Join Volleyball Sdn Bhd</h1>
-            <p className="text-slate-500 text-sm mt-1">Just your name, phone number, and password — that's it!</p>
+            <h1 className="text-2xl font-bold text-slate-900">{t('auth.register.title', { clubName: CLUB_NAME })}</h1>
+            <p className="text-slate-500 text-sm mt-1">{t('auth.register.subtitle')}</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className={labelClass}>Your Name</label>
-              <input className={inputClass} placeholder="e.g. Mamat" value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
+              <label className={labelClass}>{t('auth.register.nameLabel')}</label>
+              <input className={inputClass} placeholder={t('auth.register.namePlaceholder')} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
               {errors.short_name && <p className={errorClass}>{errors.short_name}</p>}
             </div>
             <div>
-              <label className={labelClass}>Phone Number</label>
-              <input type="tel" className={inputClass} placeholder="e.g. 0123456789" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <label className={labelClass}>{t('auth.register.phoneLabel')}</label>
+              <input type="tel" className={inputClass} placeholder={t('auth.register.phonePlaceholder')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               {errors.phone && <p className={errorClass}>{errors.phone}</p>}
             </div>
             <div>
-              <label className={labelClass}>Password</label>
-              <input type="password" className={inputClass} placeholder="At least 6 characters" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              <label className={labelClass}>{t('auth.register.passwordLabel')}</label>
+              <input type="password" className={inputClass} placeholder={t('auth.register.passwordPlaceholder')} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               {errors.password && <p className={errorClass}>{errors.password}</p>}
             </div>
             <div>
-              <label className={labelClass}>Confirm Password</label>
+              <label className={labelClass}>{t('auth.register.confirmPasswordLabel')}</label>
               <input type="password" className={inputClass} value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} />
               {errors.confirmPassword && <p className={errorClass}>{errors.confirmPassword}</p>}
             </div>
             <button type="submit" disabled={loading}
               className="w-full py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2">
               {loading && <Spinner className="h-5 w-5" />}
-              {loading ? 'Creating...' : 'Start Playing'}
+              {loading ? t('auth.register.submitting') : t('auth.register.submit')}
             </button>
           </form>
 
           <p className="text-center text-sm text-slate-500 mt-4">
-            Already playing? <Link to="/login" className="text-rose-600 font-semibold hover:underline">Log In</Link>
+            {t('auth.register.alreadyPlaying')} <Link to="/login" className="text-rose-600 font-semibold hover:underline">{t('auth.register.logIn')}</Link>
           </p>
         </div>
       </div>

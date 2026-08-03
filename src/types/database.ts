@@ -84,6 +84,12 @@ export interface Booking {
   cancellation_reason: string | null;
   cancelled_at: string | null;
   admin_notes: string | null;
+  is_guest: boolean;
+  guest_name: string | null;
+  guest_phone: string | null;
+  booking_group_id: string | null;
+  receipt_path: string | null;
+  receipt_uploaded_at: string | null;
   created_at: string;
   updated_at: string;
   session?: Session;
@@ -149,6 +155,7 @@ export interface ClubSettings {
   contact_whatsapp: string;
   whatsapp_group_link: string;
   whatsapp_group_notify: boolean;
+  payment_qr_url: string | null;
 }
 
 export const PAYMENT_METHODS: PaymentMethod[] = [

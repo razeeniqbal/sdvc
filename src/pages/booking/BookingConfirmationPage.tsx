@@ -1,18 +1,23 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Clock as ClockPending, Calendar, Clock, MapPin, Ticket, ArrowRight, CalendarPlus, MessageCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { formatCurrency, formatDate, formatTime } from '@/lib/format';
+import { bookingDisplayName, formatCurrency, formatDate, formatTime } from '@/lib/format';
 import { fetchClubSettings } from '@/lib/settings';
+import { StatusBadge } from '@/components/StatusBadge';
 import type { Booking, Session, Payment, ClubSettings } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
+import { ReceiptUpload } from '@/components/ReceiptUpload';
 
 export default function BookingConfirmationPage() {
+  const { t } = useTranslation();
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [booking, setBooking] = useState<Booking | null>(null);
+  const [groupBookings, setGroupBookings] = useState<Booking[]>([]);
   const [session, setSession] = useState<Session | null>(null);
   const [payment, setPayment] = useState<Payment | null>(null);
   const [settings, setSettings] = useState<ClubSettings | null>(null);
@@ -28,6 +33,12 @@ export default function BookingConfirmationPage() {
         return;
       }
       setBooking(b as Booking);
+      // Companion bookings share a booking_group_id, so pull the rest of the group
+      // (if any) to show the whole party and the combined total on this one page.
+      if (b.booking_group_id) {
+        const { data: group } = await supabase.from('bookings').select('*').eq('booking_group_id', b.booking_group_id).order('created_at', { ascending: true });
+        setGroupBookings((group || []) as Booking[]);
+      }
       const { data: s } = await supabase.from('sessions').select('*').eq('id', b.session_id).maybeSingle();
       setSession(s as Session);
       const { data: p } = await supabase.from('payments').select('*').eq('booking_id', b.id).order('created_at', { ascending: false }).limit(1).maybeSingle();
@@ -59,6 +70,8 @@ export default function BookingConfirmationPage() {
   }
 
   const isConfirmed = booking.booking_status === 'Confirmed';
+  const allBookings = groupBookings.length > 0 ? groupBookings : [booking];
+  const totalAmount = allBookings.reduce((sum, b) => sum + Number(b.total_amount), 0);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -69,44 +82,44 @@ export default function BookingConfirmationPage() {
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20 mb-4">
               <CheckCircle2 className="h-9 w-9 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">Booking Confirmed!</h1>
-            <p className="text-green-100 text-sm">Your slot has been reserved. See you on court!</p>
+            <h1 className="text-2xl font-bold text-white mb-1">{t('bookingConfirmation.bookingConfirmed')}</h1>
+            <p className="text-green-100 text-sm">{t('bookingConfirmation.slotReserved')}</p>
           </div>
         ) : (
           <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 sm:p-8 text-center">
             <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20 mb-4">
               <ClockPending className="h-9 w-9 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">Slot Locked!</h1>
-            <p className="text-amber-50 text-sm">Awaiting admin confirmation. We'll notify you once it's confirmed.</p>
+            <h1 className="text-2xl font-bold text-white mb-1">{t('bookingConfirmation.slotLocked')}</h1>
+            <p className="text-amber-50 text-sm">{t('bookingConfirmation.awaitingConfirmation')}</p>
           </div>
         )}
 
         <div className="p-6 sm:p-8 space-y-6">
           {/* Booking reference */}
           <div className="text-center bg-slate-50 rounded-xl p-4">
-            <p className="text-xs text-slate-500 mb-1">Booking Reference</p>
+            <p className="text-xs text-slate-500 mb-1">{t('bookingConfirmation.bookingReference')}</p>
             <p className="text-2xl font-mono font-bold text-slate-900">{booking.booking_reference}</p>
           </div>
 
           {/* Session info */}
           <div>
-            <h2 className="font-bold text-slate-900 mb-3">Session Information</h2>
+            <h2 className="font-bold text-slate-900 mb-3">{t('bookingConfirmation.sessionInformation')}</h2>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-slate-600">
-                <Ticket className="h-4 w-4 text-slate-400" />
+                <Ticket className="h-4 w-4 text-slate-500" />
                 <span className="font-medium text-slate-900">{session.title}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-600">
-                <Calendar className="h-4 w-4 text-slate-400" />
+                <Calendar className="h-4 w-4 text-slate-500" />
                 <span>{formatDate(session.session_date)}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-600">
-                <Clock className="h-4 w-4 text-slate-400" />
+                <Clock className="h-4 w-4 text-slate-500" />
                 <span>{formatTime(session.start_time)} - {formatTime(session.end_time)}</span>
               </div>
               <div className="flex items-center gap-2 text-slate-600">
-                <MapPin className="h-4 w-4 text-slate-400" />
+                <MapPin className="h-4 w-4 text-slate-500" />
                 <span>{session.venue_name} {session.court_number && `· ${session.court_number}`}</span>
               </div>
             </div>
@@ -114,41 +127,65 @@ export default function BookingConfirmationPage() {
 
           {/* Player info */}
           <div>
-            <h2 className="font-bold text-slate-900 mb-3">Player Information</h2>
-            <div className="space-y-1 text-sm text-slate-600">
-              <p><span className="text-slate-500">Name:</span> <span className="font-medium text-slate-900">{profile?.full_name}</span></p>
-              <p><span className="text-slate-500">Phone:</span> <span className="font-medium text-slate-900">{profile?.phone_number || 'N/A'}</span></p>
-            </div>
+            <h2 className="font-bold text-slate-900 mb-3">
+              {allBookings.length > 1 ? `${t('bookingConfirmation.playerInformation')} (${allBookings.length})` : t('bookingConfirmation.playerInformation')}
+            </h2>
+            {allBookings.length > 1 ? (
+              <div className="space-y-1.5">
+                {allBookings.map((b) => (
+                  <div key={b.id} className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg px-3 py-2 text-sm">
+                    <span className="font-medium text-slate-900 truncate">{bookingDisplayName(b, profile)}</span>
+                    <StatusBadge status={b.booking_status} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="space-y-1 text-sm text-slate-600">
+                <p><span className="text-slate-500">{t('bookingConfirmation.nameLabel')}</span> <span className="font-medium text-slate-900">{profile?.full_name}</span></p>
+                <p><span className="text-slate-500">{t('bookingConfirmation.phoneLabel')}</span> <span className="font-medium text-slate-900">{profile?.phone_number || t('common.na')}</span></p>
+              </div>
+            )}
           </div>
 
           {/* Payment info */}
           <div>
-            <h2 className="font-bold text-slate-900 mb-3">Payment Information</h2>
+            <h2 className="font-bold text-slate-900 mb-3">{t('bookingConfirmation.paymentInformation')}</h2>
             <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-slate-500">Status</span>
+                <span className="text-slate-500">{t('bookingConfirmation.statusLabel')}</span>
                 <span className={`font-semibold ${isConfirmed ? 'text-green-600' : 'text-amber-600'}`}>
-                  {isConfirmed ? 'Paid' : 'Pending Verification'}
+                  {isConfirmed ? t('bookingConfirmation.paid') : t('bookingConfirmation.pendingVerification')}
                 </span>
               </div>
               {isConfirmed && (
                 <>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Method</span>
-                    <span className="font-medium text-slate-900">{payment?.payment_method || 'N/A'}</span>
+                    <span className="text-slate-500">{t('bookingConfirmation.methodLabel')}</span>
+                    <span className="font-medium text-slate-900">{payment?.payment_method || t('common.na')}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-slate-500">Reference</span>
-                    <span className="font-mono text-slate-900">{payment?.transaction_reference || 'N/A'}</span>
+                    <span className="text-slate-500">{t('bookingConfirmation.referenceLabel')}</span>
+                    <span className="font-mono text-slate-900">{payment?.transaction_reference || t('common.na')}</span>
                   </div>
                 </>
               )}
+              {allBookings.length > 1 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-500">{t('checkout.totalPlayers')}</span>
+                  <span className="font-medium text-slate-900">{allBookings.length}</span>
+                </div>
+              )}
               <div className="flex justify-between pt-2 border-t border-slate-200">
-                <span className="font-bold text-slate-900">{isConfirmed ? 'Amount Paid' : 'Amount Due'}</span>
-                <span className={`text-lg font-bold ${isConfirmed ? 'text-green-600' : 'text-amber-600'}`}>{formatCurrency(booking.total_amount)}</span>
+                <span className="font-bold text-slate-900">{isConfirmed ? t('bookingConfirmation.amountPaid') : t('bookingConfirmation.amountDue')}</span>
+                <span className={`text-lg font-bold ${isConfirmed ? 'text-green-600' : 'text-amber-600'}`}>{formatCurrency(totalAmount)}</span>
               </div>
             </div>
           </div>
+
+          {/* Payment receipt upload */}
+          {!isConfirmed && profile && (
+            <ReceiptUpload booking={booking} session={session} profile={profile} qrUrl={settings?.payment_qr_url} groupBookings={groupBookings} onUploaded={(path) => setBooking({ ...booking, receipt_path: path })} />
+          )}
 
           {/* Actions */}
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -157,26 +194,26 @@ export default function BookingConfirmationPage() {
               className="flex items-center justify-center gap-2 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors"
             >
               <CalendarPlus className="h-5 w-5" />
-              Add to Calendar
+              {t('bookingConfirmation.addToCalendar')}
             </button>
             <Link
               to="/bookings"
               className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all"
             >
               <Ticket className="h-5 w-5" />
-              View My Bookings
+              {t('bookingConfirmation.viewMyBookings')}
             </Link>
           </div>
 
           <Link to="/sessions" className="flex items-center justify-center gap-1.5 text-sm text-rose-600 font-semibold hover:underline">
-            Book another session
+            {t('bookingConfirmation.bookAnotherSession')}
             <ArrowRight className="h-4 w-4" />
           </Link>
 
           {settings?.whatsapp_group_link && (
             <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm text-green-600 font-semibold hover:underline">
               <MessageCircle className="h-4 w-4" />
-              Join our WhatsApp Group
+              {t('bookingConfirmation.joinWhatsappGroup')}
             </a>
           )}
         </div>

@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
+import { useTranslation } from 'react-i18next';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import type { ClubSettings } from '@/types/database';
 import { Zap, MessageCircle } from 'lucide-react';
 
 export default function ForgotPasswordPage() {
+  const { t } = useTranslation();
   const [settings, setSettings] = useState<ClubSettings | null>(null);
 
   useEffect(() => { fetchClubSettings().then(setSettings); }, []);
+
+  const clubName = settings?.club_name || 'Volleyball Sdn Bhd';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 flex items-center justify-center px-4 py-8">
@@ -17,24 +21,24 @@ export default function ForgotPasswordPage() {
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white mb-3 shadow-lg">
               <Zap className="h-7 w-7" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Forgot Password</h1>
+            <h1 className="text-2xl font-bold text-slate-900">{t('auth.forgotPassword.title')}</h1>
             <p className="text-slate-500 text-sm mt-1">
-              Since accounts use a phone number instead of email, password resets are handled by the club admin.
+              {t('auth.forgotPassword.subtitle')}
             </p>
           </div>
 
           <a
-            href={whatsappLink(settings?.contact_whatsapp || '0137441727', 'Hi, I forgot my password for my Volleyball Sdn Bhd account. Can you help me reset it?')}
+            href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('auth.forgotPassword.whatsappMessage', { clubName }))}
             target="_blank"
             rel="noopener noreferrer"
             className="w-full flex items-center justify-center gap-2 py-3 bg-green-600 hover:bg-green-700 text-white font-bold rounded-xl transition-colors"
           >
             <MessageCircle className="h-5 w-5" />
-            Message Admin on WhatsApp
+            {t('auth.forgotPassword.messageAdmin')}
           </a>
 
           <p className="text-center text-sm text-slate-500 mt-4">
-            <Link to="/login" className="text-rose-600 font-semibold hover:underline">Back to Login</Link>
+            <Link to="/login" className="text-rose-600 font-semibold hover:underline">{t('auth.forgotPassword.backToLogin')}</Link>
           </p>
         </div>
       </div>

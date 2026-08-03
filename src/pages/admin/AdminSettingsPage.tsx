@@ -1,8 +1,9 @@
-import { useEffect, useState, type FormEvent } from 'react';
-import { Save, MessageCircle, Phone, Bell, UserCog, Search, Trash2 } from 'lucide-react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
+import { Save, MessageCircle, Phone, Bell, UserCog, Search, Trash2, QrCode, Upload } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { fetchClubSettings } from '@/lib/settings';
+import { uploadClubQrImage } from '@/lib/receipts';
 import { Spinner } from '@/components/LoadingScreen';
 import type { Profile } from '@/types/database';
 
@@ -25,6 +26,11 @@ export default function AdminSettingsPage() {
   const [deleteUser, setDeleteUser] = useState<Profile | null>(null);
   const [deleting, setDeleting] = useState(false);
 
+  // Payment QR code
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [uploadingQr, setUploadingQr] = useState(false);
+  const qrInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     fetchClubSettings().then((s) => {
       if (s) {
@@ -35,11 +41,30 @@ export default function AdminSettingsPage() {
           whatsapp_group_link: s.whatsapp_group_link,
           whatsapp_group_notify: s.whatsapp_group_notify,
         });
+        setQrUrl(s.payment_qr_url);
       }
       setLoading(false);
     });
     loadUsers();
   }, []);
+
+  async function handleQrUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingQr(true);
+    try {
+      const url = await uploadClubQrImage(file);
+      const { error } = await supabase.from('club_settings').update({ payment_qr_url: url }).eq('id', 1);
+      if (error) throw error;
+      setQrUrl(url);
+      show('Payment QR code updated', 'success');
+    } catch {
+      show('Failed to upload QR code', 'error');
+    } finally {
+      setUploadingQr(false);
+      if (qrInputRef.current) qrInputRef.current.value = '';
+    }
+  }
 
   async function loadUsers() {
     const { data } = await supabase.from('profiles').select('*').order('created_at', { ascending: false });
@@ -120,7 +145,7 @@ export default function AdminSettingsPage() {
       <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">Settings</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
           <h2 className="font-bold text-slate-900">Club Information</h2>
           <div>
             <label className={labelClass}>Club Name</label>
@@ -128,8 +153,8 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-6 space-y-4">
-          <h2 className="font-bold text-slate-900 flex items-center gap-2"><Phone className="h-5 w-5 text-slate-400" /> Contact Person</h2>
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+          <h2 className="font-bold text-slate-900 flex items-center gap-2"><Phone className="h-5 w-5 text-slate-500" /> Contact Person</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Contact Person Name</label>
@@ -142,7 +167,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
           <h2 className="font-bold text-slate-900 flex items-center gap-2"><MessageCircle className="h-5 w-5 text-green-500" /> WhatsApp Group</h2>
           <div>
             <label className={labelClass}>WhatsApp Group Link</label>
@@ -163,8 +188,27 @@ export default function AdminSettingsPage() {
         </button>
       </form>
 
+      {/* Payment QR code */}
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 mt-6">
+        <h2 className="font-bold text-slate-900 flex items-center gap-2"><QrCode className="h-5 w-5 text-blue-500" /> Payment QR Code</h2>
+        <p className="text-sm text-slate-500">Shown to players after they lock a slot, so they can scan and pay via DuitNow (or your bank's QR) directly.</p>
+        {qrUrl && (
+          <img src={qrUrl} alt="Payment QR code" className="w-40 h-40 object-contain rounded-lg border border-slate-200 p-2" />
+        )}
+        <input ref={qrInputRef} type="file" accept="image/*" className="hidden" onChange={handleQrUpload} disabled={uploadingQr} />
+        <button
+          type="button"
+          onClick={() => qrInputRef.current?.click()}
+          disabled={uploadingQr}
+          className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+        >
+          {uploadingQr ? <Spinner className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
+          {uploadingQr ? 'Uploading...' : qrUrl ? 'Change QR Code' : 'Upload QR Code'}
+        </button>
+      </div>
+
       {/* Admin Management */}
-      <div className="glass-card rounded-2xl p-6 mt-6">
+      <div className="bg-white rounded-2xl border border-slate-200 p-6 mt-6">
         <h2 className="font-bold text-slate-900 flex items-center gap-2 mb-4">
           <UserCog className="h-5 w-5 text-rose-500" />
           Manage Admins
@@ -172,7 +216,7 @@ export default function AdminSettingsPage() {
         <p className="text-sm text-slate-500 mb-4">Promote or demote users between player and admin roles.</p>
 
         <div className="relative mb-4">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
             placeholder="Search by name or phone..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none bg-white/80"
