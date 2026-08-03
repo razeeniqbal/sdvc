@@ -1,9 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, MapPin, Clock, Users, Tag, Filter, Search } from 'lucide-react';
+import { CalendarDays, MapPin, Clock, Users, Filter } from 'lucide-react';
 import { fetchSessionsWithCounts, getSessionStatus, type SessionWithCount } from '@/lib/sessions';
 import { formatCurrency, formatDate, formatTime, getDayName } from '@/lib/format';
-import { SKILL_LEVELS, type SkillLevel } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
 const statusStyles: Record<string, string> = {
@@ -19,7 +18,6 @@ export default function SessionsPage() {
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     venue: '',
-    skillLevel: '',
     availability: '',
     date: '',
   });
@@ -36,7 +34,6 @@ export default function SessionsPage() {
 
   const filtered = sessions.filter((s) => {
     if (filters.venue && s.venue_name !== filters.venue) return false;
-    if (filters.skillLevel && s.skill_level !== filters.skillLevel) return false;
     if (filters.date && s.session_date !== filters.date) return false;
     if (filters.availability) {
       const status = getSessionStatus(s, s.confirmed_count);
@@ -78,13 +75,6 @@ export default function SessionsPage() {
             <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" value={filters.venue} onChange={(e) => setFilters({ ...filters, venue: e.target.value })}>
               <option value="">All venues</option>
               {venues.map((v) => <option key={v} value={v}>{v}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-slate-600 mb-1">Skill Level</label>
-            <select className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm" value={filters.skillLevel} onChange={(e) => setFilters({ ...filters, skillLevel: e.target.value })}>
-              <option value="">All levels</option>
-              {SKILL_LEVELS.map((s) => <option key={s} value={s}>{s}</option>)}
             </select>
           </div>
           <div>
@@ -152,10 +142,6 @@ export default function SessionsPage() {
                       <span className="truncate">{session.venue_name} {session.court_number && `· ${session.court_number}`}</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <Tag className="h-4 w-4 text-slate-400 flex-shrink-0" />
-                      <span>{session.skill_level}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
                       <Users className="h-4 w-4 text-slate-400 flex-shrink-0" />
                       <span className={available <= 3 && canBook ? 'text-amber-600 font-semibold' : ''}>
                         {available} of {session.maximum_capacity} slots left
@@ -164,7 +150,7 @@ export default function SessionsPage() {
                   </div>
 
                   <div className="mt-4 pt-4 border-t border-slate-100 flex items-center justify-between">
-                    <span className="text-2xl font-bold text-slate-900">{formatCurrency(session.price)}</span>
+                    <span className="text-2xl font-bold text-slate-900">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</span>
                     <span className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       canBook
                         ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white'

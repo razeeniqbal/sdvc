@@ -1,13 +1,3 @@
-export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Open Level';
-
-export type PlayingPosition =
-  | 'Setter'
-  | 'Outside Hitter'
-  | 'Opposite Hitter'
-  | 'Middle Blocker'
-  | 'Libero'
-  | 'Flexible / Any Position';
-
 export type SessionStatus = 'Open' | 'Closed' | 'Cancelled';
 
 export type BookingStatus =
@@ -51,8 +41,6 @@ export interface Profile {
   phone_number: string | null;
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
-  playing_position: PlayingPosition | null;
-  skill_level: SkillLevel | null;
   role: UserRole;
   created_at: string;
   updated_at: string;
@@ -69,7 +57,6 @@ export interface Session {
   venue_address: string | null;
   maps_link: string | null;
   court_number: string | null;
-  skill_level: SkillLevel;
   price: number;
   maximum_capacity: number;
   booking_open_at: string | null;
@@ -164,15 +151,6 @@ export interface ClubSettings {
   whatsapp_group_notify: boolean;
 }
 
-export const SKILL_LEVELS: SkillLevel[] = ['Beginner', 'Intermediate', 'Advanced', 'Open Level'];
-export const PLAYING_POSITIONS: PlayingPosition[] = [
-  'Setter',
-  'Outside Hitter',
-  'Opposite Hitter',
-  'Middle Blocker',
-  'Libero',
-  'Flexible / Any Position',
-];
 export const PAYMENT_METHODS: PaymentMethod[] = [
   'Credit Card',
   'Debit Card',

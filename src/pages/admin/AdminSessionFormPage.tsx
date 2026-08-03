@@ -4,7 +4,7 @@ import { ArrowLeft, Save, Repeat } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { SKILL_LEVELS, type SkillLevel, type Session, type SessionStatus } from '@/types/database';
+import type { Session, SessionStatus } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
 export default function AdminSessionFormPage() {
@@ -13,7 +13,7 @@ export default function AdminSessionFormPage() {
   const { profile } = useAuth();
   const { show } = useToast();
   const isEdit = !!id;
-  const [loading, setLoading] = useState(isEdit);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showRecurring, setShowRecurring] = useState(false);
 
@@ -27,9 +27,8 @@ export default function AdminSessionFormPage() {
     venue_address: '',
     maps_link: '',
     court_number: '',
-    skill_level: 'Open Level' as SkillLevel,
     price: '20',
-    maximum_capacity: '24',
+    maximum_capacity: '18',
     booking_open_at: '',
     booking_close_at: '',
     cancellation_deadline: '24',
@@ -43,30 +42,55 @@ export default function AdminSessionFormPage() {
   });
 
   useEffect(() => {
-    if (!id) return;
     (async () => {
-      const { data } = await supabase.from('sessions').select('*').eq('id', id).maybeSingle();
-      if (data) {
-        const s = data as Session;
-        setForm({
+      if (id) {
+        const { data } = await supabase.from('sessions').select('*').eq('id', id).maybeSingle();
+        if (data) {
+          const s = data as Session;
+          setForm({
+            title: s.title,
+            description: s.description || '',
+            session_date: s.session_date,
+            start_time: s.start_time.slice(0, 5),
+            end_time: s.end_time.slice(0, 5),
+            venue_name: s.venue_name,
+            venue_address: s.venue_address || '',
+            maps_link: s.maps_link || '',
+            court_number: s.court_number || '',
+            price: s.price.toString(),
+            maximum_capacity: s.maximum_capacity.toString(),
+            booking_open_at: s.booking_open_at ? s.booking_open_at.slice(0, 16) : '',
+            booking_close_at: s.booking_close_at ? s.booking_close_at.slice(0, 16) : '',
+            cancellation_deadline: s.cancellation_deadline ? s.cancellation_deadline.replace(' hours', '') : '24',
+            status: s.status,
+            notes: s.notes || '',
+          });
+        }
+        setLoading(false);
+        return;
+      }
+
+      // Prefill new session from the most recently created one, so recurring
+      // weekly sessions only need the date changed. Each newly created session
+      // becomes the source for the next prefill.
+      const { data: last } = await supabase.from('sessions').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+      if (last) {
+        const s = last as Session;
+        setForm((f) => ({
+          ...f,
           title: s.title,
           description: s.description || '',
-          session_date: s.session_date,
           start_time: s.start_time.slice(0, 5),
           end_time: s.end_time.slice(0, 5),
           venue_name: s.venue_name,
           venue_address: s.venue_address || '',
           maps_link: s.maps_link || '',
           court_number: s.court_number || '',
-          skill_level: s.skill_level,
           price: s.price.toString(),
           maximum_capacity: s.maximum_capacity.toString(),
-          booking_open_at: s.booking_open_at ? s.booking_open_at.slice(0, 16) : '',
-          booking_close_at: s.booking_close_at ? s.booking_close_at.slice(0, 16) : '',
           cancellation_deadline: s.cancellation_deadline ? s.cancellation_deadline.replace(' hours', '') : '24',
-          status: s.status,
           notes: s.notes || '',
-        });
+        }));
       }
       setLoading(false);
     })();
@@ -77,7 +101,7 @@ export default function AdminSessionFormPage() {
     if (!profile) return;
     setSaving(true);
 
-    const sessionData: any = {
+    const sessionData: Omit<Session, 'id' | 'created_by' | 'created_at' | 'updated_at'> & { created_by?: string } = {
       title: form.title,
       description: form.description || null,
       session_date: form.session_date,
@@ -87,9 +111,8 @@ export default function AdminSessionFormPage() {
       venue_address: form.venue_address || null,
       maps_link: form.maps_link || null,
       court_number: form.court_number || null,
-      skill_level: form.skill_level,
       price: parseFloat(form.price) || 0,
-      maximum_capacity: parseInt(form.maximum_capacity) || 24,
+      maximum_capacity: parseInt(form.maximum_capacity) || 18,
       booking_open_at: form.booking_open_at ? new Date(form.booking_open_at).toISOString() : null,
       booking_close_at: form.booking_close_at ? new Date(form.booking_close_at).toISOString() : null,
       cancellation_deadline: `${form.cancellation_deadline || '24'} hours`,
@@ -110,8 +133,8 @@ export default function AdminSessionFormPage() {
       if (recurring.enabled && recurring.endDate) {
         const start = new Date(form.session_date);
         const end = new Date(recurring.endDate);
-        const sessions: any[] = [];
-        let d = new Date(start);
+        const sessions: typeof sessionData[] = [];
+        const d = new Date(start);
         d.setDate(d.getDate() + 7);
         while (d <= end) {
           sessions.push({ ...sessionData, session_date: d.toISOString().split('T')[0] });
@@ -185,21 +208,13 @@ export default function AdminSessionFormPage() {
             </div>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Skill Level *</label>
-              <select className={inputClass} value={form.skill_level} onChange={(e) => setForm({ ...form, skill_level: e.target.value as SkillLevel })}>
-                {SKILL_LEVELS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-            </div>
-            <div>
-              <label className={labelClass}>Status</label>
-              <select className={inputClass} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as SessionStatus })}>
-                <option value="Open">Open</option>
-                <option value="Closed">Closed</option>
-                <option value="Cancelled">Cancelled</option>
-              </select>
-            </div>
+          <div>
+            <label className={labelClass}>Status</label>
+            <select className={inputClass} value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value as SessionStatus })}>
+              <option value="Open">Open</option>
+              <option value="Closed">Closed</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
           </div>
         </div>
 
@@ -235,6 +250,7 @@ export default function AdminSessionFormPage() {
             <div>
               <label className={labelClass}>Price per Player (RM) *</label>
               <input type="number" step="0.01" min="0" className={inputClass} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
+              <p className="text-xs text-slate-500 mt-1">Set to 0 for TBC (To Be Confirmed) — players can still lock a slot, and you finalize the amount per booking once turnout is known.</p>
             </div>
             <div>
               <label className={labelClass}>Maximum Players *</label>

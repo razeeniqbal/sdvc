@@ -6,6 +6,6 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 export function PublicOnlyRoute({ children }: { children: ReactNode }) {
   const { session, loading } = useAuth();
   if (loading) return <LoadingScreen />;
-  if (session) return <Navigate to="/dashboard" replace />;
+  if (session) return <Navigate to="/sessions" replace />;
   return <>{children}</>;
 }

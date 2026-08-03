@@ -21,29 +21,32 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // In production, this would call the WhatsApp Business API or a service like
-    // Twilio/MessageBird to send a message to the WhatsApp group.
-    // For now, we log the notification and return success.
-    //
-    // Example integration with WhatsApp Cloud API:
-    // const res = await fetch(`https://graph.facebook.com/v18.0/${PHONE_NUMBER_ID}/messages`, {
-    //   method: "POST",
-    //   headers: {
-    //     "Authorization": `Bearer ${Deno.env.get("WHATSAPP_TOKEN")}`,
-    //     "Content-Type": "application/json",
-    //   },
-    //   body: JSON.stringify({
-    //     messaging_product: "whatsapp",
-    //     to: phone || GROUP_ID,
-    //     type: "text",
-    //     text: { body: message },
-    //   }),
-    // });
+    const callMeBotPhone = phone || Deno.env.get("CALLMEBOT_PHONE");
+    const callMeBotApiKey = Deno.env.get("CALLMEBOT_APIKEY");
 
-    console.log("[WhatsApp Notify]", { message, phone, timestamp: new Date().toISOString() });
+    // Falls back to logging only until CALLMEBOT_PHONE / CALLMEBOT_APIKEY secrets are set.
+    if (!callMeBotPhone || !callMeBotApiKey) {
+      console.log("[WhatsApp Notify] CallMeBot not configured, logging only:", { message, phone, timestamp: new Date().toISOString() });
+      return new Response(
+        JSON.stringify({ success: true, message: "Notification logged (CallMeBot not configured)" }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
+
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${encodeURIComponent(callMeBotPhone)}&text=${encodeURIComponent(message)}&apikey=${encodeURIComponent(callMeBotApiKey)}`;
+    const res = await fetch(url);
+    const body = await res.text();
+
+    if (!res.ok) {
+      console.error("[WhatsApp Notify] CallMeBot request failed:", res.status, body);
+      return new Response(
+        JSON.stringify({ error: "Failed to send WhatsApp message", detail: body }),
+        { status: 502, headers: { ...corsHeaders, "Content-Type": "application/json" } },
+      );
+    }
 
     return new Response(
-      JSON.stringify({ success: true, message: "Notification logged (WhatsApp integration pending)" }),
+      JSON.stringify({ success: true, message: "WhatsApp notification sent" }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } },
     );
   } catch (err) {

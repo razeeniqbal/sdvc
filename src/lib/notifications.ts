@@ -25,26 +25,38 @@ export async function createNotification(
   }
 }
 
+async function sendWhatsAppMessage(message: string): Promise<boolean> {
+  const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-notify`;
+  const headers = {
+    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+    'Content-Type': 'application/json',
+  };
+  const response = await fetch(apiUrl, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ message }),
+  });
+  return response.ok;
+}
+
 export async function notifyWhatsAppGroup(message: string): Promise<void> {
   try {
     const settings = await fetchClubSettings();
     if (!settings?.whatsapp_group_notify) return;
-
-    const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/whatsapp-notify`;
-    const headers = {
-      Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-      'Content-Type': 'application/json',
-    };
-    const response = await fetch(apiUrl, {
-      method: 'POST',
-      headers,
-      body: JSON.stringify({ message }),
-    });
-    if (!response.ok) {
-      console.error('WhatsApp notify failed:', response.status);
-    }
+    const ok = await sendWhatsAppMessage(message);
+    if (!ok) console.error('WhatsApp notify failed');
   } catch (e) {
     console.error('Failed to send WhatsApp notification:', e);
+  }
+}
+
+// Admin-triggered manual send, independent of the whatsapp_group_notify auto-notify setting.
+export async function sendWhatsAppBlast(message: string): Promise<boolean> {
+  try {
+    return await sendWhatsAppMessage(message);
+  } catch (e) {
+    console.error('Failed to send WhatsApp blast:', e);
+    return false;
   }
 }
 

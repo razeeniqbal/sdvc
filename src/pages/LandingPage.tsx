@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Calendar, Clock, MapPin, Users, ArrowRight, MessageCircle, Phone, Info, Sparkles, Zap, Heart } from 'lucide-react';
-import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { fetchSessionsWithCounts, getSessionStatus, type SessionWithCount } from '@/lib/sessions';
@@ -42,7 +41,7 @@ export default function LandingPage() {
         <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex flex-col justify-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-rose-200 text-sm font-medium mb-5 w-fit">
             <Sparkles className="h-4 w-4 text-rose-300" />
-            FunPlay Volleyball — for beginners!
+            Volleyball Sdn Bhd — for beginners!
           </div>
           <h1 className="text-4xl sm:text-6xl font-bold text-white tracking-tight mb-4">
             Play. Laugh.{' '}
@@ -175,7 +174,7 @@ export default function LandingPage() {
           <img src={aboutImage} alt="Volleyball players" className="rounded-2xl w-full h-64 object-cover shadow-lg" />
           <div>
             <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Heart className="h-6 w-6 text-rose-500" /> Why FunPlay?
+              <Heart className="h-6 w-6 text-rose-500" /> Why Volleyball Sdn Bhd?
             </h2>
             <ul className="space-y-2 text-slate-600">
               {['Beginner-friendly, no experience needed', 'Fun-first atmosphere, no pressure', 'Real-time slot availability', 'Instant booking confirmation', 'Join our active WhatsApp community', 'Simple, fast, mobile-friendly booking'].map((b) => (
@@ -197,7 +196,7 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">Get In Touch</h2>
           <p className="text-slate-500 mb-8">Questions? Message us or join the group chat!</p>
           <div className="grid sm:grid-cols-2 gap-4">
-            <a href={whatsappLink(settings?.contact_whatsapp || '0137441727', 'Hi, I have a question about FunPlay volleyball sessions.')} target="_blank" rel="noopener noreferrer"
+            <a href={whatsappLink(settings?.contact_whatsapp || '0137441727', 'Hi, I have a question about Volleyball Sdn Bhd sessions.')} target="_blank" rel="noopener noreferrer"
               className="glass-card rounded-2xl p-6 hover:shadow-lg transition-all text-left">
               <div className="flex items-center gap-3 mb-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600"><Phone className="h-5 w-5" /></div>
@@ -206,7 +205,7 @@ export default function LandingPage() {
                   <p className="text-sm text-slate-500">{settings?.contact_person_name || 'Club Admin'}</p>
                 </div>
               </div>
-              <p className="text-sm text-green-600 font-medium">WhatsApp: {settings?.contact_whatsapp || '0137441727'}</p>
+              <p className="text-sm text-green-600 font-medium">Chat with {settings?.contact_person_name || 'us'} on WhatsApp</p>
             </a>
             <a href={settings?.whatsapp_group_link || '#'} target="_blank" rel="noopener noreferrer"
               className="glass-card rounded-2xl p-6 hover:shadow-lg transition-all text-left">
@@ -229,7 +228,7 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-8">FAQ</h2>
           <div className="space-y-3">
             {[
-              { q: 'Do I need experience?', a: 'Not at all! FunPlay is designed for beginners. Just bring your energy and willingness to learn.' },
+              { q: 'Do I need experience?', a: 'Not at all! Volleyball Sdn Bhd is designed for beginners. Just bring your energy and willingness to learn.' },
               { q: 'Can I cancel my booking?', a: 'You can cancel up to 24 hours before the session to free up your slot. However, all bookings are non-refundable.' },
               { q: 'What if a session is full?', a: 'Join the waiting list. If a slot opens up, you will be notified and given 10 minutes to complete your booking.' },
               { q: 'How do I contact the club?', a: `Message us on WhatsApp at ${settings?.contact_whatsapp || '0137441727'} or join our WhatsApp group.` },
@@ -247,7 +246,7 @@ export default function LandingPage() {
       <section className="py-12 px-4 sm:px-6 bg-gradient-to-br from-slate-900 via-rose-950 to-slate-900">
         <div className="max-w-3xl mx-auto text-center">
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">Ready to Play?</h2>
-          <p className="text-slate-400 mb-6">Join the FunPlay community and book your first session today.</p>
+          <p className="text-slate-400 mb-6">Join the Volleyball Sdn Bhd community and book your first session today.</p>
           <Link to={profile ? '/sessions' : '/register'}
             className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all animate-pulse-glow">
             {profile ? 'Browse Sessions' : 'Start Playing'} <ArrowRight className="h-5 w-5" />

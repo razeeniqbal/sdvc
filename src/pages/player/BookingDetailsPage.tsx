@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Calendar, Clock, MapPin, Tag, Users, CreditCard, XCircle, AlertTriangle } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Tag, Users, CreditCard, XCircle, AlertTriangle, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -40,6 +40,8 @@ export default function BookingDetailsPage() {
       setAttendance(att as Attendance);
       setLoading(false);
     })();
+    // reload only when the booking id or profile changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, profile]);
 
   async function handleCancel() {
@@ -75,14 +77,11 @@ export default function BookingDetailsPage() {
     });
 
     // Notify WhatsApp group about slot opening up
-    const { count } = await supabase
-      .from('bookings')
-      .select('id', { count: 'exact', head: true })
-      .eq('session_id', session.id)
-      .in('booking_status', ['Confirmed']);
-    const slotsLeft = session.maximum_capacity - (count || 0);
+    const { data: countData } = await supabase.rpc('confirmed_booking_count', { p_session_id: session.id });
+    const count = (countData as number) || 0;
+    const slotsLeft = session.maximum_capacity - count;
     await notifyWhatsAppGroup(
-      `Slot Update: A slot opened up for "${session.title}" on ${formatDate(session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} now available (${count || 0}/${session.maximum_capacity} booked).`
+      `Slot Update: A slot opened up for "${session.title}" on ${formatDate(session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} now available (${count}/${session.maximum_capacity} booked).`
     );
 
     setCancelling(false);
@@ -103,7 +102,7 @@ export default function BookingDetailsPage() {
   const hoursBefore = (sessionDate.getTime() - Date.now()) / (1000 * 60 * 60);
   const canCancel = ['Confirmed', 'Pending Payment'].includes(booking.booking_status) && hoursBefore > 24;
   const isPast = sessionDate < new Date();
-  const canPay = booking.booking_status === 'Pending Payment';
+  const awaitingConfirmation = booking.booking_status === 'Pending Payment';
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -135,7 +134,6 @@ export default function BookingDetailsPage() {
               <InfoItem icon={Clock} label="Time" value={`${formatTime(session.start_time)} - ${formatTime(session.end_time)}`} />
               <InfoItem icon={MapPin} label="Venue" value={session.venue_name} />
               <InfoItem icon={Tag} label="Court" value={session.court_number || 'N/A'} />
-              <InfoItem icon={Tag} label="Skill Level" value={session.skill_level} />
               <InfoItem icon={Users} label="Capacity" value={`${session.maximum_capacity} players`} />
             </div>
             {session.maps_link && (
@@ -199,13 +197,19 @@ export default function BookingDetailsPage() {
             </div>
           )}
 
+          {/* Awaiting confirmation notice */}
+          {awaitingConfirmation && (
+            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-amber-900 text-sm">Awaiting Admin Confirmation</p>
+                <p className="text-amber-700 text-sm mt-0.5">Your slot is locked. The club admin will verify your payment and confirm this booking soon.</p>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex flex-col sm:flex-row gap-3 pt-2">
-            {canPay && (
-              <Link to={`/payment/${booking.id}`} className="flex-1 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-center transition-all">
-                Complete Payment
-              </Link>
-            )}
             {canCancel && (
               <button
                 onClick={() => setShowCancelDialog(true)}
@@ -254,7 +258,7 @@ export default function BookingDetailsPage() {
   );
 }
 
-function InfoItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function InfoItem({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="flex items-start gap-2.5">
       <Icon className="h-4 w-4 text-slate-400 flex-shrink-0 mt-0.5" />

@@ -33,7 +33,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <ToastContext.Provider value={{ show }}>
       {children}
-      <div className="fixed bottom-4 right-4 z-[100] space-y-2 max-w-sm">
+      <div className="fixed top-20 inset-x-4 sm:top-auto sm:inset-x-auto sm:bottom-4 sm:right-4 z-[100] space-y-2 sm:max-w-sm">
         {toasts.map((toast) => {
           const Icon = toast.type === 'success' ? CheckCircle : toast.type === 'error' ? XCircle : Info;
           const colors =

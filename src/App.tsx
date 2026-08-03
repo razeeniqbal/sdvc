@@ -14,10 +14,8 @@ import ForgotPasswordPage from '@/pages/auth/ForgotPasswordPage';
 import SessionsPage from '@/pages/sessions/SessionsPage';
 import SessionDetailsPage from '@/pages/sessions/SessionDetailsPage';
 import CheckoutPage from '@/pages/booking/CheckoutPage';
-import PaymentPage from '@/pages/booking/PaymentPage';
 import BookingConfirmationPage from '@/pages/booking/BookingConfirmationPage';
 
-import DashboardPage from '@/pages/player/DashboardPage';
 import MyBookingsPage from '@/pages/player/MyBookingsPage';
 import BookingDetailsPage from '@/pages/player/BookingDetailsPage';
 import ProfilePage from '@/pages/player/ProfilePage';
@@ -48,10 +46,8 @@ function App() {
                 <Route path="/sessions" element={<ProtectedRoute><SessionsPage /></ProtectedRoute>} />
                 <Route path="/sessions/:id" element={<ProtectedRoute><SessionDetailsPage /></ProtectedRoute>} />
                 <Route path="/checkout/:sessionId" element={<ProtectedRoute><CheckoutPage /></ProtectedRoute>} />
-                <Route path="/payment/:bookingId" element={<ProtectedRoute><PaymentPage /></ProtectedRoute>} />
                 <Route path="/confirmation/:bookingId" element={<ProtectedRoute><BookingConfirmationPage /></ProtectedRoute>} />
 
-                <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
                 <Route path="/bookings" element={<ProtectedRoute><MyBookingsPage /></ProtectedRoute>} />
                 <Route path="/bookings/:id" element={<ProtectedRoute><BookingDetailsPage /></ProtectedRoute>} />
                 <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Users, Clock, Mail, Phone, UserPlus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Users, Clock, Phone, UserPlus, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime, formatDateTime } from '@/lib/format';
@@ -31,6 +31,7 @@ export default function AdminWaitingListPage() {
     setLoading(false);
   }
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when the session id changes
   useEffect(() => { load(); }, [id]);
 
   async function offerSlot(entry: WaitlistEntry) {
@@ -89,7 +90,7 @@ export default function AdminWaitingListPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {entries.map((entry, i) => (
+          {entries.map((entry) => (
             <div key={entry.id} className="bg-white rounded-xl border border-slate-200 p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
@@ -99,7 +100,6 @@ export default function AdminWaitingListPage() {
                   <div>
                     <p className="font-semibold text-slate-900">{entry.profile.full_name}</p>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
-                      <span className="flex items-center gap-1"><Mail className="h-3 w-3" />{entry.profile.email}</span>
                       <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{entry.profile.phone_number || 'N/A'}</span>
                     </div>
                     <p className="text-xs text-slate-400 mt-0.5">Joined {formatDateTime(entry.created_at)}</p>

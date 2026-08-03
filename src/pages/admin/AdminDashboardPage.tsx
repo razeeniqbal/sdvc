@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { CalendarDays, Ticket, DollarSign, TrendingUp, AlertCircle, Users, Plus, BarChart3 } from 'lucide-react';
+import { CalendarDays, Ticket, DollarSign, TrendingUp, AlertCircle, Users, Plus, BarChart3, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate } from '@/lib/format';
 import { Spinner } from '@/components/LoadingScreen';
@@ -16,7 +16,7 @@ export default function AdminDashboardPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [revenue, setRevenue] = useState(0);
   const [refunds, setRefunds] = useState(0);
-  const [pendingPayments, setPendingPayments] = useState(0);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(0);
   const [weeklyBookings, setWeeklyBookings] = useState<{ label: string; count: number }[]>([]);
 
   useEffect(() => {
@@ -28,7 +28,6 @@ export default function AdminDashboardPage() {
         .order('session_date', { ascending: true });
       const sessionList = (sess || []) as Session[];
 
-      const sessionIds = sessionList.map((s) => s.id);
       const { data: allBookings } = await supabase.from('bookings').select('*').order('created_at', { ascending: false });
       const bookingList = (allBookings || []) as Booking[];
       setBookings(bookingList);
@@ -38,7 +37,7 @@ export default function AdminDashboardPage() {
         .from('bookings')
         .select('session_id, booking_status')
         .in('booking_status', ['Pending Payment', 'Confirmed']);
-      (activeBookings || []).forEach((b: any) => {
+      (activeBookings || []).forEach((b: { session_id: string }) => {
         counts.set(b.session_id, (counts.get(b.session_id) || 0) + 1);
       });
 
@@ -48,7 +47,7 @@ export default function AdminDashboardPage() {
       const confirmedBookings = bookingList.filter((b) => b.booking_status === 'Confirmed' && b.payment_status === 'Paid');
       setRevenue(confirmedBookings.reduce((sum, b) => sum + Number(b.total_amount), 0));
       setRefunds(bookingList.filter((b) => b.payment_status === 'Refunded').reduce((sum, b) => sum + Number(b.total_amount), 0));
-      setPendingPayments(bookingList.filter((b) => b.booking_status === 'Pending Payment').length);
+      setAwaitingConfirmation(bookingList.filter((b) => b.booking_status === 'Pending Payment').length);
 
       // Weekly bookings (last 7 days)
       const days: { label: string; count: number }[] = [];
@@ -95,7 +94,7 @@ export default function AdminDashboardPage() {
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
         <SummaryCard icon={CalendarDays} label="Upcoming Sessions" value={sessions.length.toString()} color="bg-rose-100 text-rose-600" />
         <SummaryCard icon={Ticket} label="Confirmed Bookings" value={totalConfirmed.toString()} color="bg-green-100 text-green-600" />
-        <SummaryCard icon={AlertCircle} label="Pending Payments" value={pendingPayments.toString()} color="bg-amber-100 text-amber-600" />
+        <SummaryCard icon={AlertCircle} label="Awaiting Confirmation" value={awaitingConfirmation.toString()} color="bg-amber-100 text-amber-600" />
         <SummaryCard icon={DollarSign} label="Total Revenue" value={formatCurrency(revenue)} color="bg-green-100 text-green-600" />
         <SummaryCard icon={TrendingUp} label="Total Refunds" value={formatCurrency(refunds)} color="bg-slate-100 text-slate-500" />
         <SummaryCard icon={Users} label="Almost Full Sessions" value={almostFull.length.toString()} color="bg-orange-100 text-orange-600" />
@@ -179,7 +178,7 @@ export default function AdminDashboardPage() {
   );
 }
 
-function SummaryCard({ icon: Icon, label, value, color }: { icon: any; label: string; value: string; color: string }) {
+function SummaryCard({ icon: Icon, label, value, color }: { icon: LucideIcon; label: string; value: string; color: string }) {
   return (
     <div className="bg-white rounded-2xl border border-slate-200 p-4">
       <div className={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${color} mb-3`}>

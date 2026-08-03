@@ -14,6 +14,6 @@ export function AdminRoute({ children }: { children: ReactNode }) {
   const { session, profile, loading } = useAuth();
   if (loading) return <LoadingScreen />;
   if (!session) return <Navigate to="/login" replace />;
-  if (profile?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  if (profile?.role !== 'admin') return <Navigate to="/sessions" replace />;
   return <>{children}</>;
 }

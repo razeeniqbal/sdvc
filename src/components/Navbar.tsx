@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Menu, X, LayoutDashboard, CalendarDays, Ticket, User as UserIcon, LogOut, ShieldCheck, Settings, Zap } from 'lucide-react';
+import { Menu, X, CalendarDays, Ticket, User as UserIcon, LogOut, ShieldCheck, Settings } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchClubSettings } from '@/lib/settings';
 import type { ClubSettings } from '@/types/database';
@@ -15,34 +15,32 @@ export function Navbar() {
   useEffect(() => { fetchClubSettings().then(setSettings); }, []);
 
   const playerLinks = [
-    { to: '/dashboard', label: 'Home', icon: LayoutDashboard },
     { to: '/sessions', label: 'Sessions', icon: CalendarDays },
     { to: '/bookings', label: 'My Bookings', icon: Ticket },
     { to: '/profile', label: 'Profile', icon: UserIcon },
   ];
 
   const adminLinks = [
-    { to: '/admin', label: 'Admin', icon: ShieldCheck },
+    { to: '/admin', label: 'Dashboard', icon: ShieldCheck },
     { to: '/admin/sessions', label: 'Sessions', icon: CalendarDays },
     { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
+    { to: '/profile', label: 'Profile', icon: UserIcon },
   ];
 
-  const links = isAdmin ? [...adminLinks, ...playerLinks.slice(0, 3)] : playerLinks;
+  const links = isAdmin ? adminLinks : playerLinks;
 
   function handleSignOut() { signOut(); navigate('/'); }
-  const isActive = (path: string) => location.pathname === path || (path !== '/dashboard' && location.pathname.startsWith(path));
+  const isActive = (path: string) => location.pathname === path || (path !== '/admin' && location.pathname.startsWith(path));
 
   return (
     <nav className="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 border-b border-rose-900/30">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
-          <Link to={profile ? '/dashboard' : '/'} className="flex items-center gap-2">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-rose-500 to-orange-500 text-white font-bold text-lg shadow-lg">
-              <Zap className="h-5 w-5" />
-            </div>
+          <Link to={profile ? '/sessions' : '/'} className="flex items-center gap-2">
+            <img src="/logo.jpg" alt="Logo" className="h-9 w-9 rounded-xl object-cover shadow-lg" />
             <span className="text-white font-bold text-base tracking-tight hidden sm:block">
-              {settings?.club_name || 'FunPlay Volleyball'}
+              {settings?.club_name || 'Volleyball Sdn Bhd'}
             </span>
           </Link>
 

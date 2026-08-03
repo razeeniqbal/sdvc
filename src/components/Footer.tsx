@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-import { MessageCircle, Zap } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { fetchClubSettings } from '@/lib/settings';
 import type { ClubSettings } from '@/types/database';
@@ -13,10 +12,8 @@ export function Footer() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-rose-500 to-orange-500 text-white font-bold">
-              <Zap className="h-4 w-4" />
-            </div>
-            <span className="text-slate-300 font-semibold">{settings?.club_name || 'FunPlay Volleyball'}</span>
+            <img src="/logo.jpg" alt="Logo" className="h-8 w-8 rounded-lg object-cover" />
+            <span className="text-slate-300 font-semibold">{settings?.club_name || 'Volleyball Sdn Bhd'}</span>
           </div>
           {settings?.whatsapp_group_link && (
             <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-sm text-green-400 hover:text-green-300 transition-colors">
@@ -24,7 +21,7 @@ export function Footer() {
             </a>
           )}
           <p className="text-slate-500 text-sm text-center sm:text-right">
-            &copy; {new Date().getFullYear()} {settings?.club_name || 'FunPlay Volleyball'}
+            &copy; {new Date().getFullYear()} {settings?.club_name || 'Volleyball Sdn Bhd'}
           </p>
         </div>
       </div>

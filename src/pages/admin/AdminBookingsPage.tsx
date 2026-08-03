@@ -3,9 +3,10 @@ import { Search, Download, Eye, RefreshCw, XCircle, DollarSign, RotateCcw } from
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatCurrency, formatDate, formatTime, formatDateTime } from '@/lib/format';
+import { notifyWhatsAppGroup } from '@/lib/notifications';
 import { StatusBadge, PaymentStatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
-import type { Booking, Session, Profile, Payment, BookingStatus, PaymentStatus } from '@/types/database';
+import type { Booking, Session, Profile, BookingStatus } from '@/types/database';
 
 interface AdminBooking extends Booking {
   session: Session;
@@ -20,6 +21,7 @@ export default function AdminBookingsPage() {
   const [filters, setFilters] = useState({ search: '', session: '', bookingStatus: '', paymentStatus: '' });
   const [selected, setSelected] = useState<AdminBooking | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
+  const [amountInput, setAmountInput] = useState('');
 
   async function load() {
     const { data } = await supabase
@@ -40,7 +42,6 @@ export default function AdminBookingsPage() {
       const match = b.booking_reference.toLowerCase().includes(q) ||
         b.session.title.toLowerCase().includes(q) ||
         b.profile.full_name.toLowerCase().includes(q) ||
-        b.profile.email.toLowerCase().includes(q) ||
         (b.profile.phone_number || '').includes(q);
       if (!match) return false;
     }
@@ -51,11 +52,10 @@ export default function AdminBookingsPage() {
   });
 
   function exportCSV() {
-    const headers = ['Reference', 'Player', 'Email', 'Phone', 'Session', 'Date', 'Booking Status', 'Payment Status', 'Total Amount', 'Created At'];
+    const headers = ['Reference', 'Player', 'Phone', 'Session', 'Date', 'Booking Status', 'Payment Status', 'Total Amount', 'Created At'];
     const rows = filtered.map((b) => [
       b.booking_reference,
       b.profile.full_name,
-      b.profile.email,
       b.profile.phone_number || '',
       b.session.title,
       b.session.session_date,
@@ -76,7 +76,7 @@ export default function AdminBookingsPage() {
 
   async function updateBookingStatus(booking: AdminBooking, status: BookingStatus) {
     setActionLoading(true);
-    const updates: any = { booking_status: status };
+    const updates: { booking_status: BookingStatus; cancelled_at?: string } = { booking_status: status };
     if (status.includes('Cancelled')) {
       updates.cancelled_at = new Date().toISOString();
     }
@@ -88,13 +88,24 @@ export default function AdminBookingsPage() {
     setSelected(null);
   }
 
-  async function markPaid(booking: AdminBooking) {
+  async function confirmBooking(booking: AdminBooking, finalAmount?: number) {
     setActionLoading(true);
+
+    let amount = booking.total_amount;
+    if (finalAmount !== undefined && finalAmount !== booking.total_amount) {
+      amount = finalAmount;
+      await supabase.from('bookings').update({
+        subtotal: amount,
+        processing_fee: 0,
+        total_amount: amount,
+      }).eq('id', booking.id);
+    }
+
     await supabase.from('payments').insert({
       booking_id: booking.id,
       payment_provider: 'manual',
       payment_method: 'Cash',
-      amount: booking.total_amount,
+      amount,
       payment_status: 'Paid',
       transaction_reference: 'MANUAL-' + Date.now(),
       paid_at: new Date().toISOString(),
@@ -105,7 +116,29 @@ export default function AdminBookingsPage() {
     }).eq('id', booking.id);
     setActionLoading(false);
     if (error) { show(error.message, 'error'); return; }
-    show('Payment marked as paid', 'success');
+
+    await supabase.from('notifications').insert({
+      user_id: booking.user_id,
+      booking_id: booking.id,
+      notification_type: 'booking_confirmation',
+      title: 'Booking Confirmed',
+      message: `Your booking ${booking.booking_reference} for "${booking.session.title}" is confirmed. See you on court!`,
+      delivery_channel: 'in_app',
+      delivery_status: 'Sent',
+      sent_at: new Date().toISOString(),
+    });
+
+    const { count } = await supabase
+      .from('bookings')
+      .select('id', { count: 'exact', head: true })
+      .eq('session_id', booking.session_id)
+      .in('booking_status', ['Confirmed']);
+    const slotsLeft = booking.session.maximum_capacity - (count || 0);
+    await notifyWhatsAppGroup(
+      `Booking confirmed for "${booking.session.title}" on ${formatDate(booking.session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} left (${count || 0}/${booking.session.maximum_capacity} booked).`
+    );
+
+    show('Booking confirmed', 'success');
     load();
     setSelected(null);
   }
@@ -137,6 +170,7 @@ export default function AdminBookingsPage() {
   }
 
   const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none';
+  const isTbc = !!selected && selected.total_amount === 0 && selected.payment_status !== 'Paid';
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -155,7 +189,7 @@ export default function AdminBookingsPage() {
       <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="relative sm:col-span-2 lg:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
-          <input placeholder="Search name, email, ref..." className={`${inputClass} pl-9`} value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
+          <input placeholder="Search name, phone, ref..." className={`${inputClass} pl-9`} value={filters.search} onChange={(e) => setFilters({ ...filters, search: e.target.value })} />
         </div>
         <select className={inputClass} value={filters.session} onChange={(e) => setFilters({ ...filters, session: e.target.value })}>
           <option value="">All sessions</option>
@@ -176,7 +210,34 @@ export default function AdminBookingsPage() {
           <p className="text-slate-500">No bookings found.</p>
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200">
+        <>
+        {/* Mobile card list */}
+        <div className="sm:hidden space-y-3">
+          {filtered.map((b) => (
+            <button
+              key={b.id}
+              onClick={() => { setSelected(b); setAmountInput(b.total_amount.toString()); }}
+              className="w-full text-left bg-white rounded-2xl border border-slate-200 p-4 hover:border-orange-300 transition-colors"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="font-semibold text-slate-900 text-sm truncate">{b.profile.full_name}</p>
+                  <p className="text-xs text-slate-500">{b.profile.phone_number || 'N/A'}</p>
+                  <p className="font-mono text-xs text-slate-400 mt-1">{b.booking_reference}</p>
+                </div>
+                <p className="text-sm font-bold text-slate-900 flex-shrink-0">{formatCurrency(b.total_amount)}</p>
+              </div>
+              <p className="text-xs text-slate-500 mt-2 truncate">{b.session.title} · {formatDate(b.session.session_date)}</p>
+              <div className="flex items-center gap-1.5 mt-2">
+                <StatusBadge status={b.booking_status} />
+                <PaymentStatusBadge status={b.payment_status} />
+              </div>
+            </button>
+          ))}
+        </div>
+
+        {/* Desktop table */}
+        <div className="hidden sm:block overflow-x-auto bg-white rounded-2xl border border-slate-200">
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -195,7 +256,7 @@ export default function AdminBookingsPage() {
                   <td className="px-4 py-3 font-mono text-xs text-slate-900">{b.booking_reference}</td>
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-900 text-sm">{b.profile.full_name}</p>
-                    <p className="text-xs text-slate-500">{b.profile.email}</p>
+                    <p className="text-xs text-slate-500">{b.profile.phone_number || 'N/A'}</p>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell text-sm text-slate-600">{b.session.title}</td>
                   <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-600">{formatDate(b.session.session_date)}</td>
@@ -207,7 +268,7 @@ export default function AdminBookingsPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-bold text-slate-900">{formatCurrency(b.total_amount)}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => setSelected(b)} className="p-2 text-slate-400 hover:text-orange-600 rounded-lg hover:bg-orange-50 transition-colors">
+                    <button onClick={() => { setSelected(b); setAmountInput(b.total_amount.toString()); }} className="p-2 text-slate-400 hover:text-orange-600 rounded-lg hover:bg-orange-50 transition-colors">
                       <Eye className="h-4 w-4" />
                     </button>
                   </td>
@@ -216,6 +277,7 @@ export default function AdminBookingsPage() {
             </tbody>
           </table>
         </div>
+        </>
       )}
 
       {/* Detail modal */}
@@ -240,10 +302,7 @@ export default function AdminBookingsPage() {
                 <h3 className="font-bold text-slate-900 mb-2 text-sm">Player</h3>
                 <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
                   <p><span className="text-slate-500">Name:</span> <span className="font-medium">{selected.profile.full_name}</span></p>
-                  <p><span className="text-slate-500">Email:</span> <span className="font-medium">{selected.profile.email}</span></p>
                   <p><span className="text-slate-500">Phone:</span> <span className="font-medium">{selected.profile.phone_number || 'N/A'}</span></p>
-                  <p><span className="text-slate-500">Position:</span> <span className="font-medium">{selected.profile.playing_position || 'N/A'}</span></p>
-                  <p><span className="text-slate-500">Skill:</span> <span className="font-medium">{selected.profile.skill_level || 'N/A'}</span></p>
                 </div>
               </div>
 
@@ -262,9 +321,23 @@ export default function AdminBookingsPage() {
               <div>
                 <h3 className="font-bold text-slate-900 mb-2 text-sm">Payment</h3>
                 <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
-                  <div className="flex justify-between"><span className="text-slate-500">Session fee</span><span>{formatCurrency(selected.subtotal)}</span></div>
-                  {selected.processing_fee > 0 && <div className="flex justify-between"><span className="text-slate-500">Processing fee</span><span>{formatCurrency(selected.processing_fee)}</span></div>}
-                  <div className="flex justify-between font-bold"><span>Total</span><span>{formatCurrency(selected.total_amount)}</span></div>
+                  {isTbc ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-slate-500">Final Amount (RM) — price was TBC</span>
+                      <input
+                        type="number" step="0.01" min="0"
+                        className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+                        value={amountInput}
+                        onChange={(e) => setAmountInput(e.target.value)}
+                      />
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex justify-between"><span className="text-slate-500">Session fee</span><span>{formatCurrency(selected.subtotal)}</span></div>
+                      {selected.processing_fee > 0 && <div className="flex justify-between"><span className="text-slate-500">Processing fee</span><span>{formatCurrency(selected.processing_fee)}</span></div>}
+                      <div className="flex justify-between font-bold"><span>Total</span><span>{formatCurrency(selected.total_amount)}</span></div>
+                    </>
+                  )}
                   <div className="flex justify-between pt-2 border-t border-slate-200"><span className="text-slate-500">Payment Status</span><PaymentStatusBadge status={selected.payment_status} /></div>
                   <div className="flex justify-between"><span className="text-slate-500">Booking Status</span><StatusBadge status={selected.booking_status} /></div>
                 </div>
@@ -283,16 +356,20 @@ export default function AdminBookingsPage() {
                 <h3 className="font-bold text-slate-900 mb-2 text-sm">Admin Actions</h3>
                 <div className="flex flex-wrap gap-2">
                   {selected.payment_status !== 'Paid' && selected.booking_status !== 'Cancelled by Player' && selected.booking_status !== 'Cancelled by Admin' && (
-                    <button onClick={() => markPaid(selected)} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 font-medium rounded-lg text-sm border border-green-200 transition-colors disabled:opacity-60">
+                    <button
+                      onClick={() => confirmBooking(selected, isTbc ? parseFloat(amountInput) || 0 : undefined)}
+                      disabled={actionLoading || (isTbc && !amountInput)}
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 font-medium rounded-lg text-sm border border-green-200 transition-colors disabled:opacity-60"
+                    >
                       <DollarSign className="h-4 w-4" />
-                      Mark Paid
+                      Confirm Booking
                     </button>
                   )}
-                  {selected.payment_status === 'Paid' && (
-                    <span className="inline-flex items-center gap-1.5 px-3 py-2 bg-slate-50 text-slate-500 font-medium rounded-lg text-sm border border-slate-200">
+                  {selected.payment_status === 'Paid' && selected.booking_status !== 'Refunded' && (
+                    <button onClick={() => issueRefund(selected)} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium rounded-lg text-sm border border-purple-200 transition-colors disabled:opacity-60">
                       <RotateCcw className="h-4 w-4" />
-                      Non-refundable
-                    </span>
+                      Issue Refund
+                    </button>
                   )}
                   {selected.booking_status === 'Confirmed' && (
                     <button onClick={() => updateBookingStatus(selected, 'Completed')} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium rounded-lg text-sm border border-blue-200 transition-colors disabled:opacity-60">

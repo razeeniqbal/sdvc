@@ -1,10 +1,10 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Save, MessageCircle, Phone, Bell, ShieldCheck, UserCog, Search } from 'lucide-react';
+import { Save, MessageCircle, Phone, Bell, UserCog, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { fetchClubSettings } from '@/lib/settings';
 import { Spinner } from '@/components/LoadingScreen';
-import type { ClubSettings, Profile } from '@/types/database';
+import type { Profile } from '@/types/database';
 
 export default function AdminSettingsPage() {
   const { show } = useToast();
@@ -78,7 +78,7 @@ export default function AdminSettingsPage() {
   const filteredUsers = users.filter((u) => {
     if (!search) return true;
     const q = search.toLowerCase();
-    return (u.short_name || u.full_name).toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
+    return (u.short_name || u.full_name).toLowerCase().includes(q) || (u.phone_number || '').toLowerCase().includes(q);
   });
 
   if (loading) {
@@ -151,7 +151,7 @@ export default function AdminSettingsPage() {
         <div className="relative mb-4">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input
-            placeholder="Search by name or email..."
+            placeholder="Search by name or phone..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none bg-white/80"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
@@ -167,7 +167,7 @@ export default function AdminSettingsPage() {
                 </div>
                 <div>
                   <p className="font-medium text-slate-900 text-sm">{u.short_name || u.full_name}</p>
-                  <p className="text-xs text-slate-500">{u.email}</p>
+                  <p className="text-xs text-slate-500">{u.phone_number || 'No phone number'}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">

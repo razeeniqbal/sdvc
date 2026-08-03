@@ -1,11 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Plus, Search, Copy, Trash2, Edit, Users, CalendarDays, MapPin } from 'lucide-react';
+import { Plus, Search, Copy, Trash2, Edit, Users, CalendarDays, Megaphone, MoreVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime } from '@/lib/format';
 import { Spinner } from '@/components/LoadingScreen';
 import { SessionStatusBadge } from '@/components/StatusBadge';
+import { sendWhatsAppBlast } from '@/lib/notifications';
 import type { Session } from '@/types/database';
 
 interface SessionWithCount extends Session {
@@ -18,14 +19,26 @@ export default function AdminSessionsPage() {
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [blastSession, setBlastSession] = useState<SessionWithCount | null>(null);
+  const [blastMessage, setBlastMessage] = useState('');
+  const [blasting, setBlasting] = useState(false);
+  const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    function onDocClick(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenuId(null);
+    }
+    document.addEventListener('click', onDocClick);
+    return () => document.removeEventListener('click', onDocClick);
+  }, []);
 
   async function load() {
     const { data } = await supabase.from('sessions').select('*').order('session_date', { ascending: true });
     const sessionList = (data || []) as Session[];
-    const sessionIds = sessionList.map((s) => s.id);
     const { data: active } = await supabase.from('bookings').select('session_id, booking_status').in('booking_status', ['Pending Payment', 'Confirmed']);
     const counts = new Map<string, number>();
-    (active || []).forEach((b: any) => counts.set(b.session_id, (counts.get(b.session_id) || 0) + 1));
+    (active || []).forEach((b: { session_id: string }) => counts.set(b.session_id, (counts.get(b.session_id) || 0) + 1));
     setSessions(sessionList.map((s) => ({ ...s, confirmed_count: counts.get(s.id) || 0 })));
     setLoading(false);
   }
@@ -47,7 +60,6 @@ export default function AdminSessionsPage() {
       venue_address: session.venue_address,
       maps_link: session.maps_link,
       court_number: session.court_number,
-      skill_level: session.skill_level,
       price: session.price,
       maximum_capacity: session.maximum_capacity,
       booking_open_at: session.booking_open_at,
@@ -76,6 +88,24 @@ export default function AdminSessionsPage() {
     if (error) { show(error.message, 'error'); return; }
     show(`Session ${newStatus === 'Open' ? 'opened' : 'closed'} for booking`, 'success');
     load();
+  }
+
+  function openBlast(s: SessionWithCount) {
+    const slotsLeft = s.maximum_capacity - s.confirmed_count;
+    setBlastMessage(
+      `📢 ${s.title}\n${formatDate(s.session_date)}, ${formatTime(s.start_time)} - ${formatTime(s.end_time)}\n📍 ${s.venue_name}\n${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} left — book now!`
+    );
+    setBlastSession(s);
+  }
+
+  async function handleBlastSend() {
+    if (!blastMessage.trim()) return;
+    setBlasting(true);
+    const ok = await sendWhatsAppBlast(blastMessage);
+    setBlasting(false);
+    if (!ok) { show('Failed to send WhatsApp blast', 'error'); return; }
+    show('WhatsApp blast sent', 'success');
+    setBlastSession(null);
   }
 
   const filtered = sessions.filter((s) => {
@@ -145,7 +175,7 @@ export default function AdminSessionsPage() {
                 <tr key={s.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <p className="font-semibold text-slate-900 text-sm">{s.title}</p>
-                    <p className="text-xs text-slate-500">{s.skill_level} · RM{s.price.toFixed(2)}</p>
+                    <p className="text-xs text-slate-500">{s.price > 0 ? `RM${s.price.toFixed(2)}` : 'TBC'}</p>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell text-sm text-slate-600">{formatDate(s.session_date)}</td>
                   <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-600">{s.venue_name}</td>
@@ -162,27 +192,70 @@ export default function AdminSessionsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <Link to={`/admin/sessions/${s.id}/attendance`} className="p-2 text-slate-400 hover:text-blue-600 rounded-lg hover:bg-blue-50 transition-colors" title="Attendance">
-                        <Users className="h-4 w-4" />
-                      </Link>
-                      <Link to={`/admin/sessions/${s.id}/waiting-list`} className="p-2 text-slate-400 hover:text-amber-600 rounded-lg hover:bg-amber-50 transition-colors" title="Waiting list">
-                        <CalendarDays className="h-4 w-4" />
-                      </Link>
-                      <button onClick={() => handleDuplicate(s.id)} className="p-2 text-slate-400 hover:text-green-600 rounded-lg hover:bg-green-50 transition-colors" title="Duplicate">
-                        <Copy className="h-4 w-4" />
-                      </button>
                       <Link to={`/admin/sessions/${s.id}/edit`} className="p-2 text-slate-400 hover:text-orange-600 rounded-lg hover:bg-orange-50 transition-colors" title="Edit">
                         <Edit className="h-4 w-4" />
                       </Link>
                       <button onClick={() => setDeleteId(s.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors" title="Delete">
                         <Trash2 className="h-4 w-4" />
                       </button>
+                      <div className="relative" ref={s.id === openMenuId ? menuRef : undefined}>
+                        <button
+                          onClick={() => setOpenMenuId(openMenuId === s.id ? null : s.id)}
+                          className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                          title="More actions"
+                        >
+                          <MoreVertical className="h-4 w-4" />
+                        </button>
+                        {openMenuId === s.id && (
+                          <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-slate-200 shadow-lg z-10 py-1 text-sm">
+                            <Link to={`/admin/sessions/${s.id}/attendance`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                              <Users className="h-4 w-4 text-blue-500" /> Attendance
+                            </Link>
+                            <Link to={`/admin/sessions/${s.id}/waiting-list`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                              <CalendarDays className="h-4 w-4 text-amber-500" /> Waiting List
+                            </Link>
+                            <button onClick={() => { setOpenMenuId(null); openBlast(s); }} className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                              <Megaphone className="h-4 w-4 text-green-500" /> Blast to WhatsApp
+                            </button>
+                            <button onClick={() => { setOpenMenuId(null); handleDuplicate(s.id); }} className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                              <Copy className="h-4 w-4 text-green-500" /> Duplicate
+                            </button>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </td>
                 </tr>
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+
+      {/* Blast dialog */}
+      {blastSession && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setBlastSession(null)}>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
+              <Megaphone className="h-5 w-5 text-green-600" /> Blast "{blastSession.title}"
+            </h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Sends a WhatsApp message via CallMeBot to the configured contact number. This does not post into the group chat directly.
+            </p>
+            <textarea
+              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 outline-none transition-all resize-none"
+              rows={5}
+              value={blastMessage}
+              onChange={(e) => setBlastMessage(e.target.value)}
+            />
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setBlastSession(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
+              <button onClick={handleBlastSend} disabled={blasting} className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                {blasting && <Spinner className="h-4 w-4" />}
+                {blasting ? 'Sending...' : 'Send'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

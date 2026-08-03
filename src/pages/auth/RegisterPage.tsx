@@ -9,14 +9,15 @@ export default function RegisterPage() {
   const navigate = useNavigate();
   const { show } = useToast();
   const [loading, setLoading] = useState(false);
-  const [form, setForm] = useState({ short_name: '', email: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({ short_name: '', phone: '', password: '', confirmPassword: '' });
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   function validate(): boolean {
     const e: Record<string, string> = {};
     if (!form.short_name.trim()) e.short_name = 'Name is required';
-    if (!form.email.trim()) e.email = 'Email is required';
-    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = 'Invalid email address';
+    const digits = form.phone.replace(/[^0-9]/g, '');
+    if (!digits) e.phone = 'Phone number is required';
+    else if (digits.length < 9) e.phone = 'Enter a valid phone number';
     if (!form.password) e.password = 'Password is required';
     else if (form.password.length < 6) e.password = 'Password must be at least 6 characters';
     if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match';
@@ -28,18 +29,29 @@ export default function RegisterPage() {
     ev.preventDefault();
     if (!validate()) return;
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: form.email,
-      password: form.password,
-      options: { data: { full_name: form.short_name, short_name: form.short_name } },
+
+    const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/phone-signup`;
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ phone: form.phone, password: form.password, full_name: form.short_name, short_name: form.short_name }),
     });
+    const body = await res.json();
+
+    if (!res.ok) {
+      setLoading(false);
+      show(body.error || 'Failed to create account', 'error');
+      return;
+    }
+
+    const { error } = await supabase.auth.signInWithPassword({ email: body.email, password: form.password });
     setLoading(false);
     if (error) { show(error.message, 'error'); return; }
-    const { data: sessionData } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password });
-    if (sessionData.user) {
-      await supabase.from('profiles').update({ full_name: form.short_name, short_name: form.short_name }).eq('id', sessionData.user.id);
-    }
-    show('Welcome to FunPlay! Complete your profile to book sessions.', 'success');
+
+    show('Welcome to Volleyball Sdn Bhd! Complete your profile to book sessions.', 'success');
     navigate('/profile');
   }
 
@@ -55,8 +67,8 @@ export default function RegisterPage() {
             <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white mb-3 shadow-lg">
               <Zap className="h-7 w-7" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-900">Join FunPlay</h1>
-            <p className="text-slate-500 text-sm mt-1">Just your name, email, and password — that's it!</p>
+            <h1 className="text-2xl font-bold text-slate-900">Join Volleyball Sdn Bhd</h1>
+            <p className="text-slate-500 text-sm mt-1">Just your name, phone number, and password — that's it!</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -66,9 +78,9 @@ export default function RegisterPage() {
               {errors.short_name && <p className={errorClass}>{errors.short_name}</p>}
             </div>
             <div>
-              <label className={labelClass}>Email</label>
-              <input type="email" className={inputClass} value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              {errors.email && <p className={errorClass}>{errors.email}</p>}
+              <label className={labelClass}>Phone Number</label>
+              <input type="tel" className={inputClass} placeholder="e.g. 0173364524" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              {errors.phone && <p className={errorClass}>{errors.phone}</p>}
             </div>
             <div>
               <label className={labelClass}>Password</label>

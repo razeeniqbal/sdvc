@@ -15,29 +15,16 @@ export async function fetchSessionsWithCounts(): Promise<SessionWithCount[]> {
   if (error) throw error;
   if (!sessions || sessions.length === 0) return [];
 
-  const sessionIds = sessions.map((s) => s.id);
+  // Uses the SECURITY DEFINER confirmed_booking_count() function so counts are
+  // accurate for every viewer — a direct query against `bookings` would be
+  // filtered by RLS to only the caller's own rows.
+  const counts = await Promise.all(
+    sessions.map((s) => supabase.rpc('confirmed_booking_count', { p_session_id: s.id }))
+  );
 
-  const { data: counts, error: countError } = await supabase.rpc('confirmed_booking_count', {
-    p_session_id: null as any,
-  });
-
-  // RPC with single param doesn't support arrays, so query bookings directly
-  const { data: bookings, error: bookingsError } = await supabase
-    .from('bookings')
-    .select('session_id, booking_status')
-    .in('session_id', sessionIds)
-    .in('booking_status', ['Pending Payment', 'Confirmed']);
-
-  if (bookingsError) throw bookingsError;
-
-  const countMap = new Map<string, number>();
-  (bookings || []).forEach((b) => {
-    countMap.set(b.session_id, (countMap.get(b.session_id) || 0) + 1);
-  });
-
-  return sessions.map((s) => ({
+  return sessions.map((s, i) => ({
     ...s,
-    confirmed_count: countMap.get(s.id) || 0,
+    confirmed_count: (counts[i].data as number) || 0,
   })) as SessionWithCount[];
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { CalendarDays, Clock, MapPin, Tag, Users, AlertCircle, ArrowLeft, CheckCircle2, Info, MessageCircle, Phone } from 'lucide-react';
+import { CalendarDays, Clock, MapPin, Tag, Users, ArrowLeft, CheckCircle2, Info, MessageCircle, Phone, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { formatCurrency, formatDate, formatTime, getDayName } from '@/lib/format';
 import { getSessionStatus, type SessionWithCount } from '@/lib/sessions';
@@ -28,14 +28,12 @@ export default function SessionDetailsPage() {
         navigate('/sessions');
         return;
       }
-      const { count } = await supabase
-        .from('bookings')
-        .select('id', { count: 'exact', head: true })
-        .eq('session_id', id)
-        .in('booking_status', ['Pending Payment', 'Confirmed']);
-      setSession({ ...data, confirmed_count: count || 0 } as SessionWithCount);
+      const { data: count } = await supabase.rpc('confirmed_booking_count', { p_session_id: id });
+      setSession({ ...data, confirmed_count: (count as number) || 0 } as SessionWithCount);
       setLoading(false);
     })();
+    // reload only when the session id changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
   async function handleJoinWaitlist() {
@@ -120,7 +118,6 @@ export default function SessionDetailsPage() {
             <InfoRow icon={Clock} label="Time" value={`${formatTime(session.start_time)} - ${formatTime(session.end_time)}`} />
             <InfoRow icon={MapPin} label="Venue" value={session.venue_name} />
             <InfoRow icon={Tag} label="Court" value={session.court_number || 'Not specified'} />
-            <InfoRow icon={Tag} label="Skill Level" value={session.skill_level} />
             <InfoRow icon={Users} label="Capacity" value={`${session.confirmed_count} / ${session.maximum_capacity} (${available} slots left)`} />
           </div>
 
@@ -205,7 +202,8 @@ export default function SessionDetailsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm text-slate-500">Price per player</p>
-                <p className="text-3xl font-bold text-slate-900">{formatCurrency(session.price)}</p>
+                <p className="text-3xl font-bold text-slate-900">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</p>
+                {session.price === 0 && <p className="text-xs text-amber-600 mt-0.5">Final price depends on turnout — confirmed by admin</p>}
               </div>
               <div className="text-right text-sm text-slate-500">
                 <p>Booking deadline: {session.booking_close_at ? formatDate(session.booking_close_at) : 'None'}</p>
@@ -246,7 +244,7 @@ export default function SessionDetailsPage() {
   );
 }
 
-function InfoRow({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function InfoRow({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="flex items-start gap-3 bg-slate-50 rounded-xl p-3">
       <Icon className="h-5 w-5 text-slate-400 flex-shrink-0 mt-0.5" />

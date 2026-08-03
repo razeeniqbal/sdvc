@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '@/lib/supabase';
+import { phoneToEmail } from '@/lib/auth';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
 import { Zap } from 'lucide-react';
@@ -9,18 +10,20 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const { show } = useToast();
   const [loading, setLoading] = useState(false);
-  const [email, setEmail] = useState('');
+  const [identifier, setIdentifier] = useState('');
   const [password, setPassword] = useState('');
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
-    if (!email || !password) { show('Please enter your email and password', 'error'); return; }
+    if (!identifier || !password) { show('Please enter your phone number and password', 'error'); return; }
     setLoading(true);
+    // Admin/legacy accounts may still use a real email; new accounts are phone-based.
+    const email = identifier.includes('@') ? identifier.trim() : phoneToEmail(identifier);
     const { error } = await supabase.auth.signInWithPassword({ email, password });
     setLoading(false);
-    if (error) { show(error.message, 'error'); return; }
+    if (error) { show(error.message.includes('Invalid login') ? 'Invalid phone number or password' : error.message, 'error'); return; }
     show('Welcome back!', 'success');
-    navigate('/dashboard');
+    navigate('/sessions');
   }
 
   const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none transition-all bg-white/80';
@@ -39,8 +42,8 @@ export default function LoginPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-slate-600 mb-1.5">Email</label>
-              <input type="email" className={inputClass} value={email} onChange={(e) => setEmail(e.target.value)} />
+              <label className="block text-sm font-medium text-slate-600 mb-1.5">Phone Number</label>
+              <input type="text" className={inputClass} placeholder="e.g. 0173364524" value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Password</label>

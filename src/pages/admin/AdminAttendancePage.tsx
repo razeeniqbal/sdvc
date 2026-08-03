@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, XCircle, UserX, Search, QrCode, Users } from 'lucide-react';
+import { ArrowLeft, CheckCircle2, XCircle, UserX, Search, QrCode, Users, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime } from '@/lib/format';
@@ -34,14 +34,14 @@ export default function AdminAttendancePage() {
         .in('booking_status', ['Confirmed', 'Completed', 'No Show'])
         .order('created_at', { ascending: true });
       setBookings((bs || []) as unknown as BookingWithProfile[]);
-      const bookingIds = (bs || []).map((b: any) => b.id);
-      let atts: any[] | null = null;
+      const bookingIds = (bs || []).map((b: { id: string }) => b.id);
+      let atts: Attendance[] | null = null;
       if (bookingIds.length > 0) {
         const res = await supabase.from('attendance').select('*').in('booking_id', bookingIds);
         atts = res.data;
       }
       const map = new Map<string, Attendance>();
-      (atts || []).forEach((a: any) => map.set(a.booking_id, a));
+      (atts || []).forEach((a) => map.set(a.booking_id, a));
       setAttendanceMap(map);
       setLoading(false);
     })();
@@ -94,7 +94,7 @@ export default function AdminAttendancePage() {
 
   const attended = bookings.filter((b) => attendanceMap.get(b.id)?.attendance_status === 'Attended').length;
 
-  const buttons: { status: AttendanceStatus; icon: any; color: string }[] = [
+  const buttons: { status: AttendanceStatus; icon: LucideIcon; color: string }[] = [
     { status: 'Attended', icon: CheckCircle2, color: 'green' },
     { status: 'Absent', icon: XCircle, color: 'red' },
     { status: 'No Show', icon: UserX, color: 'amber' },

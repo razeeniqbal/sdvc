@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { CheckCircle2, Calendar, Clock, MapPin, Ticket, ArrowRight, CalendarPlus, MessageCircle } from 'lucide-react';
+import { CheckCircle2, Clock as ClockPending, Calendar, Clock, MapPin, Ticket, ArrowRight, CalendarPlus, MessageCircle } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { formatCurrency, formatDate, formatTime } from '@/lib/format';
 import { fetchClubSettings } from '@/lib/settings';
-import type { Booking, Session, Payment, Profile, ClubSettings } from '@/types/database';
+import type { Booking, Session, Payment, ClubSettings } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
 export default function BookingConfirmationPage() {
@@ -24,7 +24,7 @@ export default function BookingConfirmationPage() {
     (async () => {
       const { data: b } = await supabase.from('bookings').select('*').eq('id', bookingId).maybeSingle();
       if (!b) {
-        navigate('/dashboard');
+        navigate('/sessions');
         return;
       }
       setBooking(b as Booking);
@@ -34,6 +34,8 @@ export default function BookingConfirmationPage() {
       setPayment(p as Payment);
       setLoading(false);
     })();
+    // reload only when the booking id changes
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [bookingId]);
 
   function handleAddToCalendar() {
@@ -56,17 +58,29 @@ export default function BookingConfirmationPage() {
     );
   }
 
+  const isConfirmed = booking.booking_status === 'Confirmed';
+
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <div className="glass-card rounded-2xl shadow-lg border border-white/50 overflow-hidden">
-        {/* Success header */}
-        <div className="bg-gradient-to-r from-rose-500 to-orange-500 p-6 sm:p-8 text-center">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20 mb-4">
-            <CheckCircle2 className="h-9 w-9 text-white" />
+        {/* Header */}
+        {isConfirmed ? (
+          <div className="bg-gradient-to-r from-rose-500 to-orange-500 p-6 sm:p-8 text-center">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20 mb-4">
+              <CheckCircle2 className="h-9 w-9 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-1">Booking Confirmed!</h1>
+            <p className="text-green-100 text-sm">Your slot has been reserved. See you on court!</p>
           </div>
-          <h1 className="text-2xl font-bold text-white mb-1">Booking Confirmed!</h1>
-          <p className="text-green-100 text-sm">Your slot has been reserved. See you on court!</p>
-        </div>
+        ) : (
+          <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 sm:p-8 text-center">
+            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20 mb-4">
+              <ClockPending className="h-9 w-9 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-white mb-1">Slot Locked!</h1>
+            <p className="text-amber-50 text-sm">Awaiting admin confirmation. We'll notify you once it's confirmed.</p>
+          </div>
+        )}
 
         <div className="p-6 sm:p-8 space-y-6">
           {/* Booking reference */}
@@ -103,7 +117,6 @@ export default function BookingConfirmationPage() {
             <h2 className="font-bold text-slate-900 mb-3">Player Information</h2>
             <div className="space-y-1 text-sm text-slate-600">
               <p><span className="text-slate-500">Name:</span> <span className="font-medium text-slate-900">{profile?.full_name}</span></p>
-              <p><span className="text-slate-500">Email:</span> <span className="font-medium text-slate-900">{profile?.email}</span></p>
               <p><span className="text-slate-500">Phone:</span> <span className="font-medium text-slate-900">{profile?.phone_number || 'N/A'}</span></p>
             </div>
           </div>
@@ -114,19 +127,25 @@ export default function BookingConfirmationPage() {
             <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm">
               <div className="flex justify-between">
                 <span className="text-slate-500">Status</span>
-                <span className="font-semibold text-green-600">Paid</span>
+                <span className={`font-semibold ${isConfirmed ? 'text-green-600' : 'text-amber-600'}`}>
+                  {isConfirmed ? 'Paid' : 'Pending Verification'}
+                </span>
               </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Method</span>
-                <span className="font-medium text-slate-900">{payment?.payment_method || 'N/A'}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-500">Reference</span>
-                <span className="font-mono text-slate-900">{payment?.transaction_reference || 'N/A'}</span>
-              </div>
+              {isConfirmed && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Method</span>
+                    <span className="font-medium text-slate-900">{payment?.payment_method || 'N/A'}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-slate-500">Reference</span>
+                    <span className="font-mono text-slate-900">{payment?.transaction_reference || 'N/A'}</span>
+                  </div>
+                </>
+              )}
               <div className="flex justify-between pt-2 border-t border-slate-200">
-                <span className="font-bold text-slate-900">Amount Paid</span>
-                <span className="text-lg font-bold text-green-600">{formatCurrency(booking.total_amount)}</span>
+                <span className="font-bold text-slate-900">{isConfirmed ? 'Amount Paid' : 'Amount Due'}</span>
+                <span className={`text-lg font-bold ${isConfirmed ? 'text-green-600' : 'text-amber-600'}`}>{formatCurrency(booking.total_amount)}</span>
               </div>
             </div>
           </div>
