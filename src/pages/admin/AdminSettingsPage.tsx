@@ -128,8 +128,8 @@ export default function AdminSettingsPage() {
           <label className="flex items-start gap-2 cursor-pointer bg-green-50 rounded-xl p-3 border border-green-200">
             <input type="checkbox" checked={form.whatsapp_group_notify} onChange={(e) => setForm({ ...form, whatsapp_group_notify: e.target.checked })} className="mt-1 h-4 w-4 rounded border-slate-300 text-green-500 focus:ring-green-500" />
             <div>
-              <span className="text-sm font-medium text-green-900 flex items-center gap-1.5"><Bell className="h-4 w-4" /> Notify WhatsApp group on slot updates</span>
-              <span className="text-xs text-green-700 block mt-0.5">When enabled, a notification is sent to the group when a player books or cancels a session.</span>
+              <span className="text-sm font-medium text-green-900 flex items-center gap-1.5"><Bell className="h-4 w-4" /> Notify Telegram group on slot updates</span>
+              <span className="text-xs text-green-700 block mt-0.5">When enabled, a message is sent to your Telegram group when a player books or cancels a session.</span>
             </div>
           </label>
         </div>

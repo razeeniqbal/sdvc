@@ -6,7 +6,7 @@ import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime } from '@/lib/format';
 import { Spinner } from '@/components/LoadingScreen';
 import { SessionStatusBadge } from '@/components/StatusBadge';
-import { sendWhatsAppBlast } from '@/lib/notifications';
+import { sendGroupBlast } from '@/lib/notifications';
 import type { Session } from '@/types/database';
 
 interface SessionWithCount extends Session {
@@ -101,7 +101,7 @@ export default function AdminSessionsPage() {
   async function handleBlastSend() {
     if (!blastMessage.trim()) return;
     setBlasting(true);
-    const ok = await sendWhatsAppBlast(blastMessage);
+    const ok = await sendGroupBlast(blastMessage);
     setBlasting(false);
     if (!ok) { show('Failed to send WhatsApp blast', 'error'); return; }
     show('WhatsApp blast sent', 'success');
@@ -240,7 +240,7 @@ export default function AdminSessionsPage() {
               <Megaphone className="h-5 w-5 text-green-600" /> Blast "{blastSession.title}"
             </h3>
             <p className="text-sm text-slate-500 mb-4">
-              Sends a WhatsApp message via CallMeBot to the configured contact number. This does not post into the group chat directly.
+              Sends this message directly to your Telegram group.
             </p>
             <textarea
               className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 outline-none transition-all resize-none"

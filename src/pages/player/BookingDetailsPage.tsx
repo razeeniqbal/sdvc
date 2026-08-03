@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { formatCurrency, formatDate, formatTime, formatDateTime } from '@/lib/format';
-import { notifyWhatsAppGroup } from '@/lib/notifications';
+import { notifyGroup } from '@/lib/notifications';
 import { StatusBadge, PaymentStatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import type { Booking, Session, Payment, Attendance } from '@/types/database';
@@ -80,7 +80,7 @@ export default function BookingDetailsPage() {
     const { data: countData } = await supabase.rpc('confirmed_booking_count', { p_session_id: session.id });
     const count = (countData as number) || 0;
     const slotsLeft = session.maximum_capacity - count;
-    await notifyWhatsAppGroup(
+    await notifyGroup(
       `Slot Update: A slot opened up for "${session.title}" on ${formatDate(session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} now available (${count}/${session.maximum_capacity} booked).`
     );
 

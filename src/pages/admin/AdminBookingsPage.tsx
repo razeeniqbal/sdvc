@@ -3,7 +3,7 @@ import { Search, Download, Eye, RefreshCw, XCircle, DollarSign, RotateCcw } from
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatCurrency, formatDate, formatTime, formatDateTime } from '@/lib/format';
-import { notifyWhatsAppGroup } from '@/lib/notifications';
+import { notifyGroup } from '@/lib/notifications';
 import { StatusBadge, PaymentStatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import type { Booking, Session, Profile, BookingStatus } from '@/types/database';
@@ -134,7 +134,7 @@ export default function AdminBookingsPage() {
       .eq('session_id', booking.session_id)
       .in('booking_status', ['Confirmed']);
     const slotsLeft = booking.session.maximum_capacity - (count || 0);
-    await notifyWhatsAppGroup(
+    await notifyGroup(
       `Booking confirmed for "${booking.session.title}" on ${formatDate(booking.session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} left (${count || 0}/${booking.session.maximum_capacity} booked).`
     );
 

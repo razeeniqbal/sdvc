@@ -7,7 +7,13 @@ import { getSessionStatus, type SessionWithCount } from '@/lib/sessions';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
-import type { ClubSettings } from '@/types/database';
+import { StatusBadge } from '@/components/StatusBadge';
+import type { ClubSettings, BookingStatus } from '@/types/database';
+
+interface SessionPlayer {
+  display_name: string;
+  booking_status: BookingStatus;
+}
 
 export default function SessionDetailsPage() {
   const { id } = useParams<{ id: string }>();
@@ -17,6 +23,7 @@ export default function SessionDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [onWaitlist, setOnWaitlist] = useState(false);
   const [settings, setSettings] = useState<ClubSettings | null>(null);
+  const [players, setPlayers] = useState<SessionPlayer[]>([]);
 
   useEffect(() => {
     fetchClubSettings().then(setSettings);
@@ -30,6 +37,8 @@ export default function SessionDetailsPage() {
       }
       const { data: count } = await supabase.rpc('confirmed_booking_count', { p_session_id: id });
       setSession({ ...data, confirmed_count: (count as number) || 0 } as SessionWithCount);
+      const { data: playerList } = await supabase.rpc('session_player_list', { p_session_id: id });
+      setPlayers((playerList || []) as SessionPlayer[]);
       setLoading(false);
     })();
     // reload only when the session id changes
@@ -120,6 +129,27 @@ export default function SessionDetailsPage() {
             <InfoRow icon={Tag} label="Court" value={session.court_number || 'Not specified'} />
             <InfoRow icon={Users} label="Capacity" value={`${session.confirmed_count} / ${session.maximum_capacity} (${available} slots left)`} />
           </div>
+
+          {players.length > 0 && (
+            <div>
+              <h2 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
+                <Users className="h-5 w-5 text-rose-500" /> Who's Playing ({players.length})
+              </h2>
+              <div className="space-y-1.5">
+                {players.map((p, i) => (
+                  <div key={i} className="flex items-center justify-between gap-2 bg-slate-50 rounded-xl px-3 py-2">
+                    <span className="flex items-center gap-2 text-sm text-slate-700 min-w-0">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-orange-400 text-white text-[10px] font-bold">
+                        {p.display_name.charAt(0).toUpperCase()}
+                      </span>
+                      <span className="truncate">{p.display_name}</span>
+                    </span>
+                    <StatusBadge status={p.booking_status} />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {session.venue_address && (
             <div>

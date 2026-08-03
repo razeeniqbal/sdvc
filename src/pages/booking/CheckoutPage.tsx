@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime } from '@/lib/format';
-import { notifyWhatsAppGroup } from '@/lib/notifications';
+import { notifyGroup } from '@/lib/notifications';
 import type { Session } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
@@ -122,7 +122,7 @@ export default function CheckoutPage() {
     });
 
     const slotsLeft = session.maximum_capacity - activeCount - 1;
-    await notifyWhatsAppGroup(
+    await notifyGroup(
       `New booking locked for "${session.title}" on ${formatDate(session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} left. Awaiting admin confirmation.`
     );
 
