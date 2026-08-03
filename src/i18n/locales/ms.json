@@ -210,7 +210,7 @@
     "policyRule3": "Slot anda dikunci sebaik sahaja dihantar, menunggu pengesahan admin.",
     "policyRule4": "Admin kelab akan mengesahkan bayaran dan tempahan anda.",
     "agreeLabel": "Saya telah membaca dan bersetuju dengan dasar tempahan dan pembatalan kelab.",
-    "lockMySlot": "Kunci Slot Saya",
+    "lockMySlot": "Kunci Slot Saya & Teruskan Bayaran",
     "lockingSlot": "Sedang mengunci slot...",
     "bookingSummary": "Ringkasan Tempahan",
     "sessionLabel": "Sesi",
@@ -233,7 +233,8 @@
     "errorNotEnoughSlots": "Hanya {{available}} slot lagi untuk sesi ini — buang seorang pemain atau kurangkan bilangan kawan",
     "totalPlayers": "Jumlah pemain",
     "totalDue": "Jumlah (TBC setiap pemain)",
-    "lockSlotsButton": "Kunci {{count}} Slot"
+    "lockSlotsButton": "Kunci {{count}} Slot & Teruskan Bayaran",
+    "noPaymentYetNote": "Langkah ini cuma menempah slot anda — tiada bayaran dibuat di sini. Anda akan dapat kod QR untuk bayar dan boleh muat naik resit sejurus selepas ini."
   },
   "bookingConfirmation": {
     "bookingConfirmed": "Tempahan Disahkan!",

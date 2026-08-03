@@ -210,7 +210,7 @@
     "policyRule3": "Your slot is locked once you submit, pending admin confirmation.",
     "policyRule4": "The club admin will verify your payment and confirm your booking.",
     "agreeLabel": "I have read and agree to the club booking and cancellation policy.",
-    "lockMySlot": "Lock My Slot",
+    "lockMySlot": "Lock My Slot & Proceed to Payment",
     "lockingSlot": "Locking slot...",
     "bookingSummary": "Booking Summary",
     "sessionLabel": "Session",
@@ -233,7 +233,8 @@
     "errorNotEnoughSlots": "Only {{available}} slot(s) left for this session — remove a player or choose fewer companions",
     "totalPlayers": "Total players",
     "totalDue": "Total (TBC per player)",
-    "lockSlotsButton": "Lock {{count}} Slots"
+    "lockSlotsButton": "Lock {{count}} Slots & Proceed to Payment",
+    "noPaymentYetNote": "This just reserves your slot — no payment happens here. You'll get the QR code to pay and can upload your receipt right after."
   },
   "bookingConfirmation": {
     "bookingConfirmed": "Booking Confirmed!",

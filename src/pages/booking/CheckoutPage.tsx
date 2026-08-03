@@ -204,100 +204,72 @@ export default function CheckoutPage() {
 
       <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">{t('checkout.title')}</h1>
 
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Player details */}
-        <div className="lg:col-span-2">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6">
-            <h2 className="font-bold text-slate-900 mb-4">{t('checkout.playerDetails')}</h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div className="grid sm:grid-cols-2 gap-4">
-                <div>
-                  <label className={labelClass}>{t('checkout.displayName')}</label>
-                  <input className={inputClass} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} required />
-                </div>
-                <div>
-                  <label className={labelClass}>{t('checkout.phoneNumber')}</label>
-                  <input className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
-                </div>
-              </div>
+      {/* A single <form> acts as the grid container so `order` can resequence the three
+          sections independently of the DOM: on mobile that puts the summary between the
+          fields and the policy/button (so players see what they're booking and how much
+          before hitting a paywall-looking button); on desktop the same order values fall
+          into place as fields+policy stacked on the left and summary spanning the right. */}
+      <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6">
+        {/* Player details (order 1) */}
+        <div className="lg:col-span-2 order-1 bg-white rounded-2xl border border-slate-200 p-6">
+          <h2 className="font-bold text-slate-900 mb-4">{t('checkout.playerDetails')}</h2>
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>{t('checkout.displayName')}</label>
+              <input className={inputClass} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} required />
+            </div>
+            <div>
+              <label className={labelClass}>{t('checkout.phoneNumber')}</label>
+              <input className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
+            </div>
+          </div>
 
-              {/* Companions */}
-              <div className="border-t border-slate-200 pt-4">
-                <h3 className="font-semibold text-slate-900 text-sm">{t('checkout.companionsTitle')}</h3>
-                <p className="text-xs text-slate-500 mb-3">{t('checkout.companionsSubtitle')}</p>
-                <div className="space-y-3">
-                  {companions.map((c, i) => (
-                    <div key={i} className="flex items-start gap-2">
-                      <div className="grid sm:grid-cols-2 gap-2 flex-1">
-                        <input
-                          className={inputClass}
-                          placeholder={t('checkout.companionNamePlaceholder')}
-                          value={c.name}
-                          onChange={(e) => updateCompanion(i, 'name', e.target.value)}
-                        />
-                        <input
-                          className={inputClass}
-                          placeholder={t('checkout.companionPhone')}
-                          value={c.phone}
-                          onChange={(e) => updateCompanion(i, 'phone', e.target.value)}
-                        />
-                      </div>
-                      <button
-                        type="button"
-                        onClick={() => removeCompanion(i)}
-                        title={t('checkout.removeCompanion')}
-                        className="mt-2.5 p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0"
-                      >
-                        <X className="h-4 w-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-                <button
-                  type="button"
-                  onClick={addCompanion}
-                  className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:text-orange-700"
-                >
-                  <UserPlus className="h-4 w-4" />
-                  {t('checkout.addCompanion')}
-                </button>
-              </div>
-
-              {/* Cancellation policy */}
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <div className="flex items-start gap-2 mb-3">
-                  <ShieldCheck className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-                  <div>
-                    <p className="font-semibold text-amber-900 text-sm mb-1">{t('checkout.policyTitle')}</p>
-                    <ul className="text-xs text-amber-800 space-y-1">
-                      <li>• {t('checkout.policyRule1')}</li>
-                      <li>• {t('checkout.policyRule2')}</li>
-                      <li>• {t('checkout.policyRule3')}</li>
-                      <li>• {t('checkout.policyRule4')}</li>
-                    </ul>
+          {/* Companions */}
+          <div className="border-t border-slate-200 pt-4 mt-4">
+            <h3 className="font-semibold text-slate-900 text-sm">{t('checkout.companionsTitle')}</h3>
+            <p className="text-xs text-slate-500 mb-3">{t('checkout.companionsSubtitle')}</p>
+            <div className="space-y-3">
+              {companions.map((c, i) => (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="grid sm:grid-cols-2 gap-2 flex-1">
+                    <input
+                      className={inputClass}
+                      placeholder={t('checkout.companionNamePlaceholder')}
+                      value={c.name}
+                      onChange={(e) => updateCompanion(i, 'name', e.target.value)}
+                    />
+                    <input
+                      className={inputClass}
+                      placeholder={t('checkout.companionPhone')}
+                      value={c.phone}
+                      onChange={(e) => updateCompanion(i, 'phone', e.target.value)}
+                    />
                   </div>
+                  <button
+                    type="button"
+                    onClick={() => removeCompanion(i)}
+                    title={t('checkout.removeCompanion')}
+                    className="mt-2.5 p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
                 </div>
-                <label className="flex items-start gap-2 cursor-pointer">
-                  <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" />
-                  <span className="text-sm text-amber-900">{t('checkout.agreeLabel')}</span>
-                </label>
-              </div>
-
-              <button
-                type="submit"
-                disabled={submitting || !agreed}
-                className="w-full py-3.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
-              >
-                {submitting && <Spinner className="h-5 w-5" />}
-                {submitting ? t('checkout.lockingSlot') : totalPlayers > 1 ? t('checkout.lockSlotsButton', { count: totalPlayers }) : t('checkout.lockMySlot')}
-              </button>
-            </form>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={addCompanion}
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:text-orange-700"
+            >
+              <UserPlus className="h-4 w-4" />
+              {t('checkout.addCompanion')}
+            </button>
           </div>
         </div>
 
-        {/* Summary */}
-        <div>
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sticky top-20">
+        {/* Summary (order 2 on mobile; spans both rows on the right on desktop) */}
+        <div className="order-2 lg:row-span-2">
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:sticky lg:top-20">
             <h2 className="font-bold text-slate-900 mb-4">{t('checkout.bookingSummary')}</h2>
             <div className="space-y-3 text-sm">
               <div>
@@ -325,12 +297,46 @@ export default function CheckoutPage() {
               )}
             </div>
             <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg p-3">
-              <Clock className="h-4 w-4 text-orange-500" />
+              <Clock className="h-4 w-4 text-orange-500 flex-shrink-0" />
               {t('checkout.lockedNotice')}
             </div>
           </div>
         </div>
-      </div>
+
+        {/* Policy + submit (order 3) */}
+        <div className="lg:col-span-2 order-3 bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+          {/* Cancellation policy */}
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+            <div className="flex items-start gap-2 mb-3">
+              <ShieldCheck className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <div>
+                <p className="font-semibold text-amber-900 text-sm mb-1">{t('checkout.policyTitle')}</p>
+                <ul className="text-xs text-amber-800 space-y-1">
+                  <li>• {t('checkout.policyRule1')}</li>
+                  <li>• {t('checkout.policyRule2')}</li>
+                  <li>• {t('checkout.policyRule3')}</li>
+                  <li>• {t('checkout.policyRule4')}</li>
+                </ul>
+              </div>
+            </div>
+            <label className="flex items-start gap-2 cursor-pointer">
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" />
+              <span className="text-sm text-amber-900">{t('checkout.agreeLabel')}</span>
+            </label>
+          </div>
+
+          <p className="text-xs text-slate-500 text-center">{t('checkout.noPaymentYetNote')}</p>
+
+          <button
+            type="submit"
+            disabled={submitting || !agreed}
+            className="w-full py-3.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+          >
+            {submitting && <Spinner className="h-5 w-5" />}
+            {submitting ? t('checkout.lockingSlot') : totalPlayers > 1 ? t('checkout.lockSlotsButton', { count: totalPlayers }) : t('checkout.lockMySlot')}
+          </button>
+        </div>
+      </form>
     </div>
   );
 }
