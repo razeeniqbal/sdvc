@@ -7,6 +7,7 @@ import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime } from '@/lib/format';
 import { notifyGroup } from '@/lib/notifications';
 import { friendlyProfileError } from '@/lib/auth';
+import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import type { Session } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
@@ -123,10 +124,8 @@ export default function CheckoutPage() {
       sent_at: new Date().toISOString(),
     });
 
-    const slotsLeft = session.maximum_capacity - activeCount - 1;
-    await notifyGroup(
-      `New booking locked for "${session.title}" on ${formatDate(session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} left. Awaiting admin confirmation.`
-    );
+    const roster = await fetchSessionRoster(session.id);
+    await notifyGroup(buildRosterMessage(session, roster));
 
     setSubmitting(false);
     navigate(`/confirmation/${booking.id}`);

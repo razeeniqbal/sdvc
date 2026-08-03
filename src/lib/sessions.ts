@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { formatTime } from './format';
 import type { Session } from '@/types/database';
 
 export interface SessionWithCount extends Session {
@@ -42,4 +43,49 @@ export function getSessionStatus(
 export function canBook(session: Session, confirmedCount: number): boolean {
   const status = getSessionStatus(session, confirmedCount);
   return status === 'Available' || status === 'Almost Full';
+}
+
+export interface SessionRosterPlayer {
+  display_name: string;
+  booking_status: string;
+}
+
+export async function fetchSessionRoster(sessionId: string): Promise<SessionRosterPlayer[]> {
+  const { data } = await supabase.rpc('session_player_list', { p_session_id: sessionId });
+  return (data || []) as SessionRosterPlayer[];
+}
+
+const MALAY_DAYS = ['AHAD', 'ISNIN', 'SELASA', 'RABU', 'KHAMIS', 'JUMAAT', 'SABTU'];
+
+// Builds a numbered signup-sheet style roster, e.g.:
+//   1) Shen ✅
+//   2) Madi
+//   3)
+// Confirmed bookings get a tick; locked-but-unconfirmed bookings show just the name;
+// slots beyond the current booking count are left blank.
+export function buildRosterMessage(session: Session, players: SessionRosterPlayer[]): string {
+  const date = new Date(`${session.session_date}T00:00:00`);
+  const day = date.getDate();
+  const month = date.toLocaleDateString('en-MY', { month: 'long' }).toUpperCase();
+  const dayName = MALAY_DAYS[date.getDay()];
+  const priceLine = session.price > 0 ? `RM${session.price.toFixed(2)}/pax` : 'TBC/pax';
+
+  const lines = [
+    session.title.toUpperCase(),
+    '',
+    `🏟️: ${session.venue_name.toUpperCase()}`,
+    `📆: ${day} ${month} (${dayName})`,
+    `⏰: ${formatTime(session.start_time)} - ${formatTime(session.end_time)}`,
+    `💵: ${priceLine}`,
+    '',
+  ];
+
+  for (let i = 1; i <= session.maximum_capacity; i++) {
+    const player = players[i - 1];
+    if (!player) { lines.push(`${i})`); continue; }
+    const tick = player.booking_status === 'Confirmed' ? ' ✅' : '';
+    lines.push(`${i}) ${player.display_name}${tick}`);
+  }
+
+  return lines.join('\n');
 }

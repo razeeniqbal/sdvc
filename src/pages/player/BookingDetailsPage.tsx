@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { formatCurrency, formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { notifyGroup } from '@/lib/notifications';
+import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import { StatusBadge, PaymentStatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import type { Booking, Session, Payment, Attendance } from '@/types/database';
@@ -76,13 +77,9 @@ export default function BookingDetailsPage() {
       sent_at: new Date().toISOString(),
     });
 
-    // Notify WhatsApp group about slot opening up
-    const { data: countData } = await supabase.rpc('confirmed_booking_count', { p_session_id: session.id });
-    const count = (countData as number) || 0;
-    const slotsLeft = session.maximum_capacity - count;
-    await notifyGroup(
-      `Slot Update: A slot opened up for "${session.title}" on ${formatDate(session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} now available (${count}/${session.maximum_capacity} booked).`
-    );
+    // Notify the group with the updated roster now that a slot opened up
+    const roster = await fetchSessionRoster(session.id);
+    await notifyGroup(buildRosterMessage(session, roster));
 
     setCancelling(false);
     setShowCancelDialog(false);

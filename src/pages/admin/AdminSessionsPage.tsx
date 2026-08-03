@@ -4,7 +4,8 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Copy, Trash2, Edit, Users, CalendarDays, Megaphone, MoreVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
-import { formatDate, formatTime } from '@/lib/format';
+import { formatDate } from '@/lib/format';
+import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import { Spinner } from '@/components/LoadingScreen';
 import { SessionStatusBadge } from '@/components/StatusBadge';
 import { sendGroupBlast } from '@/lib/notifications';
@@ -23,6 +24,7 @@ export default function AdminSessionsPage() {
   const [blastSession, setBlastSession] = useState<SessionWithCount | null>(null);
   const [blastMessage, setBlastMessage] = useState('');
   const [blasting, setBlasting] = useState(false);
+  const [blastLoading, setBlastLoading] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
   const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
@@ -105,12 +107,13 @@ export default function AdminSessionsPage() {
     load();
   }
 
-  function openBlast(s: SessionWithCount) {
-    const slotsLeft = s.maximum_capacity - s.confirmed_count;
-    setBlastMessage(
-      `📢 ${s.title}\n${formatDate(s.session_date)}, ${formatTime(s.start_time)} - ${formatTime(s.end_time)}\n📍 ${s.venue_name}\n${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} left — book now!`
-    );
+  async function openBlast(s: SessionWithCount) {
     setBlastSession(s);
+    setBlastLoading(true);
+    setBlastMessage('');
+    const roster = await fetchSessionRoster(s.id);
+    setBlastMessage(buildRosterMessage(s, roster));
+    setBlastLoading(false);
   }
 
   async function handleBlastSend() {
@@ -258,17 +261,23 @@ export default function AdminSessionsPage() {
               <Megaphone className="h-5 w-5 text-green-600" /> Blast "{blastSession.title}"
             </h3>
             <p className="text-sm text-slate-500 mb-4">
-              Sends this message directly to your Telegram group.
+              Sends this roster directly to your Telegram group. Confirmed players are ticked automatically.
             </p>
-            <textarea
-              className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 outline-none transition-all resize-none"
-              rows={5}
-              value={blastMessage}
-              onChange={(e) => setBlastMessage(e.target.value)}
-            />
+            {blastLoading ? (
+              <div className="flex items-center justify-center py-10">
+                <Spinner className="h-6 w-6 text-green-600" />
+              </div>
+            ) : (
+              <textarea
+                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 outline-none transition-all resize-none font-mono"
+                rows={14}
+                value={blastMessage}
+                onChange={(e) => setBlastMessage(e.target.value)}
+              />
+            )}
             <div className="flex gap-3 mt-4">
               <button onClick={() => setBlastSession(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
-              <button onClick={handleBlastSend} disabled={blasting} className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+              <button onClick={handleBlastSend} disabled={blasting || blastLoading} className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                 {blasting && <Spinner className="h-4 w-4" />}
                 {blasting ? 'Sending...' : 'Send'}
               </button>

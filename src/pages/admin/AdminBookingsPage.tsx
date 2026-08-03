@@ -4,6 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatCurrency, formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { notifyGroup } from '@/lib/notifications';
+import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import { StatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import type { Booking, Session, Profile, BookingStatus } from '@/types/database';
@@ -128,15 +129,8 @@ export default function AdminBookingsPage() {
       sent_at: new Date().toISOString(),
     });
 
-    const { count } = await supabase
-      .from('bookings')
-      .select('id', { count: 'exact', head: true })
-      .eq('session_id', booking.session_id)
-      .in('booking_status', ['Confirmed']);
-    const slotsLeft = booking.session.maximum_capacity - (count || 0);
-    await notifyGroup(
-      `Booking confirmed for "${booking.session.title}" on ${formatDate(booking.session.session_date)} — ${slotsLeft} slot${slotsLeft === 1 ? '' : 's'} left (${count || 0}/${booking.session.maximum_capacity} booked).`
-    );
+    const roster = await fetchSessionRoster(booking.session_id);
+    await notifyGroup(buildRosterMessage(booking.session, roster));
 
     show('Booking confirmed', 'success');
     load();
