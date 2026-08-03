@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { Save, MessageCircle, Phone, Bell, UserCog, Search } from 'lucide-react';
+import { Save, MessageCircle, Phone, Bell, UserCog, Search, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { fetchClubSettings } from '@/lib/settings';
@@ -22,6 +22,8 @@ export default function AdminSettingsPage() {
   const [users, setUsers] = useState<Profile[]>([]);
   const [search, setSearch] = useState('');
   const [promoting, setPromoting] = useState(false);
+  const [deleteUser, setDeleteUser] = useState<Profile | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchClubSettings().then((s) => {
@@ -72,6 +74,27 @@ export default function AdminSettingsPage() {
       return;
     }
     show(`${user.short_name || user.full_name} is now ${newRole === 'admin' ? 'an admin' : 'a player'}`, 'success');
+    loadUsers();
+  }
+
+  async function handleDeleteUser() {
+    if (!deleteUser) return;
+    setDeleting(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/delete-user`;
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_user_id: deleteUser.id }),
+    });
+    const body = await res.json();
+    setDeleting(false);
+    if (!res.ok) { show(body.error || 'Failed to delete account', 'error'); return; }
+    show(`${deleteUser.short_name || deleteUser.full_name}'s account was deleted`, 'success');
+    setDeleteUser(null);
     loadUsers();
   }
 
@@ -185,11 +208,37 @@ export default function AdminSettingsPage() {
                 >
                   {u.role === 'admin' ? 'Demote' : 'Make Admin'}
                 </button>
+                <button
+                  onClick={() => setDeleteUser(u)}
+                  title="Delete account"
+                  className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
               </div>
             </div>
           ))}
         </div>
       </div>
+
+      {/* Delete user dialog */}
+      {deleteUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setDeleteUser(null)}>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-slate-900 mb-2">Delete {deleteUser.short_name || deleteUser.full_name}'s account?</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              This permanently deletes their login, profile, and all associated bookings and payment history. This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <button onClick={() => setDeleteUser(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
+              <button onClick={handleDeleteUser} disabled={deleting} className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                {deleting && <Spinner className="h-4 w-4" />}
+                {deleting ? 'Deleting...' : 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

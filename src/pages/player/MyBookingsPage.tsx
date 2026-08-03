@@ -4,7 +4,7 @@ import { CalendarDays, Clock, MapPin, Ticket, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { formatDate, formatTime, formatCurrency } from '@/lib/format';
-import { StatusBadge, PaymentStatusBadge } from '@/components/StatusBadge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import type { Booking, Session } from '@/types/database';
 
@@ -126,7 +126,6 @@ export default function MyBookingsPage() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <StatusBadge status={b.booking_status} />
-                  <PaymentStatusBadge status={b.payment_status} />
                   <span className="text-sm font-bold text-slate-900">{formatCurrency(b.total_amount)}</span>
                 </div>
               </div>

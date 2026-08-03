@@ -74,12 +74,12 @@ export default function RegisterPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className={labelClass}>Your Name</label>
-              <input className={inputClass} placeholder="e.g. Alex" value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
+              <input className={inputClass} placeholder="e.g. Mamat" value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
               {errors.short_name && <p className={errorClass}>{errors.short_name}</p>}
             </div>
             <div>
               <label className={labelClass}>Phone Number</label>
-              <input type="tel" className={inputClass} placeholder="e.g. 0173364524" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <input type="tel" className={inputClass} placeholder="e.g. 0123456789" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               {errors.phone && <p className={errorClass}>{errors.phone}</p>}
             </div>
             <div>

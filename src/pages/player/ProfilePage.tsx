@@ -1,6 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { User, Phone, AlertCircle, Save } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
+import { friendlyProfileError } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
@@ -29,7 +30,7 @@ export default function ProfilePage() {
       emergency_contact_phone: form.emergency_contact_phone,
     }).eq('id', profile.id);
     setSaving(false);
-    if (error) { show(error.message, 'error'); return; }
+    if (error) { show(friendlyProfileError(error), 'error'); return; }
     refreshProfile();
     show('Profile updated!', 'success');
   }

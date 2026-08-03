@@ -120,7 +120,6 @@ export default function BookingDetailsPage() {
             </div>
             <div className="flex flex-col gap-1.5 items-end">
               <StatusBadge status={booking.booking_status} />
-              <PaymentStatusBadge status={booking.payment_status} />
             </div>
           </div>
         </div>

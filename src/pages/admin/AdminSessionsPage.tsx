@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { Link } from 'react-router-dom';
 import { Plus, Search, Copy, Trash2, Edit, Users, CalendarDays, Megaphone, MoreVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -23,6 +24,7 @@ export default function AdminSessionsPage() {
   const [blastMessage, setBlastMessage] = useState('');
   const [blasting, setBlasting] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const [menuPos, setMenuPos] = useState<{ top: number; right: number } | null>(null);
   const menuRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -32,6 +34,19 @@ export default function AdminSessionsPage() {
     document.addEventListener('click', onDocClick);
     return () => document.removeEventListener('click', onDocClick);
   }, []);
+
+  function toggleMenu(sessionId: string, e: React.MouseEvent<HTMLButtonElement>) {
+    // The portaled menu lives outside this button in the DOM, so this same click
+    // would otherwise bubble to the document listener and immediately close it.
+    e.stopPropagation();
+    if (openMenuId === sessionId) {
+      setOpenMenuId(null);
+      return;
+    }
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
+    setOpenMenuId(sessionId);
+  }
 
   async function load() {
     const { data } = await supabase.from('sessions').select('*').order('session_date', { ascending: true });
@@ -198,31 +213,34 @@ export default function AdminSessionsPage() {
                       <button onClick={() => setDeleteId(s.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors" title="Delete">
                         <Trash2 className="h-4 w-4" />
                       </button>
-                      <div className="relative" ref={s.id === openMenuId ? menuRef : undefined}>
-                        <button
-                          onClick={() => setOpenMenuId(openMenuId === s.id ? null : s.id)}
-                          className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
-                          title="More actions"
+                      <button
+                        onClick={(e) => toggleMenu(s.id, e)}
+                        className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
+                        title="More actions"
+                      >
+                        <MoreVertical className="h-4 w-4" />
+                      </button>
+                      {openMenuId === s.id && menuPos && createPortal(
+                        <div
+                          ref={menuRef}
+                          style={{ top: menuPos.top, right: menuPos.right }}
+                          className="fixed w-44 bg-white rounded-xl border border-slate-200 shadow-lg z-50 py-1 text-sm"
                         >
-                          <MoreVertical className="h-4 w-4" />
-                        </button>
-                        {openMenuId === s.id && (
-                          <div className="absolute right-0 mt-1 w-44 bg-white rounded-xl border border-slate-200 shadow-lg z-10 py-1 text-sm">
-                            <Link to={`/admin/sessions/${s.id}/attendance`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
-                              <Users className="h-4 w-4 text-blue-500" /> Attendance
-                            </Link>
-                            <Link to={`/admin/sessions/${s.id}/waiting-list`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
-                              <CalendarDays className="h-4 w-4 text-amber-500" /> Waiting List
-                            </Link>
-                            <button onClick={() => { setOpenMenuId(null); openBlast(s); }} className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
-                              <Megaphone className="h-4 w-4 text-green-500" /> Blast to WhatsApp
-                            </button>
-                            <button onClick={() => { setOpenMenuId(null); handleDuplicate(s.id); }} className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
-                              <Copy className="h-4 w-4 text-green-500" /> Duplicate
-                            </button>
-                          </div>
-                        )}
-                      </div>
+                          <Link to={`/admin/sessions/${s.id}/attendance`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                            <Users className="h-4 w-4 text-blue-500" /> Attendance
+                          </Link>
+                          <Link to={`/admin/sessions/${s.id}/waiting-list`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                            <CalendarDays className="h-4 w-4 text-amber-500" /> Waiting List
+                          </Link>
+                          <button onClick={() => { setOpenMenuId(null); openBlast(s); }} className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                            <Megaphone className="h-4 w-4 text-green-500" /> Blast to Telegram
+                          </button>
+                          <button onClick={() => { setOpenMenuId(null); handleDuplicate(s.id); }} className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
+                            <Copy className="h-4 w-4 text-green-500" /> Duplicate
+                          </button>
+                        </div>,
+                        document.body
+                      )}
                     </div>
                   </td>
                 </tr>

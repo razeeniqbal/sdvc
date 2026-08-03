@@ -8,3 +8,12 @@ export function normalizePhone(phone: string): string {
 export function phoneToEmail(phone: string): string {
   return `${normalizePhone(phone)}@phone.volleyballsdnbhd.local`;
 }
+
+// profiles.phone_number has a UNIQUE constraint; turn that raw Postgres error
+// into something a player/admin can actually understand.
+export function friendlyProfileError(error: { code?: string; message: string }): string {
+  if (error.code === '23505' && error.message.includes('phone_number')) {
+    return 'This phone number is already used by another account.';
+  }
+  return error.message;
+}

@@ -20,7 +20,10 @@ Deno.serve(async (req: Request) => {
   try {
     const { phone, password, full_name, short_name } = await req.json();
 
+    // Used only to build a stable login email — kept separate from the number we
+    // store/display, so a player sees back exactly what they typed.
     const normalizedPhone = normalizePhone(String(phone || ""));
+    const displayPhone = String(phone || "").replace(/[^0-9]/g, "");
     if (normalizedPhone.length < 10) {
       return new Response(
         JSON.stringify({ error: "Enter a valid phone number" }),
@@ -48,7 +51,7 @@ Deno.serve(async (req: Request) => {
       user_metadata: {
         full_name: full_name || short_name || "New Player",
         short_name: short_name || full_name || "Player",
-        phone_number: normalizedPhone,
+        phone_number: displayPhone,
       },
     });
 

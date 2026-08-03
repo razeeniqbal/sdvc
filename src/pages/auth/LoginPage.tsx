@@ -43,7 +43,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Phone Number</label>
-              <input type="text" className={inputClass} placeholder="e.g. 0173364524" value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
+              <input type="text" className={inputClass} placeholder="e.g. 0123456789" value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-600 mb-1.5">Password</label>

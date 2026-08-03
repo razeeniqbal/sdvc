@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime } from '@/lib/format';
 import { notifyGroup } from '@/lib/notifications';
+import { friendlyProfileError } from '@/lib/auth';
 import type { Session } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
@@ -84,11 +85,12 @@ export default function CheckoutPage() {
     }
 
     // Update profile with any changes
-    await supabase.from('profiles').update({
+    const { error: profileError } = await supabase.from('profiles').update({
       full_name: form.full_name || form.short_name,
       short_name: form.short_name,
       phone_number: form.phone_number,
     }).eq('id', profile.id);
+    if (profileError) show(friendlyProfileError(profileError), 'error');
     refreshProfile();
 
     // Lock the slot; admin will manually confirm the booking. No processing fee —

@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatCurrency, formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { notifyGroup } from '@/lib/notifications';
-import { StatusBadge, PaymentStatusBadge } from '@/components/StatusBadge';
+import { StatusBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import type { Booking, Session, Profile, BookingStatus } from '@/types/database';
 
@@ -228,9 +228,8 @@ export default function AdminBookingsPage() {
                 <p className="text-sm font-bold text-slate-900 flex-shrink-0">{formatCurrency(b.total_amount)}</p>
               </div>
               <p className="text-xs text-slate-500 mt-2 truncate">{b.session.title} · {formatDate(b.session.session_date)}</p>
-              <div className="flex items-center gap-1.5 mt-2">
+              <div className="mt-2">
                 <StatusBadge status={b.booking_status} />
-                <PaymentStatusBadge status={b.payment_status} />
               </div>
             </button>
           ))}
@@ -260,11 +259,8 @@ export default function AdminBookingsPage() {
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell text-sm text-slate-600">{b.session.title}</td>
                   <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-600">{formatDate(b.session.session_date)}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex flex-col gap-1 items-center">
-                      <StatusBadge status={b.booking_status} />
-                      <PaymentStatusBadge status={b.payment_status} />
-                    </div>
+                  <td className="px-4 py-3 text-center">
+                    <StatusBadge status={b.booking_status} />
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-bold text-slate-900">{formatCurrency(b.total_amount)}</td>
                   <td className="px-4 py-3 text-right">
@@ -338,8 +334,7 @@ export default function AdminBookingsPage() {
                       <div className="flex justify-between font-bold"><span>Total</span><span>{formatCurrency(selected.total_amount)}</span></div>
                     </>
                   )}
-                  <div className="flex justify-between pt-2 border-t border-slate-200"><span className="text-slate-500">Payment Status</span><PaymentStatusBadge status={selected.payment_status} /></div>
-                  <div className="flex justify-between"><span className="text-slate-500">Booking Status</span><StatusBadge status={selected.booking_status} /></div>
+                  <div className="flex justify-between pt-2 border-t border-slate-200"><span className="text-slate-500">Status</span><StatusBadge status={selected.booking_status} /></div>
                 </div>
               </div>
 
