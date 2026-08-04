@@ -35,18 +35,63 @@ interface BookingRow {
   profile: { full_name: string; short_name: string | null } | null;
 }
 
-const STATUS_EMOJI: Record<string, string> = {
-  "Confirmed": "✅",
-  "Pending Payment": "🕒",
-  "Cancelled by Player": "❌",
-  "Cancelled by Admin": "❌",
-  "Completed": "🏐",
-  "No Show": "🚫",
-  "Refunded": "💸",
-};
+interface SessionRow {
+  id: string;
+  title: string;
+  venue_name: string;
+  session_date: string;
+  start_time: string;
+  end_time: string;
+  price: number;
+  maximum_capacity: number;
+}
+
+interface RosterPlayer {
+  display_name: string;
+  booking_status: string;
+}
 
 function escapeHtml(input: string): string {
   return input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function formatTime(time: string): string {
+  const [h, m] = time.split(":");
+  const hour = parseInt(h, 10);
+  const period = hour >= 12 ? "PM" : "AM";
+  const displayHour = hour === 0 ? 12 : hour > 12 ? hour - 12 : hour;
+  return `${displayHour}:${m} ${period}`;
+}
+
+const MALAY_DAYS = ["AHAD", "ISNIN", "SELASA", "RABU", "KHAMIS", "JUMAAT", "SABTU"];
+
+// Mirrors src/lib/sessions.ts buildRosterMessage() so the /list output matches the
+// same numbered signup-sheet format the app already posts when someone books.
+function buildRosterMessage(session: SessionRow, players: RosterPlayer[]): string {
+  const date = new Date(`${session.session_date}T00:00:00`);
+  const day = date.getDate();
+  const month = date.toLocaleDateString("en-MY", { month: "long" }).toUpperCase();
+  const dayName = MALAY_DAYS[date.getDay()];
+  const priceLine = session.price > 0 ? `RM${Number(session.price).toFixed(2)}/pax` : "TBC/pax";
+
+  const lines = [
+    session.title.toUpperCase(),
+    "",
+    `🏟️: ${session.venue_name.toUpperCase()}`,
+    `📆: ${day} ${month} (${dayName})`,
+    `⏰: ${formatTime(session.start_time)} - ${formatTime(session.end_time)}`,
+    `💵: ${priceLine}`,
+    "",
+  ];
+
+  for (let i = 1; i <= session.maximum_capacity; i++) {
+    const player = players[i - 1];
+    if (!player) { lines.push(`${i})`); continue; }
+    const tick = player.booking_status === "Confirmed" ? " ✅" : "";
+    lines.push(`${i}) ${player.display_name}${tick}`);
+  }
+
+  return lines.join("\n");
 }
 
 Deno.serve(async (req: Request) => {
@@ -73,11 +118,13 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  async function sendMessage(chatId: number, text: string) {
+  async function sendMessage(chatId: number, text: string, useHtml = true) {
+    const body: Record<string, unknown> = { chat_id: chatId, text };
+    if (useHtml) body.parse_mode = "HTML";
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+      body: JSON.stringify(body),
     });
   }
 
@@ -137,29 +184,31 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Read-only recent-activity feed across every status — distinct from /pending, which
-  // only surfaces bookings that still need an approve/reject decision.
+  // Posts the same numbered signup-sheet roster the app posts automatically when
+  // someone books, for the next upcoming (non-cancelled) session — e.g.:
+  //   1) Jeen ✅
+  //   2) Madi ✅
+  //   3)
   async function handleListCommand(chatId: number) {
-    const { data, error } = await supabase
-      .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name)")
-      .order("created_at", { ascending: false })
-      .limit(15);
+    const today = new Date().toISOString().split("T")[0];
+    const { data: session, error: sessionError } = await supabase
+      .from("sessions")
+      .select("*")
+      .neq("status", "Cancelled")
+      .gte("session_date", today)
+      .order("session_date", { ascending: true })
+      .order("start_time", { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
-    if (error || !data || data.length === 0) {
-      await sendMessage(chatId, "No bookings yet.");
+    if (sessionError || !session) {
+      await sendMessage(chatId, "No upcoming sessions.", false);
       return;
     }
 
-    const rows = data as unknown as BookingRow[];
-    const lines = rows.map((row, i) => {
-      const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
-      const emoji = STATUS_EMOJI[row.booking_status] ?? "•";
-      const sessionTitle = row.session?.title ?? "Unknown session";
-      return `${i + 1}. ${emoji} <b>${escapeHtml(name)}</b> — ${escapeHtml(sessionTitle)} — RM${Number(row.total_amount).toFixed(2)} — ${escapeHtml(row.booking_status)}`;
-    });
+    const { data: players } = await supabase.rpc("session_player_list", { p_session_id: session.id });
 
-    await sendMessage(chatId, `📋 <b>Latest ${rows.length} bookings</b>\n\n${lines.join("\n")}`);
+    await sendMessage(chatId, buildRosterMessage(session as SessionRow, (players ?? []) as RosterPlayer[]), false);
   }
 
   const update = await req.json();
