@@ -33,6 +33,8 @@ export type AttendanceStatus = 'Attended' | 'Absent' | 'No Show' | 'Cancelled';
 
 export type UserRole = 'player' | 'admin';
 
+export type Gender = 'Male' | 'Female';
+
 export interface Profile {
   id: string;
   full_name: string;
@@ -41,6 +43,7 @@ export interface Profile {
   phone_number: string | null;
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
+  gender: Gender | null;
   role: UserRole;
   created_at: string;
   updated_at: string;
@@ -87,6 +90,7 @@ export interface Booking {
   is_guest: boolean;
   guest_name: string | null;
   guest_phone: string | null;
+  guest_gender: Gender | null;
   booking_group_id: string | null;
   receipt_path: string | null;
   receipt_uploaded_at: string | null;

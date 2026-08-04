@@ -16,6 +16,7 @@ export default function ProfilePage() {
     short_name: profile?.short_name || profile?.full_name || '',
     full_name: profile?.full_name || '',
     phone_number: profile?.phone_number || '',
+    gender: profile?.gender || '',
     emergency_contact_name: profile?.emergency_contact_name || '',
     emergency_contact_phone: profile?.emergency_contact_phone || '',
   });
@@ -23,11 +24,16 @@ export default function ProfilePage() {
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!profile) return;
+    if (!form.gender) {
+      show(t('common.errorGenderRequired'), 'error');
+      return;
+    }
     setSaving(true);
     const { error } = await supabase.from('profiles').update({
       short_name: form.short_name,
       full_name: form.full_name || form.short_name,
       phone_number: form.phone_number,
+      gender: form.gender,
       emergency_contact_name: form.emergency_contact_name,
       emergency_contact_phone: form.emergency_contact_phone,
     }).eq('id', profile.id);
@@ -41,7 +47,7 @@ export default function ProfilePage() {
 
   const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none transition-all bg-white/80';
   const labelClass = 'block text-sm font-medium text-slate-600 mb-1.5';
-  const isComplete = !!profile.phone_number;
+  const isComplete = !!profile.phone_number && !!profile.gender;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -92,14 +98,24 @@ export default function ProfilePage() {
               <input className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
             </div>
             <div>
-              <label className={labelClass}>{t('profile.emergencyContactNameLabel')}</label>
-              <input className={inputClass} value={form.emergency_contact_name} onChange={(e) => setForm({ ...form, emergency_contact_name: e.target.value })} />
+              <label className={labelClass}>{t('common.genderLabel')}</label>
+              <select className={inputClass} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} required>
+                <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
+                <option value="Male">{t('common.genderMale')}</option>
+                <option value="Female">{t('common.genderFemale')}</option>
+              </select>
             </div>
           </div>
 
-          <div>
-            <label className={labelClass}>{t('profile.emergencyContactPhoneLabel')}</label>
-            <input className={inputClass} value={form.emergency_contact_phone} onChange={(e) => setForm({ ...form, emergency_contact_phone: e.target.value })} />
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>{t('profile.emergencyContactNameLabel')}</label>
+              <input className={inputClass} value={form.emergency_contact_name} onChange={(e) => setForm({ ...form, emergency_contact_name: e.target.value })} />
+            </div>
+            <div>
+              <label className={labelClass}>{t('profile.emergencyContactPhoneLabel')}</label>
+              <input className={inputClass} value={form.emergency_contact_phone} onChange={(e) => setForm({ ...form, emergency_contact_phone: e.target.value })} />
+            </div>
           </div>
 
           <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60">

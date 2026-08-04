@@ -6,7 +6,7 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { bookingDisplayName, formatCurrency, formatDate, formatTime } from '@/lib/format';
 import { fetchClubSettings } from '@/lib/settings';
-import { StatusBadge } from '@/components/StatusBadge';
+import { StatusBadge, GenderBadge } from '@/components/StatusBadge';
 import type { Booking, Session, Payment, ClubSettings } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 import { ReceiptUpload } from '@/components/ReceiptUpload';
@@ -134,7 +134,10 @@ export default function BookingConfirmationPage() {
               <div className="space-y-1.5">
                 {allBookings.map((b) => (
                   <div key={b.id} className="flex items-center justify-between gap-2 bg-slate-50 rounded-lg px-3 py-2 text-sm">
-                    <span className="font-medium text-slate-900 truncate">{bookingDisplayName(b, profile)}</span>
+                    <span className="flex items-center gap-1.5 font-medium text-slate-900 truncate">
+                      {bookingDisplayName(b, profile)}
+                      <GenderBadge gender={b.is_guest ? b.guest_gender : profile?.gender} />
+                    </span>
                     <StatusBadge status={b.booking_status} />
                   </div>
                 ))}

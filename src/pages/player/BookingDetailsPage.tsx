@@ -9,7 +9,7 @@ import { bookingDisplayName, formatCurrency, formatDate, formatTime, formatDateT
 import { notifyGroup } from '@/lib/notifications';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import { fetchClubSettings } from '@/lib/settings';
-import { StatusBadge, PaymentStatusBadge } from '@/components/StatusBadge';
+import { StatusBadge, PaymentStatusBadge, GenderBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import { ReceiptUpload } from '@/components/ReceiptUpload';
 import type { Booking, Session, Payment, Attendance, ClubSettings } from '@/types/database';
@@ -30,7 +30,7 @@ export default function BookingDetailsPage() {
   const [settings, setSettings] = useState<ClubSettings | null>(null);
   const [groupBookings, setGroupBookings] = useState<Booking[]>([]);
   const [showAddFriend, setShowAddFriend] = useState(false);
-  const [friendForm, setFriendForm] = useState({ name: '', phone: '' });
+  const [friendForm, setFriendForm] = useState({ name: '', phone: '', gender: '' });
   const [addingFriend, setAddingFriend] = useState(false);
 
   useEffect(() => {
@@ -107,6 +107,10 @@ export default function BookingDetailsPage() {
       show(t('checkout.errorCompanionName'), 'error');
       return;
     }
+    if (!friendForm.gender) {
+      show(t('common.errorGenderRequired'), 'error');
+      return;
+    }
     setAddingFriend(true);
 
     // Uses the SECURITY DEFINER count function so the check sees every booking, not
@@ -146,6 +150,7 @@ export default function BookingDetailsPage() {
       is_guest: true,
       guest_name: friendForm.name.trim(),
       guest_phone: friendForm.phone.trim() || null,
+      guest_gender: friendForm.gender || null,
     });
 
     if (error) {
@@ -163,7 +168,7 @@ export default function BookingDetailsPage() {
 
     setAddingFriend(false);
     setShowAddFriend(false);
-    setFriendForm({ name: '', phone: '' });
+    setFriendForm({ name: '', phone: '', gender: '' });
     show(t('bookingDetails.friendAdded'), 'success');
   }
 
@@ -205,9 +210,15 @@ export default function BookingDetailsPage() {
                 <p className="text-sm text-rose-200 mt-1">{t('myBookings.bookingFor', { name: booking.guest_name })}</p>
               )}
               {groupBookings.length > 1 && (
-                <p className="text-sm text-slate-400 mt-1">
-                  Booked together with: {groupBookings.filter((b) => b.id !== booking.id).map((b) => bookingDisplayName(b, profile)).join(', ')}
-                </p>
+                <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 mt-1.5">
+                  <span className="text-sm text-slate-400">Booked together with:</span>
+                  {groupBookings.filter((b) => b.id !== booking.id).map((b) => (
+                    <span key={b.id} className="inline-flex items-center gap-1 text-sm text-slate-300">
+                      {bookingDisplayName(b, profile)}
+                      <GenderBadge gender={b.is_guest ? b.guest_gender : undefined} />
+                    </span>
+                  ))}
+                </div>
               )}
             </div>
             <div className="flex flex-col gap-1.5 items-end">
@@ -320,7 +331,7 @@ export default function BookingDetailsPage() {
                 <form onSubmit={handleAddFriend}>
                   <p className="font-semibold text-slate-900 text-sm mb-1">{t('bookingDetails.addFriend')}</p>
                   <p className="text-xs text-slate-500 mb-3">{t('bookingDetails.addFriendDesc')}</p>
-                  <div className="grid sm:grid-cols-2 gap-2">
+                  <div className="grid sm:grid-cols-3 gap-2">
                     <input
                       className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none"
                       placeholder={t('checkout.companionNamePlaceholder')}
@@ -333,11 +344,21 @@ export default function BookingDetailsPage() {
                       value={friendForm.phone}
                       onChange={(e) => setFriendForm({ ...friendForm, phone: e.target.value })}
                     />
+                    <select
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none"
+                      value={friendForm.gender}
+                      onChange={(e) => setFriendForm({ ...friendForm, gender: e.target.value })}
+                      required
+                    >
+                      <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
+                      <option value="Male">{t('common.genderMale')}</option>
+                      <option value="Female">{t('common.genderFemale')}</option>
+                    </select>
                   </div>
                   <div className="flex gap-2 mt-3">
                     <button
                       type="button"
-                      onClick={() => { setShowAddFriend(false); setFriendForm({ name: '', phone: '' }); }}
+                      onClick={() => { setShowAddFriend(false); setFriendForm({ name: '', phone: '', gender: '' }); }}
                       className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg border border-slate-300 transition-colors"
                     >
                       {t('bookingDetails.cancelAddFriend')}

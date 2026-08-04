@@ -4,7 +4,12 @@
     "na": "N/A",
     "notSpecified": "Not specified",
     "none": "None",
-    "slotsLeft": "{{count}} slots left"
+    "slotsLeft": "{{count}} slots left",
+    "genderLabel": "Gender",
+    "genderMale": "Male",
+    "genderFemale": "Female",
+    "genderSelectPlaceholder": "Select gender",
+    "errorGenderRequired": "Please select a gender"
   },
   "receipt": {
     "scanToPay": "Scan to pay via DuitNow",

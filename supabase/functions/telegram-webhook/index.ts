@@ -29,11 +29,16 @@ interface BookingRow {
   is_guest: boolean;
   guest_name: string | null;
   guest_phone: string | null;
+  guest_gender: string | null;
   total_amount: number;
   created_at: string;
   booking_group_id: string | null;
   session: { title: string; session_date: string } | null;
-  profile: { full_name: string; short_name: string | null; phone_number: string | null } | null;
+  profile: { full_name: string; short_name: string | null; phone_number: string | null; gender: string | null } | null;
+}
+
+function genderTag(gender: string | null | undefined): string {
+  return gender ? ` (${gender === 'Male' ? 'M' : 'F'})` : '';
 }
 
 interface SessionRow {
@@ -50,6 +55,7 @@ interface SessionRow {
 interface RosterPlayer {
   display_name: string;
   booking_status: string;
+  gender: string | null;
 }
 
 function escapeHtml(input: string): string {
@@ -104,7 +110,7 @@ function buildRosterMessage(session: SessionRow, players: RosterPlayer[]): strin
     const player = players[i - 1];
     if (!player) { lines.push(`${i})`); continue; }
     const tick = player.booking_status === "Confirmed" ? " ✅" : "";
-    lines.push(`${i}) ${player.display_name}${tick}`);
+    lines.push(`${i}) ${player.display_name}${genderTag(player.gender)}${tick}`);
   }
 
   return lines.join("\n");
@@ -174,10 +180,11 @@ Deno.serve(async (req: Request) => {
 
   async function sendConfirmCard(chatId: number, row: BookingRow, partySize: number) {
     const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+    const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
     const sessionLine = row.session ? `${row.session.title} — ${row.session.session_date}` : "Unknown session";
     const partyNote = partySize > 1 ? ` (+${partySize - 1} more)` : "";
     const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
-    const text = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(partyNote)}\n${escapeHtml(sessionLine)}\nRef: ${row.booking_reference} · RM${Number(row.total_amount).toFixed(2)}\nWaiting: ${waitingHrs}h`;
+    const text = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}${escapeHtml(partyNote)}\n${escapeHtml(sessionLine)}\nRef: ${row.booking_reference} · RM${Number(row.total_amount).toFixed(2)}\nWaiting: ${waitingHrs}h`;
 
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
@@ -199,7 +206,7 @@ Deno.serve(async (req: Request) => {
   async function handlePendingCommand(chatId: number) {
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
       .eq("booking_status", "Pending Payment")
       .order("created_at", { ascending: true })
       .limit(50);
@@ -260,7 +267,7 @@ Deno.serve(async (req: Request) => {
   async function handleReminderCommand(chatId: number) {
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
       .eq("booking_status", "Pending Payment")
       .order("created_at", { ascending: true })
       .limit(50);
@@ -283,12 +290,13 @@ Deno.serve(async (req: Request) => {
     for (const row of withPhone.slice(0, 20)) {
       const phone = (row.is_guest ? row.guest_phone : row.profile?.phone_number)!;
       const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+      const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
       const sessionTitle = row.session?.title ?? "your session";
       const rawDate = row.session?.session_date;
       const dateLabel = rawDate ? formatMalayDateLabel(rawDate) : "TBC";
       const friendlyDate = rawDate ? formatFriendlyDateLabel(rawDate) : "TBC";
       const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
-      const cardText = `👤 <b>${escapeHtml(name)}</b>\n🏐 ${escapeHtml(sessionTitle)} — ${escapeHtml(dateLabel)}\n🎫 Ref: ${row.booking_reference} · 💰 RM${Number(row.total_amount).toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
+      const cardText = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}\n🏐 ${escapeHtml(sessionTitle)} — ${escapeHtml(dateLabel)}\n🎫 Ref: ${row.booking_reference} · 💰 RM${Number(row.total_amount).toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
       const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, Number(row.total_amount));
 
       await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {

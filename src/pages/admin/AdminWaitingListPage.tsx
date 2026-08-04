@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { Spinner } from '@/components/LoadingScreen';
+import { GenderBadge } from '@/components/StatusBadge';
 import type { Session, WaitingListEntry, Profile } from '@/types/database';
 
 interface WaitlistEntry extends WaitingListEntry {
@@ -98,7 +99,10 @@ export default function AdminWaitingListPage() {
                     #{entry.queue_position}
                   </div>
                   <div>
-                    <p className="font-semibold text-slate-900">{entry.profile.full_name}</p>
+                    <p className="flex items-center gap-1.5 font-semibold text-slate-900">
+                      {entry.profile.full_name}
+                      <GenderBadge gender={entry.profile.gender} />
+                    </p>
                     <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
                       <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{entry.profile.phone_number || 'N/A'}</span>
                     </div>

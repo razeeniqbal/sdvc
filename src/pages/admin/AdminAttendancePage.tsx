@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { bookingDisplayName, formatDate, formatTime } from '@/lib/format';
 import { Spinner } from '@/components/LoadingScreen';
-import { StatusBadge } from '@/components/StatusBadge';
+import { StatusBadge, GenderBadge } from '@/components/StatusBadge';
 import type { Session, Booking, Profile, Attendance, AttendanceStatus } from '@/types/database';
 
 interface BookingWithProfile extends Booking {
@@ -170,9 +170,10 @@ export default function AdminAttendancePage() {
                       {bookingDisplayName(b, b.profile).charAt(0).toUpperCase()}
                     </div>
                     <div>
-                      <p className="font-semibold text-slate-900">
+                      <p className="flex items-center gap-1.5 font-semibold text-slate-900">
                         {bookingDisplayName(b, b.profile)}
-                        {b.is_guest && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium align-middle">Guest</span>}
+                        <GenderBadge gender={b.is_guest ? b.guest_gender : b.profile.gender} />
+                        {b.is_guest && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium">Guest</span>}
                       </p>
                       <div className="flex items-center gap-2 text-xs text-slate-500">
                         <span className="font-mono">{b.booking_reference}</span>

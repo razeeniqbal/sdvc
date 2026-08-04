@@ -15,6 +15,7 @@ import { Spinner } from '@/components/LoadingScreen';
 interface Companion {
   name: string;
   phone: string;
+  gender: string;
 }
 
 export default function CheckoutPage() {
@@ -31,6 +32,7 @@ export default function CheckoutPage() {
     short_name: '',
     full_name: '',
     phone_number: '',
+    gender: '',
   });
   const [companions, setCompanions] = useState<Companion[]>([]);
 
@@ -48,6 +50,7 @@ export default function CheckoutPage() {
         short_name: profile.short_name || profile.full_name || '',
         full_name: profile.full_name || '',
         phone_number: profile.phone_number || '',
+        gender: profile.gender || '',
       });
       setLoading(false);
     })();
@@ -56,7 +59,7 @@ export default function CheckoutPage() {
   }, [sessionId, profile]);
 
   function addCompanion() {
-    setCompanions([...companions, { name: '', phone: '' }]);
+    setCompanions([...companions, { name: '', phone: '', gender: '' }]);
   }
 
   function updateCompanion(i: number, field: keyof Companion, value: string) {
@@ -75,6 +78,10 @@ export default function CheckoutPage() {
     }
     if (companions.some((c) => !c.name.trim())) {
       show(t('checkout.errorCompanionName'), 'error');
+      return;
+    }
+    if (!form.gender || companions.some((c) => !c.gender)) {
+      show(t('common.errorGenderRequired'), 'error');
       return;
     }
     if (!session || !profile) return;
@@ -118,6 +125,7 @@ export default function CheckoutPage() {
       full_name: form.full_name || form.short_name,
       short_name: form.short_name,
       phone_number: form.phone_number,
+      gender: form.gender,
     }).eq('id', profile.id);
     if (profileError) show(friendlyProfileError(profileError), 'error');
     refreshProfile();
@@ -144,6 +152,7 @@ export default function CheckoutPage() {
       is_guest: false,
       guest_name: null as string | null,
       guest_phone: null as string | null,
+      guest_gender: null as string | null,
     };
     const rows = [
       baseRow,
@@ -152,6 +161,7 @@ export default function CheckoutPage() {
         is_guest: true,
         guest_name: c.name.trim(),
         guest_phone: c.phone.trim() || null,
+        guest_gender: c.gender || null,
       })),
     ];
 
@@ -224,6 +234,17 @@ export default function CheckoutPage() {
             </div>
           </div>
 
+          <div className="grid sm:grid-cols-2 gap-4 mt-4">
+            <div>
+              <label className={labelClass}>{t('common.genderLabel')}</label>
+              <select className={inputClass} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} required>
+                <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
+                <option value="Male">{t('common.genderMale')}</option>
+                <option value="Female">{t('common.genderFemale')}</option>
+              </select>
+            </div>
+          </div>
+
           {/* Companions */}
           <div className="border-t border-slate-200 pt-4 mt-4">
             <h3 className="font-semibold text-slate-900 text-sm">{t('checkout.companionsTitle')}</h3>
@@ -231,7 +252,7 @@ export default function CheckoutPage() {
             <div className="space-y-3">
               {companions.map((c, i) => (
                 <div key={i} className="flex items-start gap-2">
-                  <div className="grid sm:grid-cols-2 gap-2 flex-1">
+                  <div className="grid sm:grid-cols-3 gap-2 flex-1">
                     <input
                       className={inputClass}
                       placeholder={t('checkout.companionNamePlaceholder')}
@@ -244,6 +265,16 @@ export default function CheckoutPage() {
                       value={c.phone}
                       onChange={(e) => updateCompanion(i, 'phone', e.target.value)}
                     />
+                    <select
+                      className={inputClass}
+                      value={c.gender}
+                      onChange={(e) => updateCompanion(i, 'gender', e.target.value)}
+                      required
+                    >
+                      <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
+                      <option value="Male">{t('common.genderMale')}</option>
+                      <option value="Female">{t('common.genderFemale')}</option>
+                    </select>
                   </div>
                   <button
                     type="button"

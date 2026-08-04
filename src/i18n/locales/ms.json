@@ -4,7 +4,12 @@
     "na": "T/B",
     "notSpecified": "Tidak dinyatakan",
     "none": "Tiada",
-    "slotsLeft": "{{count}} slot lagi"
+    "slotsLeft": "{{count}} slot lagi",
+    "genderLabel": "Jantina",
+    "genderMale": "Lelaki",
+    "genderFemale": "Perempuan",
+    "genderSelectPlaceholder": "Pilih jantina",
+    "errorGenderRequired": "Sila pilih jantina"
   },
   "receipt": {
     "scanToPay": "Imbas untuk bayar melalui DuitNow",

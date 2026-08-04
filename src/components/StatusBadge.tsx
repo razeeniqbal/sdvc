@@ -1,4 +1,4 @@
-import type { BookingStatus, PaymentStatus, SessionStatus } from '@/types/database';
+import type { BookingStatus, PaymentStatus, SessionStatus, Gender } from '@/types/database';
 
 const bookingStatusStyles: Record<BookingStatus, string> = {
   'Pending Payment': 'bg-amber-100 text-amber-800 border-amber-200',
@@ -46,6 +46,22 @@ export function SessionStatusBadge({ status }: { status: SessionStatus }) {
   return (
     <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${sessionStatusStyles[status]}`}>
       {status}
+    </span>
+  );
+}
+
+const genderStyles: Record<Gender, string> = {
+  Male: 'bg-blue-100 text-blue-700 border-blue-200',
+  Female: 'bg-pink-100 text-pink-700 border-pink-200',
+};
+
+// Renders nothing when gender is unset — an unlabeled player shouldn't show an
+// empty/placeholder badge in a list full of labeled ones.
+export function GenderBadge({ gender }: { gender: Gender | null | undefined }) {
+  if (!gender) return null;
+  return (
+    <span className={`inline-flex items-center justify-center rounded-full border h-5 w-5 text-[10px] font-bold flex-shrink-0 ${genderStyles[gender]}`}>
+      {gender === 'Male' ? 'M' : 'F'}
     </span>
   );
 }

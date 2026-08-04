@@ -6,7 +6,7 @@ import { bookingDisplayName, formatCurrency, formatDate, formatTime, formatDateT
 import { getReceiptSignedUrl } from '@/lib/receipts';
 import { notifyGroup } from '@/lib/notifications';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
-import { StatusBadge } from '@/components/StatusBadge';
+import { StatusBadge, GenderBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import type { Booking, Session, Profile, BookingStatus } from '@/types/database';
 
@@ -129,6 +129,7 @@ export default function AdminBookingsPage() {
     const rows = ((data || []) as unknown as AdminBooking[]).map((b) => [
       b.booking_reference,
       bookingDisplayName(b, b.profile),
+      (b.is_guest ? b.guest_gender : b.profile.gender) || '',
       (b.is_guest ? b.guest_phone : b.profile.phone_number) || '',
       b.is_guest ? `${b.profile.short_name || b.profile.full_name} (booker)` : '',
       b.session.title,
@@ -140,7 +141,7 @@ export default function AdminBookingsPage() {
     ]);
     setExporting(false);
 
-    const headers = ['Reference', 'Player', 'Phone', 'Booked By (if guest)', 'Session', 'Date', 'Booking Status', 'Payment Status', 'Total Amount', 'Created At'];
+    const headers = ['Reference', 'Player', 'Gender', 'Phone', 'Booked By (if guest)', 'Session', 'Date', 'Booking Status', 'Payment Status', 'Total Amount', 'Created At'];
     const csv = [headers, ...rows].map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
     const blob = new Blob([csv], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
@@ -303,9 +304,10 @@ export default function AdminBookingsPage() {
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="font-semibold text-slate-900 text-sm truncate">
+                  <p className="flex items-center gap-1.5 font-semibold text-slate-900 text-sm truncate">
                     {bookingDisplayName(b, b.profile)}
-                    {b.is_guest && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium align-middle">Guest</span>}
+                    <GenderBadge gender={b.is_guest ? b.guest_gender : b.profile.gender} />
+                    {b.is_guest && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium">Guest</span>}
                   </p>
                   <p className="text-xs text-slate-500">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
                   <p className="font-mono text-xs text-slate-500 mt-1">{b.booking_reference}</p>
@@ -340,9 +342,10 @@ export default function AdminBookingsPage() {
                 <tr key={b.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3 font-mono text-xs text-slate-900">{b.booking_reference}</td>
                   <td className="px-4 py-3">
-                    <p className="font-medium text-slate-900 text-sm">
+                    <p className="flex items-center gap-1.5 font-medium text-slate-900 text-sm">
                       {bookingDisplayName(b, b.profile)}
-                      {b.is_guest && <span className="ml-1.5 px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium align-middle">Guest</span>}
+                      <GenderBadge gender={b.is_guest ? b.guest_gender : b.profile.gender} />
+                      {b.is_guest && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium">Guest</span>}
                     </p>
                     <p className="text-xs text-slate-500">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
                   </td>
@@ -415,6 +418,7 @@ export default function AdminBookingsPage() {
                 </h3>
                 <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
                   <p><span className="text-slate-500">Name:</span> <span className="font-medium">{bookingDisplayName(selected, selected.profile)}</span></p>
+                  <p className="flex items-center gap-1.5"><span className="text-slate-500">Gender:</span> <GenderBadge gender={selected.is_guest ? selected.guest_gender : selected.profile.gender} /> {!(selected.is_guest ? selected.guest_gender : selected.profile.gender) && <span className="font-medium">N/A</span>}</p>
                   <p><span className="text-slate-500">Phone:</span> <span className="font-medium">{(selected.is_guest ? selected.guest_phone : selected.profile.phone_number) || 'N/A'}</span></p>
                   {selected.is_guest && (
                     <p><span className="text-slate-500">Booked by:</span> <span className="font-medium">{selected.profile.short_name || selected.profile.full_name}</span></p>

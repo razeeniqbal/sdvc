@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { formatTime } from './format';
-import type { Session } from '@/types/database';
+import type { Session, Gender } from '@/types/database';
 
 export interface SessionWithCount extends Session {
   confirmed_count: number;
@@ -48,6 +48,7 @@ export function canBook(session: Session, confirmedCount: number): boolean {
 export interface SessionRosterPlayer {
   display_name: string;
   booking_status: string;
+  gender: Gender | null;
 }
 
 export async function fetchSessionRoster(sessionId: string): Promise<SessionRosterPlayer[]> {
@@ -83,8 +84,9 @@ export function buildRosterMessage(session: Session, players: SessionRosterPlaye
   for (let i = 1; i <= session.maximum_capacity; i++) {
     const player = players[i - 1];
     if (!player) { lines.push(`${i})`); continue; }
+    const genderTag = player.gender ? ` (${player.gender === 'Male' ? 'M' : 'F'})` : '';
     const tick = player.booking_status === 'Confirmed' ? ' ✅' : '';
-    lines.push(`${i}) ${player.display_name}${tick}`);
+    lines.push(`${i}) ${player.display_name}${genderTag}${tick}`);
   }
 
   return lines.join('\n');

@@ -8,12 +8,13 @@ import { getSessionStatus, type SessionWithCount } from '@/lib/sessions';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
-import { StatusBadge } from '@/components/StatusBadge';
-import type { ClubSettings, BookingStatus } from '@/types/database';
+import { StatusBadge, GenderBadge } from '@/components/StatusBadge';
+import type { ClubSettings, BookingStatus, Gender } from '@/types/database';
 
 interface SessionPlayer {
   display_name: string;
   booking_status: BookingStatus;
+  gender: Gender | null;
 }
 
 const sessionStatusKeyMap: Record<string, string> = {
@@ -154,6 +155,7 @@ export default function SessionDetailsPage() {
                         {p.display_name.charAt(0).toUpperCase()}
                       </span>
                       <span className="truncate">{p.display_name}</span>
+                      <GenderBadge gender={p.gender} />
                     </span>
                     <StatusBadge status={p.booking_status} />
                   </div>
