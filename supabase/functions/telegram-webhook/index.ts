@@ -22,9 +22,10 @@ interface TelegramCallbackQuery {
   message?: TelegramMessage;
 }
 
-interface PendingBookingRow {
+interface BookingRow {
   id: string;
   booking_reference: string;
+  booking_status: string;
   is_guest: boolean;
   guest_name: string | null;
   total_amount: number;
@@ -33,6 +34,16 @@ interface PendingBookingRow {
   session: { title: string; session_date: string } | null;
   profile: { full_name: string; short_name: string | null } | null;
 }
+
+const STATUS_EMOJI: Record<string, string> = {
+  "Confirmed": "✅",
+  "Pending Payment": "🕒",
+  "Cancelled by Player": "❌",
+  "Cancelled by Admin": "❌",
+  "Completed": "🏐",
+  "No Show": "🚫",
+  "Refunded": "💸",
+};
 
 function escapeHtml(input: string): string {
   return input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
@@ -70,7 +81,7 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  async function sendConfirmCard(chatId: number, row: PendingBookingRow, partySize: number) {
+  async function sendConfirmCard(chatId: number, row: BookingRow, partySize: number) {
     const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
     const sessionLine = row.session ? `${row.session.title} — ${row.session.session_date}` : "Unknown session";
     const partyNote = partySize > 1 ? ` (+${partySize - 1} more)` : "";
@@ -97,7 +108,7 @@ Deno.serve(async (req: Request) => {
   async function handlePendingCommand(chatId: number) {
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_reference, is_guest, guest_name, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name)")
       .eq("booking_status", "Pending Payment")
       .order("created_at", { ascending: true })
       .limit(50);
@@ -107,9 +118,9 @@ Deno.serve(async (req: Request) => {
       return;
     }
 
-    const rows = data as unknown as PendingBookingRow[];
+    const rows = data as unknown as BookingRow[];
     const seenGroups = new Set<string>();
-    const cards: PendingBookingRow[] = [];
+    const cards: BookingRow[] = [];
     for (const row of rows) {
       if (row.booking_group_id) {
         if (seenGroups.has(row.booking_group_id)) continue;
@@ -126,6 +137,31 @@ Deno.serve(async (req: Request) => {
     }
   }
 
+  // Read-only recent-activity feed across every status — distinct from /pending, which
+  // only surfaces bookings that still need an approve/reject decision.
+  async function handleListCommand(chatId: number) {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name)")
+      .order("created_at", { ascending: false })
+      .limit(15);
+
+    if (error || !data || data.length === 0) {
+      await sendMessage(chatId, "No bookings yet.");
+      return;
+    }
+
+    const rows = data as unknown as BookingRow[];
+    const lines = rows.map((row, i) => {
+      const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+      const emoji = STATUS_EMOJI[row.booking_status] ?? "•";
+      const sessionTitle = row.session?.title ?? "Unknown session";
+      return `${i + 1}. ${emoji} <b>${escapeHtml(name)}</b> — ${escapeHtml(sessionTitle)} — RM${Number(row.total_amount).toFixed(2)} — ${escapeHtml(row.booking_status)}`;
+    });
+
+    await sendMessage(chatId, `📋 <b>Latest ${rows.length} bookings</b>\n\n${lines.join("\n")}`);
+  }
+
   const update = await req.json();
 
   // Bot commands (e.g. "/pending" or "/pending@YourBotName" in a group) arrive as
@@ -136,8 +172,10 @@ Deno.serve(async (req: Request) => {
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
     const command = msg.text.trim().split(/[\s@]/)[0].toLowerCase();
-    if (command === "/pending" || command === "/list") {
+    if (command === "/pending") {
       await handlePendingCommand(msg.chat.id);
+    } else if (command === "/list") {
+      await handleListCommand(msg.chat.id);
     }
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
