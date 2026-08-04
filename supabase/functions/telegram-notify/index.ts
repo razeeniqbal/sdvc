@@ -12,11 +12,11 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    const { message } = await req.json();
+    const { message, photoUrl, caption, bookingId } = await req.json();
 
-    if (!message) {
+    if (!message && !photoUrl) {
       return new Response(
-        JSON.stringify({ error: "Message is required" }),
+        JSON.stringify({ error: "message or photoUrl is required" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
@@ -26,17 +26,32 @@ Deno.serve(async (req: Request) => {
 
     // Falls back to logging only until TELEGRAM_BOT_TOKEN / TELEGRAM_CHAT_ID secrets are set.
     if (!botToken || !chatId) {
-      console.log("[Telegram Notify] Not configured, logging only:", { message, timestamp: new Date().toISOString() });
+      console.log("[Telegram Notify] Not configured, logging only:", { message, photoUrl, caption, bookingId, timestamp: new Date().toISOString() });
       return new Response(
         JSON.stringify({ success: true, message: "Notification logged (Telegram not configured)" }),
         { headers: { ...corsHeaders, "Content-Type": "application/json" } },
       );
     }
 
-    const res = await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+    const endpoint = photoUrl ? "sendPhoto" : "sendMessage";
+    // Approve/Reject buttons let the admin action a payment receipt straight from the
+    // Telegram chat via the telegram-webhook function, without opening the admin panel.
+    const replyMarkup = photoUrl && bookingId
+      ? {
+          inline_keyboard: [[
+            { text: "✅ Approve", callback_data: `appr:${bookingId}` },
+            { text: "❌ Reject", callback_data: `rej:${bookingId}` },
+          ]],
+        }
+      : undefined;
+    const payload = photoUrl
+      ? { chat_id: chatId, photo: photoUrl, caption: caption || message || undefined, reply_markup: replyMarkup }
+      : { chat_id: chatId, text: message };
+
+    const res = await fetch(`https://api.telegram.org/bot${botToken}/${endpoint}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ chat_id: chatId, text: message }),
+      body: JSON.stringify(payload),
     });
     const body = await res.json();
 

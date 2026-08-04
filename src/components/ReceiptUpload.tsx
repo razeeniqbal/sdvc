@@ -57,7 +57,8 @@ export function ReceiptUpload({ booking, session, profile, qrUrl, groupBookings,
           : `Player: ${name}`;
         await notifyReceiptUploaded(
           signedUrl,
-          `💰 Payment receipt uploaded\nBooking: ${booking.booking_reference}\n${playerLine}\nSession: ${session.title}\nAmount: ${formatCurrency(totalAmount)}`
+          `💰 Payment receipt uploaded\nBooking: ${booking.booking_reference}\n${playerLine}\nSession: ${session.title}\nAmount: ${formatCurrency(totalAmount)}`,
+          booking.id
         );
       }
       show(t('receipt.uploaded'), 'success');

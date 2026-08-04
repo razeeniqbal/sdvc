@@ -25,7 +25,7 @@ export async function createNotification(
   }
 }
 
-async function postToTelegramNotify(body: Record<string, string>): Promise<boolean> {
+async function postToTelegramNotify(body: Record<string, string | undefined>): Promise<boolean> {
   const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/telegram-notify`;
   const headers = {
     Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
@@ -45,10 +45,11 @@ async function sendTelegramMessage(message: string): Promise<boolean> {
 
 // Sends a receipt photo straight to the club's Telegram group so the admin sees proof
 // of payment immediately, without needing to open the admin panel. photoUrl must be
-// reachable by Telegram's servers — a short-lived signed URL works fine.
-export async function notifyReceiptUploaded(photoUrl: string, caption: string): Promise<boolean> {
+// reachable by Telegram's servers — a short-lived signed URL works fine. Passing
+// bookingId attaches Approve/Reject buttons the admin can tap directly in Telegram.
+export async function notifyReceiptUploaded(photoUrl: string, caption: string, bookingId?: string): Promise<boolean> {
   try {
-    return await postToTelegramNotify({ photoUrl, caption });
+    return await postToTelegramNotify({ photoUrl, caption, bookingId });
   } catch (e) {
     console.error('Failed to send Telegram receipt photo:', e);
     return false;
