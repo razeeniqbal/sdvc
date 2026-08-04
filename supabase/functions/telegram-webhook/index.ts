@@ -28,11 +28,12 @@ interface BookingRow {
   booking_status: string;
   is_guest: boolean;
   guest_name: string | null;
+  guest_phone: string | null;
   total_amount: number;
   created_at: string;
   booking_group_id: string | null;
   session: { title: string; session_date: string } | null;
-  profile: { full_name: string; short_name: string | null } | null;
+  profile: { full_name: string; short_name: string | null; phone_number: string | null } | null;
 }
 
 interface SessionRow {
@@ -65,20 +66,35 @@ function formatTime(time: string): string {
 
 const MALAY_DAYS = ["AHAD", "ISNIN", "SELASA", "RABU", "KHAMIS", "JUMAAT", "SABTU"];
 
-// Mirrors src/lib/sessions.ts buildRosterMessage() so the /list output matches the
-// same numbered signup-sheet format the app already posts when someone books.
-function buildRosterMessage(session: SessionRow, players: RosterPlayer[]): string {
-  const date = new Date(`${session.session_date}T00:00:00`);
+function formatMalayDateLabel(sessionDate: string): string {
+  const date = new Date(`${sessionDate}T00:00:00`);
   const day = date.getDate();
   const month = date.toLocaleDateString("en-MY", { month: "long" }).toUpperCase();
   const dayName = MALAY_DAYS[date.getDay()];
+  return `${day} ${month} (${dayName})`;
+}
+
+// Same date, softer casing — the all-caps roster/notify style reads as a shouty
+// header, wrong tone for a message addressed to one person.
+function formatFriendlyDateLabel(sessionDate: string): string {
+  const date = new Date(`${sessionDate}T00:00:00`);
+  const day = date.getDate();
+  const month = date.toLocaleDateString("en-MY", { month: "long" });
+  const dayName = MALAY_DAYS[date.getDay()];
+  const titleCased = dayName.charAt(0) + dayName.slice(1).toLowerCase();
+  return `${day} ${month} (${titleCased})`;
+}
+
+// Mirrors src/lib/sessions.ts buildRosterMessage() so the /list output matches the
+// same numbered signup-sheet format the app already posts when someone books.
+function buildRosterMessage(session: SessionRow, players: RosterPlayer[]): string {
   const priceLine = session.price > 0 ? `RM${Number(session.price).toFixed(2)}/pax` : "TBC/pax";
 
   const lines = [
     session.title.toUpperCase(),
     "",
     `🏟️: ${session.venue_name.toUpperCase()}`,
-    `📆: ${day} ${month} (${dayName})`,
+    `📆: ${formatMalayDateLabel(session.session_date)}`,
     `⏰: ${formatTime(session.start_time)} - ${formatTime(session.end_time)}`,
     `💵: ${priceLine}`,
     "",
@@ -92,6 +108,33 @@ function buildRosterMessage(session: SessionRow, players: RosterPlayer[]): strin
   }
 
   return lines.join("\n");
+}
+
+// Slot-availability update the admin copy-pastes straight into the WhatsApp group —
+// no bridge needed since it's manual, just formatted for zero-effort pasting.
+function buildNotifyMessage(session: SessionRow, filledCount: number): string {
+  const remaining = session.maximum_capacity - filledCount;
+  const header = `${session.title.toUpperCase()} — ${formatMalayDateLabel(session.session_date)}`;
+  if (remaining <= 0) {
+    return `${header}\n\nUPDATE: SLOT DAH PENUH! 🏐\nTerima kasih semua yang dah daftar. Nak masuk waiting list boleh PM admin.`;
+  }
+  return `${header}\n\nUPDATE: SLOT TINGGAL LAGI ${remaining} ORANG\nMana yang belum bayar sila bayar, nanti system akan cancel booking kalau hold lama sangat.`;
+}
+
+// wa.me deep link that opens a chat with the message pre-filled — the admin still has
+// to tap Send themselves, but this needs no API, no bridge, and costs nothing. Mirrors
+// src/lib/settings.ts whatsappLink()'s Malaysian "0" → "60" normalization.
+function normalizePhone(phone: string): string {
+  const clean = phone.replace(/[^0-9]/g, "");
+  return clean.startsWith("0") ? "60" + clean.slice(1) : clean;
+}
+
+function waMeLink(phone: string, message: string): string {
+  return `https://wa.me/${normalizePhone(phone)}?text=${encodeURIComponent(message)}`;
+}
+
+function buildReminderText(name: string, sessionTitle: string, friendlyDate: string, amount: number): string {
+  return `Hai ${name}! 👋\nSlot anda untuk *${sessionTitle}* (${friendlyDate}) masih belum dibayar (RM${amount.toFixed(2)}).\n\nSila selesaikan bayaran sebelum 24 jam dari tarikh sesi. Jika tidak, slot akan dibuka semula untuk pemain lain. Terima kasih! 🙏`;
 }
 
 Deno.serve(async (req: Request) => {
@@ -118,9 +161,10 @@ Deno.serve(async (req: Request) => {
     Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
   );
 
-  async function sendMessage(chatId: number, text: string, useHtml = true) {
+  async function sendMessage(chatId: number, text: string, useHtml = true, replyMarkup?: Record<string, unknown>) {
     const body: Record<string, unknown> = { chat_id: chatId, text };
     if (useHtml) body.parse_mode = "HTML";
+    if (replyMarkup) body.reply_markup = replyMarkup;
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -155,7 +199,7 @@ Deno.serve(async (req: Request) => {
   async function handlePendingCommand(chatId: number) {
     const { data, error } = await supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number)")
       .eq("booking_status", "Pending Payment")
       .order("created_at", { ascending: true })
       .limit(50);
@@ -211,6 +255,81 @@ Deno.serve(async (req: Request) => {
     await sendMessage(chatId, buildRosterMessage(session as SessionRow, (players ?? []) as RosterPlayer[]), false);
   }
 
+  // One card per unpaid player with a phone on file, each with a wa.me button that
+  // opens WhatsApp with the reminder pre-typed — admin just taps Send. Free, no bridge.
+  async function handleReminderCommand(chatId: number) {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number)")
+      .eq("booking_status", "Pending Payment")
+      .order("created_at", { ascending: true })
+      .limit(50);
+
+    if (error || !data || data.length === 0) {
+      await sendMessage(chatId, "✅ No pending bookings right now — all caught up!");
+      return;
+    }
+
+    const rows = data as unknown as BookingRow[];
+    const withPhone = rows.filter((r) => (r.is_guest ? r.guest_phone : r.profile?.phone_number));
+
+    if (withPhone.length === 0) {
+      await sendMessage(chatId, "There are pending bookings, but none of them have a phone number on file to message.");
+      return;
+    }
+
+    await sendMessage(chatId, `📣 <b>${withPhone.length} reminder${withPhone.length > 1 ? "s" : ""} ready</b> — tap a button to open WhatsApp with the message pre-filled.`);
+
+    for (const row of withPhone.slice(0, 20)) {
+      const phone = (row.is_guest ? row.guest_phone : row.profile?.phone_number)!;
+      const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+      const sessionTitle = row.session?.title ?? "your session";
+      const rawDate = row.session?.session_date;
+      const dateLabel = rawDate ? formatMalayDateLabel(rawDate) : "TBC";
+      const friendlyDate = rawDate ? formatFriendlyDateLabel(rawDate) : "TBC";
+      const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
+      const cardText = `👤 <b>${escapeHtml(name)}</b>\n🏐 ${escapeHtml(sessionTitle)} — ${escapeHtml(dateLabel)}\n🎫 Ref: ${row.booking_reference} · 💰 RM${Number(row.total_amount).toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
+      const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, Number(row.total_amount));
+
+      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chat_id: chatId,
+          text: cardText,
+          parse_mode: "HTML",
+          reply_markup: {
+            inline_keyboard: [[{ text: "💬 Message on WhatsApp", url: waMeLink(phone, reminderMsg) }]],
+          },
+        }),
+      });
+    }
+  }
+
+  // Generates the copy-paste-ready group update text — nothing automated, just saves
+  // the admin from typing out slot counts by hand.
+  async function handleNotifyCommand(chatId: number) {
+    const today = new Date().toISOString().split("T")[0];
+    const { data: session, error: sessionError } = await supabase
+      .from("sessions")
+      .select("*")
+      .neq("status", "Cancelled")
+      .gte("session_date", today)
+      .order("session_date", { ascending: true })
+      .order("start_time", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    if (sessionError || !session) {
+      await sendMessage(chatId, "No upcoming sessions.", false);
+      return;
+    }
+
+    const { data: filledCount } = await supabase.rpc("confirmed_booking_count", { p_session_id: session.id });
+
+    await sendMessage(chatId, buildNotifyMessage(session as SessionRow, (filledCount as number) ?? 0), false);
+  }
+
   const update = await req.json();
 
   // Bot commands (e.g. "/pending" or "/pending@YourBotName" in a group) arrive as
@@ -225,6 +344,10 @@ Deno.serve(async (req: Request) => {
       await handlePendingCommand(msg.chat.id);
     } else if (command === "/list") {
       await handleListCommand(msg.chat.id);
+    } else if (command === "/reminder") {
+      await handleReminderCommand(msg.chat.id);
+    } else if (command === "/notify") {
+      await handleNotifyCommand(msg.chat.id);
     }
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
@@ -240,8 +363,8 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
-  const [action, bookingId] = callback.data.split(":");
-  if ((action !== "appr" && action !== "rej") || !bookingId) {
+  const [action, targetId] = callback.data.split(":");
+  if (!targetId) {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
@@ -251,6 +374,11 @@ Deno.serve(async (req: Request) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ callback_query_id: callback!.id, text }),
     });
+  }
+
+  const bookingId = targetId;
+  if (action !== "appr" && action !== "rej") {
+    return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
   // Works for both receipt-photo cards (caption) and /pending list cards (text).

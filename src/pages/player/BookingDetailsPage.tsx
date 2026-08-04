@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type FormEvent } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation, Trans } from 'react-i18next';
-import { ArrowLeft, Calendar, Clock, MapPin, Tag, Users, CreditCard, XCircle, AlertTriangle, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, Calendar, Clock, MapPin, Tag, Users, CreditCard, XCircle, AlertTriangle, UserPlus, type LucideIcon } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -29,6 +29,9 @@ export default function BookingDetailsPage() {
   const [cancelling, setCancelling] = useState(false);
   const [settings, setSettings] = useState<ClubSettings | null>(null);
   const [groupBookings, setGroupBookings] = useState<Booking[]>([]);
+  const [showAddFriend, setShowAddFriend] = useState(false);
+  const [friendForm, setFriendForm] = useState({ name: '', phone: '' });
+  const [addingFriend, setAddingFriend] = useState(false);
 
   useEffect(() => {
     fetchClubSettings().then(setSettings);
@@ -98,6 +101,72 @@ export default function BookingDetailsPage() {
     navigate('/bookings');
   }
 
+  async function handleAddFriend(e: FormEvent) {
+    e.preventDefault();
+    if (!booking || !session || !friendForm.name.trim()) {
+      show(t('checkout.errorCompanionName'), 'error');
+      return;
+    }
+    setAddingFriend(true);
+
+    // Uses the SECURITY DEFINER count function so the check sees every booking, not
+    // just the caller's own (which RLS would otherwise limit to) — same guard as
+    // CheckoutPage's initial booking flow.
+    const { data: activeCountData } = await supabase.rpc('confirmed_booking_count', { p_session_id: session.id });
+    const activeCount = (activeCountData as number) || 0;
+    const available = session.maximum_capacity - activeCount;
+    if (available < 1) {
+      show(t('checkout.errorFullyBooked'), 'error');
+      setAddingFriend(false);
+      return;
+    }
+
+    // The original booking may have been made solo, with no booking_group_id yet —
+    // backfill one now so the new companion row can link to it.
+    let groupId = booking.booking_group_id;
+    if (!groupId) {
+      groupId = crypto.randomUUID();
+      const { error: linkError } = await supabase.from('bookings').update({ booking_group_id: groupId }).eq('id', booking.id);
+      if (linkError) {
+        show(linkError.message, 'error');
+        setAddingFriend(false);
+        return;
+      }
+    }
+
+    const { error } = await supabase.from('bookings').insert({
+      session_id: session.id,
+      booking_status: 'Pending Payment',
+      payment_status: 'Manual Payment Pending Verification',
+      subtotal: session.price,
+      processing_fee: 0,
+      discount_amount: 0,
+      total_amount: session.price,
+      booking_group_id: groupId,
+      is_guest: true,
+      guest_name: friendForm.name.trim(),
+      guest_phone: friendForm.phone.trim() || null,
+    });
+
+    if (error) {
+      show(error.message, 'error');
+      setAddingFriend(false);
+      return;
+    }
+
+    const { data: group } = await supabase.from('bookings').select('*').eq('booking_group_id', groupId).order('created_at', { ascending: true });
+    setGroupBookings((group || []) as Booking[]);
+    setBooking({ ...booking, booking_group_id: groupId });
+
+    const roster = await fetchSessionRoster(session.id);
+    await notifyGroup(buildRosterMessage(session, roster));
+
+    setAddingFriend(false);
+    setShowAddFriend(false);
+    setFriendForm({ name: '', phone: '' });
+    show(t('bookingDetails.friendAdded'), 'success');
+  }
+
   if (loading || !booking || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
@@ -111,6 +180,13 @@ export default function BookingDetailsPage() {
   const canCancel = ['Confirmed', 'Pending Payment'].includes(booking.booking_status) && hoursBefore > 24;
   const isPast = sessionDate < new Date();
   const awaitingConfirmation = booking.booking_status === 'Pending Payment';
+  // A friend added after this booking was already confirmed still needs to be paid
+  // for — the receipt upload can't be gated on just the original booking's status.
+  const groupHasPendingPayment = awaitingConfirmation || groupBookings.some((b) => b.id !== booking.id && b.booking_status === 'Pending Payment');
+  // Only the original booker (not a companion looking at their own row) can add
+  // someone else, and only while the booking is still active and the session hasn't
+  // happened yet or closed.
+  const canAddFriend = !booking.is_guest && ['Pending Payment', 'Confirmed'].includes(booking.booking_status) && !isPast && session.status === 'Open';
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -224,8 +300,59 @@ export default function BookingDetailsPage() {
           )}
 
           {/* Payment receipt upload */}
-          {awaitingConfirmation && profile && (
+          {groupHasPendingPayment && profile && (
             <ReceiptUpload booking={booking} session={session} profile={profile} qrUrl={settings?.payment_qr_url} groupBookings={groupBookings} onUploaded={(path) => setBooking({ ...booking, receipt_path: path })} />
+          )}
+
+          {/* Add a friend */}
+          {canAddFriend && (
+            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+              {!showAddFriend ? (
+                <button
+                  type="button"
+                  onClick={() => setShowAddFriend(true)}
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-rose-600 hover:text-rose-700"
+                >
+                  <UserPlus className="h-4 w-4" />
+                  {t('bookingDetails.addFriend')}
+                </button>
+              ) : (
+                <form onSubmit={handleAddFriend}>
+                  <p className="font-semibold text-slate-900 text-sm mb-1">{t('bookingDetails.addFriend')}</p>
+                  <p className="text-xs text-slate-500 mb-3">{t('bookingDetails.addFriendDesc')}</p>
+                  <div className="grid sm:grid-cols-2 gap-2">
+                    <input
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none"
+                      placeholder={t('checkout.companionNamePlaceholder')}
+                      value={friendForm.name}
+                      onChange={(e) => setFriendForm({ ...friendForm, name: e.target.value })}
+                    />
+                    <input
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none"
+                      placeholder={t('checkout.companionPhone')}
+                      value={friendForm.phone}
+                      onChange={(e) => setFriendForm({ ...friendForm, phone: e.target.value })}
+                    />
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <button
+                      type="button"
+                      onClick={() => { setShowAddFriend(false); setFriendForm({ name: '', phone: '' }); }}
+                      className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg border border-slate-300 transition-colors"
+                    >
+                      {t('bookingDetails.cancelAddFriend')}
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={addingFriend}
+                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+                    >
+                      {addingFriend ? t('bookingDetails.addingFriend') : t('bookingDetails.saveFriend')}
+                    </button>
+                  </div>
+                </form>
+              )}
+            </div>
           )}
 
           {/* Actions */}

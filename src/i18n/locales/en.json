@@ -300,7 +300,13 @@
     "keepBooking": "Keep Booking",
     "yesCancel": "Yes, Cancel",
     "cancelling": "Cancelling...",
-    "errorBookingCancelled": "Booking cancelled. All bookings are non-refundable."
+    "errorBookingCancelled": "Booking cancelled. All bookings are non-refundable.",
+    "addFriend": "Add a friend",
+    "addFriendDesc": "They'll get their own booking under this session and can pay the same way you did.",
+    "saveFriend": "Add",
+    "cancelAddFriend": "Cancel",
+    "addingFriend": "Adding...",
+    "friendAdded": "Friend added — they still need to pay."
   },
   "profile": {
     "title": "My Profile",

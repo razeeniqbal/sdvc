@@ -300,7 +300,13 @@
     "keepBooking": "Kekalkan Tempahan",
     "yesCancel": "Ya, Batalkan",
     "cancelling": "Sedang membatalkan...",
-    "errorBookingCancelled": "Tempahan dibatalkan. Semua tempahan tidak boleh dikembalikan."
+    "errorBookingCancelled": "Tempahan dibatalkan. Semua tempahan tidak boleh dikembalikan.",
+    "addFriend": "Tambah kawan",
+    "addFriendDesc": "Mereka akan dapat tempahan sendiri di bawah sesi ini dan boleh bayar dengan cara yang sama seperti anda.",
+    "saveFriend": "Tambah",
+    "cancelAddFriend": "Batal",
+    "addingFriend": "Sedang menambah...",
+    "friendAdded": "Kawan berjaya ditambah — mereka masih perlu bayar."
   },
   "profile": {
     "title": "Profil Saya",
