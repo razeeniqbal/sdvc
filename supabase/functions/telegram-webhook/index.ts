@@ -7,15 +7,35 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, X-Telegram-Bot-Api-Secret-Token",
 };
 
+interface TelegramMessage {
+  chat: { id: number };
+  message_id: number;
+  text?: string;
+  caption?: string;
+  photo?: unknown[];
+}
+
 interface TelegramCallbackQuery {
   id: string;
   data?: string;
   from?: { first_name?: string };
-  message?: {
-    chat: { id: number };
-    message_id: number;
-    caption?: string;
-  };
+  message?: TelegramMessage;
+}
+
+interface PendingBookingRow {
+  id: string;
+  booking_reference: string;
+  is_guest: boolean;
+  guest_name: string | null;
+  total_amount: number;
+  created_at: string;
+  booking_group_id: string | null;
+  session: { title: string; session_date: string } | null;
+  profile: { full_name: string; short_name: string | null } | null;
+}
+
+function escapeHtml(input: string): string {
+  return input.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
 Deno.serve(async (req: Request) => {
@@ -25,6 +45,7 @@ Deno.serve(async (req: Request) => {
 
   const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN");
   const webhookSecret = Deno.env.get("TELEGRAM_WEBHOOK_SECRET");
+  const configuredChatId = Deno.env.get("TELEGRAM_CHAT_ID");
 
   // Telegram sends this header on every webhook call when a secret_token was set via
   // setWebhook — without it, anyone who finds this URL could fake button presses and
@@ -36,12 +57,99 @@ Deno.serve(async (req: Request) => {
     return new Response("Bot not configured", { status: 500, headers: corsHeaders });
   }
 
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL")!,
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
+  );
+
+  async function sendMessage(chatId: number, text: string) {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ chat_id: chatId, text, parse_mode: "HTML" }),
+    });
+  }
+
+  async function sendConfirmCard(chatId: number, row: PendingBookingRow, partySize: number) {
+    const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+    const sessionLine = row.session ? `${row.session.title} — ${row.session.session_date}` : "Unknown session";
+    const partyNote = partySize > 1 ? ` (+${partySize - 1} more)` : "";
+    const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
+    const text = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(partyNote)}\n${escapeHtml(sessionLine)}\nRef: ${row.booking_reference} · RM${Number(row.total_amount).toFixed(2)}\nWaiting: ${waitingHrs}h`;
+
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [[
+            { text: "✅ Confirm", callback_data: `appr:${row.id}` },
+            { text: "❌ Reject", callback_data: `rej:${row.id}` },
+          ]],
+        },
+      }),
+    });
+  }
+
+  async function handlePendingCommand(chatId: number) {
+    const { data, error } = await supabase
+      .from("bookings")
+      .select("id, booking_reference, is_guest, guest_name, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name)")
+      .eq("booking_status", "Pending Payment")
+      .order("created_at", { ascending: true })
+      .limit(50);
+
+    if (error || !data || data.length === 0) {
+      await sendMessage(chatId, "✅ No pending bookings right now — all caught up!");
+      return;
+    }
+
+    const rows = data as unknown as PendingBookingRow[];
+    const seenGroups = new Set<string>();
+    const cards: PendingBookingRow[] = [];
+    for (const row of rows) {
+      if (row.booking_group_id) {
+        if (seenGroups.has(row.booking_group_id)) continue;
+        seenGroups.add(row.booking_group_id);
+      }
+      cards.push(row);
+    }
+
+    await sendMessage(chatId, `🕒 <b>${cards.length} booking${cards.length > 1 ? "s" : ""} awaiting confirmation</b>`);
+
+    for (const row of cards.slice(0, 20)) {
+      const partySize = row.booking_group_id ? rows.filter((r) => r.booking_group_id === row.booking_group_id).length : 1;
+      await sendConfirmCard(chatId, row, partySize);
+    }
+  }
+
   const update = await req.json();
+
+  // Bot commands (e.g. "/pending" or "/pending@YourBotName" in a group) arrive as
+  // regular messages, not callback_query.
+  if (update.message?.text) {
+    const msg = update.message as TelegramMessage;
+    if (!configuredChatId || String(msg.chat.id) !== configuredChatId) {
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+    const command = msg.text.trim().split(/[\s@]/)[0].toLowerCase();
+    if (command === "/pending" || command === "/list") {
+      await handlePendingCommand(msg.chat.id);
+    }
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  }
+
   const callback: TelegramCallbackQuery | undefined = update.callback_query;
 
   // Telegram expects a 200 for any update type it sends, even ones we ignore, or it
   // will keep retrying delivery.
   if (!callback?.data) {
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  }
+  if (!configuredChatId || String(callback.message?.chat.id) !== configuredChatId) {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
@@ -58,25 +166,28 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  async function editCaption(newCaption: string) {
+  // Works for both receipt-photo cards (caption) and /pending list cards (text).
+  async function editMessage(newText: string) {
     const msg = callback!.message;
     if (!msg) return;
-    await fetch(`https://api.telegram.org/bot${botToken}/editMessageCaption`, {
+    const isPhoto = Array.isArray(msg.photo);
+    const body: Record<string, unknown> = {
+      chat_id: msg.chat.id,
+      message_id: msg.message_id,
+      reply_markup: { inline_keyboard: [] },
+    };
+    if (isPhoto) {
+      body.caption = newText;
+    } else {
+      body.text = newText;
+      body.parse_mode = "HTML";
+    }
+    await fetch(`https://api.telegram.org/bot${botToken}/${isPhoto ? "editMessageCaption" : "editMessageText"}`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: msg.chat.id,
-        message_id: msg.message_id,
-        caption: newCaption,
-        reply_markup: { inline_keyboard: [] },
-      }),
+      body: JSON.stringify(body),
     });
   }
-
-  const supabase = createClient(
-    Deno.env.get("SUPABASE_URL")!,
-    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-  );
 
   const { data: booking, error: fetchError } = await supabase
     .from("bookings")
@@ -94,14 +205,14 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
-  // Companion bookings share a booking_group_id — one receipt covers the whole party,
+  // Companion bookings share a booking_group_id — one decision covers the whole party,
   // so approving/rejecting must apply to every booking in the group, not just this row.
   const party = booking.booking_group_id
     ? ((await supabase.from("bookings").select("id, total_amount").eq("booking_group_id", booking.booking_group_id)).data ?? [booking])
     : [booking];
 
   const actorName = callback.from?.first_name ?? "Admin";
-  const originalCaption = callback.message?.caption ?? "";
+  const originalText = callback.message?.caption ?? callback.message?.text ?? "";
 
   if (action === "appr") {
     for (const b of party) {
@@ -120,14 +231,14 @@ Deno.serve(async (req: Request) => {
       .in("id", party.map((b) => b.id));
 
     await answerCallback("Approved ✅");
-    await editCaption(`${originalCaption}\n\n✅ Approved by ${actorName}`);
+    await editMessage(`${originalText}\n\n✅ Approved by ${escapeHtml(actorName)}`);
   } else {
     await supabase.from("bookings")
       .update({ booking_status: "Cancelled by Admin", payment_status: "Failed", cancelled_at: new Date().toISOString() })
       .in("id", party.map((b) => b.id));
 
     await answerCallback("Rejected ❌");
-    await editCaption(`${originalCaption}\n\n❌ Rejected by ${actorName}`);
+    await editMessage(`${originalText}\n\n❌ Rejected by ${escapeHtml(actorName)}`);
   }
 
   return new Response("ok", { status: 200, headers: corsHeaders });
