@@ -191,10 +191,22 @@ Deno.serve(async (req: Request) => {
     return (data ?? []) as SessionRow[];
   }
 
+  // One tappable button per session — callback_data encodes which command asked and
+  // which session was picked, so the callback handler can run the same logic these
+  // commands run directly, just resolved via a button tap instead of typed text.
+  async function sendSessionPicker(chatId: number, sessions: SessionRow[], commandName: string, headerText: string) {
+    await sendMessage(chatId, headerText, false, {
+      inline_keyboard: sessions.map((s) => [{
+        text: `${s.title} — ${formatMalayDateLabel(s.session_date)}`,
+        callback_data: `sesspick:${commandName}:${s.id}`,
+      }]),
+    });
+  }
+
   // Picks which session a /list or /notify call targets. With one upcoming session it
-  // just works like before; with several, an unnumbered command shows a picker instead
-  // of silently guessing — that silent guess (always "the next one") was the bug where
-  // a second session was invisible to these commands entirely.
+  // just works like before; with several, shows tappable buttons instead of silently
+  // guessing — that silent guess (always "the next one") was the bug where a second
+  // session was invisible to these commands entirely. A typed /list 2 still works too.
   async function resolveSession(chatId: number, arg: string | undefined, commandName: string): Promise<SessionRow | null> {
     const sessions = await getUpcomingSessions();
     if (sessions.length === 0) {
@@ -209,10 +221,8 @@ Deno.serve(async (req: Request) => {
       if (!isNaN(idx) && idx >= 1 && idx <= sessions.length) {
         return sessions[idx - 1];
       }
-      await sendMessage(chatId, `Not a valid session number. Reply with /${commandName} and a number from the list below.`, false);
     }
-    const lines = sessions.map((s, i) => `${i + 1}) ${s.title} — ${formatMalayDateLabel(s.session_date)}`);
-    await sendMessage(chatId, `Multiple sessions coming up — which one?\n\n${lines.join("\n")}\n\nReply with e.g. /${commandName} 2`, false);
+    await sendSessionPicker(chatId, sessions, commandName, "Multiple sessions coming up — which one?");
     return null;
   }
 
@@ -227,8 +237,7 @@ Deno.serve(async (req: Request) => {
       if (sessions.length === 0) {
         await sendMessage(chatId, "No upcoming sessions.", false);
       } else {
-        const lines = sessions.map((s, i) => `${i + 1}) ${s.title} — ${formatMalayDateLabel(s.session_date)}`);
-        await sendMessage(chatId, `Not a valid session number. Upcoming sessions:\n\n${lines.join("\n")}\n\nReply with e.g. /${commandName} 1`, false);
+        await sendSessionPicker(chatId, sessions, commandName, "Not a valid session number — pick one:");
       }
       return null;
     }
@@ -260,12 +269,10 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  // No arg shows every pending booking across all sessions (each card is already
-  // labeled with its session); /pending N narrows to just session N.
-  async function handlePendingCommand(chatId: number, arg: string | undefined) {
-    const filter = await resolveOptionalSessionFilter(chatId, arg, "pending");
-    if (filter === null) return;
-
+  // Shared by /pending and its "sesspick:pending:<id>" button-tap equivalent. No filter
+  // shows every pending booking across all sessions (each card is already labeled with
+  // its session); a filter narrows to just that one.
+  async function runPending(chatId: number, filter: SessionRow | undefined) {
     let query = supabase
       .from("bookings")
       .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
@@ -300,29 +307,36 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Posts the same numbered signup-sheet roster the app posts automatically when
-  // someone books — e.g.:
+  // No arg shows every pending booking across all sessions; /pending N or a button tap
+  // narrows to just session N.
+  async function handlePendingCommand(chatId: number, arg: string | undefined) {
+    const filter = await resolveOptionalSessionFilter(chatId, arg, "pending");
+    if (filter === null) return;
+    await runPending(chatId, filter);
+  }
+
+  // Shared by /list and its button-tap equivalent. Posts the same numbered signup-sheet
+  // roster the app posts automatically when someone books — e.g.:
   //   1) Jeen ✅
   //   2) Madi ✅
   //   3)
-  // Targets the next upcoming session, or asks which one via resolveSession() if more
-  // than one is scheduled.
-  async function handleListCommand(chatId: number, arg: string | undefined) {
-    const session = await resolveSession(chatId, arg, "list");
-    if (!session) return;
-
+  async function runRoster(chatId: number, session: SessionRow) {
     const { data: players } = await supabase.rpc("session_player_list", { p_session_id: session.id });
-
     await sendMessage(chatId, buildRosterMessage(session, (players ?? []) as RosterPlayer[]), false);
   }
 
-  // One card per unpaid player with a phone on file, each with a wa.me button that
-  // opens WhatsApp with the reminder pre-typed — admin just taps Send. Free, no bridge.
-  // Same /reminder N session-narrowing as /pending.
-  async function handleReminderCommand(chatId: number, arg: string | undefined) {
-    const filter = await resolveOptionalSessionFilter(chatId, arg, "reminder");
-    if (filter === null) return;
+  // Targets the next upcoming session, or asks which one (via buttons) if more than one
+  // is scheduled.
+  async function handleListCommand(chatId: number, arg: string | undefined) {
+    const session = await resolveSession(chatId, arg, "list");
+    if (!session) return;
+    await runRoster(chatId, session);
+  }
 
+  // Shared by /reminder and its button-tap equivalent. One card per unpaid player with a
+  // phone on file, each with a wa.me button that opens WhatsApp with the reminder
+  // pre-typed — admin just taps Send. Free, no bridge.
+  async function runReminder(chatId: number, filter: SessionRow | undefined) {
     let query = supabase
       .from("bookings")
       .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
@@ -375,15 +389,26 @@ Deno.serve(async (req: Request) => {
     }
   }
 
-  // Generates the copy-paste-ready group update text — nothing automated, just saves
-  // the admin from typing out slot counts by hand. Same multi-session picker as /list.
+  // Same /reminder N (or button-tap) session-narrowing as /pending.
+  async function handleReminderCommand(chatId: number, arg: string | undefined) {
+    const filter = await resolveOptionalSessionFilter(chatId, arg, "reminder");
+    if (filter === null) return;
+    await runReminder(chatId, filter);
+  }
+
+  // Shared by /notify and its button-tap equivalent. Generates the copy-paste-ready
+  // group update text — nothing automated, just saves the admin from typing out slot
+  // counts by hand.
+  async function runNotify(chatId: number, session: SessionRow) {
+    const { data: filledCount } = await supabase.rpc("confirmed_booking_count", { p_session_id: session.id });
+    await sendMessage(chatId, buildNotifyMessage(session, (filledCount as number) ?? 0), false);
+  }
+
+  // Same multi-session picker as /list.
   async function handleNotifyCommand(chatId: number, arg: string | undefined) {
     const session = await resolveSession(chatId, arg, "notify");
     if (!session) return;
-
-    const { data: filledCount } = await supabase.rpc("confirmed_booking_count", { p_session_id: session.id });
-
-    await sendMessage(chatId, buildNotifyMessage(session, (filledCount as number) ?? 0), false);
+    await runNotify(chatId, session);
   }
 
   const update = await req.json();
@@ -421,8 +446,9 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
-  const [action, targetId] = callback.data.split(":");
-  if (!targetId) {
+  const parts = callback.data.split(":");
+  const action = parts[0];
+  if (!parts[1]) {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
@@ -434,7 +460,30 @@ Deno.serve(async (req: Request) => {
     });
   }
 
-  const bookingId = targetId;
+  // Button tap from sendSessionPicker() — runs the same logic /list, /notify, /pending,
+  // or /reminder would run directly, just resolved via a tap instead of a typed number.
+  if (action === "sesspick") {
+    const cmdName = parts[1];
+    const sessionId = parts[2];
+    const chatId = callback.message?.chat.id;
+    if (!sessionId || !chatId) {
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+    await answerCallback("Loading…");
+    const { data: session } = await supabase.from("sessions").select("*").eq("id", sessionId).maybeSingle();
+    if (!session) {
+      await sendMessage(chatId, "That session isn't available anymore.", false);
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+    const sessionRow = session as SessionRow;
+    if (cmdName === "list") await runRoster(chatId, sessionRow);
+    else if (cmdName === "notify") await runNotify(chatId, sessionRow);
+    else if (cmdName === "pending") await runPending(chatId, sessionRow);
+    else if (cmdName === "reminder") await runReminder(chatId, sessionRow);
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  }
+
+  const bookingId = parts[1];
   if (action !== "appr" && action !== "rej") {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
