@@ -374,9 +374,57 @@ Deno.serve(async (req: Request) => {
     await runRoster(chatId, session);
   }
 
-  // Shared by /reminder and its button-tap equivalent. One card per unpaid player with a
-  // phone on file, each with a wa.me button that opens WhatsApp with the reminder
-  // pre-typed — admin just taps Send. Free, no bridge.
+  async function sendReminderCard(chatId: number, row: BookingRow) {
+    const phone = (row.is_guest ? row.guest_phone : row.profile?.phone_number)!;
+    const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+    const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
+    const sessionTitle = row.session?.title ?? "your session";
+    const rawDate = row.session?.session_date;
+    const dateLabel = rawDate ? formatMalayDateLabel(rawDate) : "TBC";
+    const friendlyDate = rawDate ? formatFriendlyDateLabel(rawDate) : "TBC";
+    const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
+    const cardText = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}\n🏐 ${escapeHtml(sessionTitle)} — ${escapeHtml(dateLabel)}\n🎫 Ref: ${row.booking_reference} · 💰 RM${Number(row.total_amount).toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
+    const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, Number(row.total_amount));
+
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text: cardText,
+        parse_mode: "HTML",
+        reply_markup: {
+          inline_keyboard: [[{ text: "💬 Message on WhatsApp", url: waMeLink(phone, reminderMsg) }]],
+        },
+      }),
+    });
+  }
+
+  // Looks up one booking fresh and sends its wa.me reminder card — used when a name is
+  // tapped in the /reminder summary list, same pattern as sendPendingDetail().
+  async function sendReminderDetail(chatId: number, bookingId: string) {
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
+      .eq("id", bookingId)
+      .maybeSingle();
+    if (!data) {
+      await sendMessage(chatId, "That booking isn't available anymore.", false);
+      return;
+    }
+    const row = data as unknown as BookingRow;
+    const phone = row.is_guest ? row.guest_phone : row.profile?.phone_number;
+    if (!phone) {
+      await sendMessage(chatId, "No phone number on file for that player.", false);
+      return;
+    }
+    await sendReminderCard(chatId, row);
+  }
+
+  // Shared by /reminder and its button-tap equivalent. Posts one compact summary with a
+  // tappable button per unpaid player who has a phone on file, instead of sending every
+  // wa.me reminder card upfront — tapping a name pulls up just that one via
+  // sendReminderDetail().
   async function runReminder(chatId: number, filter: SessionRow | undefined) {
     let query = supabase
       .from("bookings")
@@ -401,33 +449,26 @@ Deno.serve(async (req: Request) => {
       return;
     }
 
-    await sendMessage(chatId, `📣 <b>${withPhone.length} reminder${withPhone.length > 1 ? "s" : ""} ready${scopeSuffix}</b> — tap a button to open WhatsApp with the message pre-filled.`);
-
-    for (const row of withPhone.slice(0, 20)) {
-      const phone = (row.is_guest ? row.guest_phone : row.profile?.phone_number)!;
+    const shown = withPhone.slice(0, 20);
+    const lines = shown.map((row, i) => {
       const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
       const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
-      const sessionTitle = row.session?.title ?? "your session";
-      const rawDate = row.session?.session_date;
-      const dateLabel = rawDate ? formatMalayDateLabel(rawDate) : "TBC";
-      const friendlyDate = rawDate ? formatFriendlyDateLabel(rawDate) : "TBC";
+      const sessionNote = filter ? "" : ` — ${escapeHtml(row.session?.title ?? "Unknown session")}`;
       const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
-      const cardText = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}\n🏐 ${escapeHtml(sessionTitle)} — ${escapeHtml(dateLabel)}\n🎫 Ref: ${row.booking_reference} · 💰 RM${Number(row.total_amount).toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
-      const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, Number(row.total_amount));
+      return `${i + 1}) ${escapeHtml(name)}${genderTag(gender)}${sessionNote} · RM${Number(row.total_amount).toFixed(2)} · ${waitingHrs}h`;
+    });
 
-      await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: cardText,
-          parse_mode: "HTML",
-          reply_markup: {
-            inline_keyboard: [[{ text: "💬 Message on WhatsApp", url: waMeLink(phone, reminderMsg) }]],
-          },
-        }),
-      });
-    }
+    await sendMessage(
+      chatId,
+      `📣 <b>${shown.length} reminder${shown.length > 1 ? "s" : ""} ready${scopeSuffix}</b>\n\n${lines.join("\n")}\n\nTap a name to get their WhatsApp reminder:`,
+      true,
+      {
+        inline_keyboard: shown.map((row, i) => [{
+          text: `${i + 1}) ${row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player"}`,
+          callback_data: `remdetail:${row.id}`,
+        }]),
+      }
+    );
   }
 
   // Same /reminder N (or button-tap) session-narrowing as /pending.
@@ -511,6 +552,19 @@ Deno.serve(async (req: Request) => {
     }
     await answerCallback("Loading…");
     await sendPendingDetail(chatId, bookingIdArg);
+    return new Response("ok", { status: 200, headers: corsHeaders });
+  }
+
+  // Button tap from the /reminder summary list — pulls up just that one player's wa.me
+  // reminder card instead of them all being sent upfront.
+  if (action === "remdetail") {
+    const bookingIdArg = parts[1];
+    const chatId = callback.message?.chat.id;
+    if (!bookingIdArg || !chatId) {
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+    await answerCallback("Loading…");
+    await sendReminderDetail(chatId, bookingIdArg);
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 

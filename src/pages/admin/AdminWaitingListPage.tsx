@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Users, Clock, Phone, UserPlus, Trash2 } from 'lucide-react';
+import { ArrowLeft, Users, Phone, UserPlus, Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { formatDate, formatTime, formatDateTime } from '@/lib/format';
 import { Spinner } from '@/components/LoadingScreen';
 import { GenderBadge } from '@/components/StatusBadge';
+import { whatsappLink } from '@/lib/settings';
 import type { Session, WaitingListEntry, Profile } from '@/types/database';
 
 interface WaitlistEntry extends WaitingListEntry {
@@ -35,22 +36,25 @@ export default function AdminWaitingListPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps -- reload only when the session id changes
   useEffect(() => { load(); }, [id]);
 
+  // Books the slot for this player immediately (via a SECURITY DEFINER function, since
+  // RLS otherwise only lets a user insert their own booking) rather than just marking
+  // them "Offered" and waiting for them to click through Checkout themselves — faster
+  // and doesn't depend on them acting within a countdown window.
   async function offerSlot(entry: WaitlistEntry) {
-    const { error } = await supabase.from('waiting_list').update({
-      status: 'Offered',
-      offer_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
-    }).eq('id', entry.id);
+    if (!session) return;
+    const { data: bookingId, error } = await supabase.rpc('admin_book_waitlist_offer', { p_entry_id: entry.id });
     if (error) { show(error.message, 'error'); return; }
-    await supabase.from('notifications').insert({
-      user_id: entry.user_id,
-      notification_type: 'waitlist_slot_available',
-      title: 'Slot Available!',
-      message: `A slot opened up for "${session?.title}" on ${session?.session_date}. You have 10 minutes to complete your booking.`,
-      delivery_channel: 'in_app',
-      delivery_status: 'Sent',
-      sent_at: new Date().toISOString(),
-    });
-    show('Slot offered to next player in queue', 'success');
+
+    if (entry.profile.phone_number) {
+      const bookingUrl = `https://vsb-play.vercel.app/bookings/${bookingId}`;
+      const name = entry.profile.short_name || entry.profile.full_name;
+      const message = `Hai ${name}! 🏐 Slot untuk "${session.title}" (${formatDate(session.session_date)}) telah ditempah untuk anda — RM${Number(session.price).toFixed(2)}. Sila bayar & muat naik resit secepat mungkin, kalau tidak slot akan dibatalkan. Bayar sini: ${bookingUrl}`;
+      window.open(whatsappLink(entry.profile.phone_number, message), '_blank');
+    } else {
+      show('Booked, but this player has no phone number on file to message.', 'info');
+    }
+
+    show('Slot booked for this player', 'success');
     load();
   }
 
@@ -112,22 +116,15 @@ export default function AdminWaitingListPage() {
                 <div className="flex items-center gap-2">
                   <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
                     entry.status === 'Waiting' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                    entry.status === 'Offered' ? 'bg-blue-100 text-blue-800 border-blue-200' :
                     entry.status === 'Booked' ? 'bg-green-100 text-green-800 border-green-200' :
                     'bg-slate-100 text-slate-600 border-slate-200'
                   }`}>
                     {entry.status}
                   </span>
-                  {entry.status === 'Offered' && entry.offer_expires_at && (
-                    <span className="flex items-center gap-1 text-xs text-amber-600">
-                      <Clock className="h-3 w-3" />
-                      {new Date(entry.offer_expires_at).toLocaleTimeString('en-MY', { hour: 'numeric', minute: '2-digit', hour12: true })}
-                    </span>
-                  )}
                   {entry.status === 'Waiting' && (
                     <button onClick={() => offerSlot(entry)} className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 font-medium rounded-lg text-sm border border-green-200 transition-colors">
                       <UserPlus className="h-4 w-4" />
-                      Offer Slot
+                      Book This Slot
                     </button>
                   )}
                   <button onClick={() => removeEntry(entry)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">

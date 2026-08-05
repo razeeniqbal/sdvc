@@ -28,6 +28,7 @@ export function Navbar() {
     { to: '/admin/sessions', label: 'Sessions', icon: CalendarDays },
     { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
+    { to: '/bookings', label: t('nav.myBookings'), icon: Ticket },
     { to: '/profile', label: 'Profile', icon: UserIcon },
   ];
 

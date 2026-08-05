@@ -7,9 +7,10 @@ import { formatCurrency, formatDate, formatTime, getDayName } from '@/lib/format
 import { getSessionStatus, type SessionWithCount } from '@/lib/sessions';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/LoadingScreen';
 import { StatusBadge, GenderBadge } from '@/components/StatusBadge';
-import type { ClubSettings, BookingStatus, Gender } from '@/types/database';
+import type { ClubSettings, BookingStatus, Gender, WaitingListEntry } from '@/types/database';
 
 interface SessionPlayer {
   display_name: string;
@@ -30,15 +31,16 @@ export default function SessionDetailsPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { show } = useToast();
+  const { profile } = useAuth();
   const [session, setSession] = useState<SessionWithCount | null>(null);
   const [loading, setLoading] = useState(true);
-  const [onWaitlist, setOnWaitlist] = useState(false);
+  const [myWaitlistEntry, setMyWaitlistEntry] = useState<WaitingListEntry | null>(null);
   const [settings, setSettings] = useState<ClubSettings | null>(null);
   const [players, setPlayers] = useState<SessionPlayer[]>([]);
 
   useEffect(() => {
     fetchClubSettings().then(setSettings);
-    if (!id) return;
+    if (!id || !profile) return;
     (async () => {
       const { data, error } = await supabase.from('sessions').select('*').eq('id', id).maybeSingle();
       if (error || !data) {
@@ -50,11 +52,24 @@ export default function SessionDetailsPage() {
       setSession({ ...data, confirmed_count: (count as number) || 0 } as SessionWithCount);
       const { data: playerList } = await supabase.rpc('session_player_list', { p_session_id: id });
       setPlayers((playerList || []) as SessionPlayer[]);
+      // Was this player already waitlisted for this session? The old version only
+      // tracked this in local state after a fresh join click, so returning to the page
+      // never showed up here.
+      const { data: waitlistEntry } = await supabase
+        .from('waiting_list')
+        .select('*')
+        .eq('session_id', id)
+        .eq('user_id', profile.id)
+        .eq('status', 'Waiting')
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      setMyWaitlistEntry(waitlistEntry as WaitingListEntry | null);
       setLoading(false);
     })();
-    // reload only when the session id changes
+    // reload only when the session id or profile changes
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [id, profile]);
 
   async function handleJoinWaitlist() {
     if (!session) return;
@@ -74,16 +89,16 @@ export default function SessionDetailsPage() {
       .select('id', { count: 'exact', head: true })
       .eq('session_id', session.id)
       .eq('status', 'Waiting');
-    const { error } = await supabase.from('waiting_list').insert({
+    const { data: inserted, error } = await supabase.from('waiting_list').insert({
       session_id: session.id,
       queue_position: (count || 0) + 1,
       status: 'Waiting',
-    });
+    }).select().maybeSingle();
     if (error) {
       show(error.message, 'error');
       return;
     }
-    setOnWaitlist(true);
+    setMyWaitlistEntry(inserted as WaitingListEntry);
     show(t('sessionDetails.addedToWaitlist'), 'success');
   }
 
@@ -262,7 +277,7 @@ export default function SessionDetailsPage() {
                 {t('sessionDetails.bookThisSession')}
               </button>
             ) : status === 'Fully Booked' ? (
-              onWaitlist ? (
+              myWaitlistEntry?.status === 'Waiting' ? (
                 <div className="w-full py-4 bg-amber-50 border border-amber-200 text-amber-800 font-bold rounded-xl text-center">
                   {t('sessionDetails.onWaitlist')}
                 </div>
