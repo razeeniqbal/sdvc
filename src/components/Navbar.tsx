@@ -1,7 +1,7 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Menu, X, CalendarDays, Ticket, User as UserIcon, LogOut, ShieldCheck, Settings } from 'lucide-react';
+import { Menu, X, CalendarDays, Ticket, User as UserIcon, LogOut, ShieldCheck, Settings, ChevronDown } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchClubSettings } from '@/lib/settings';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
@@ -13,9 +13,23 @@ export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [open, setOpen] = useState(false);
+  const [accountOpen, setAccountOpen] = useState(false);
   const [settings, setSettings] = useState<ClubSettings | null>(null);
+  const accountRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => { fetchClubSettings().then(setSettings); }, []);
+
+  // Admins already have 4 tool links on this row — adding My Bookings/Profile inline
+  // there wrapped onto a second line. Those two move into a compact dropdown instead;
+  // players only have one primary link so there's no crowding to fix for them.
+  useEffect(() => {
+    if (!accountOpen) return;
+    function handleClickOutside(e: MouseEvent) {
+      if (accountRef.current && !accountRef.current.contains(e.target as Node)) setAccountOpen(false);
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [accountOpen]);
 
   const playerLinks = [
     { to: '/sessions', label: t('nav.sessions'), icon: CalendarDays },
@@ -28,8 +42,11 @@ export function Navbar() {
     { to: '/admin/sessions', label: 'Sessions', icon: CalendarDays },
     { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
     { to: '/admin/settings', label: 'Settings', icon: Settings },
+  ];
+
+  const accountLinks = [
     { to: '/bookings', label: t('nav.myBookings'), icon: Ticket },
-    { to: '/profile', label: 'Profile', icon: UserIcon },
+    { to: '/profile', label: t('nav.profile'), icon: UserIcon },
   ];
 
   const links = isAdmin ? adminLinks : playerLinks;
@@ -63,6 +80,33 @@ export function Navbar() {
                     </Link>
                   );
                 })}
+                {isAdmin && (
+                  <div className="relative" ref={accountRef}>
+                    <button
+                      onClick={() => setAccountOpen(!accountOpen)}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                        accountOpen ? 'bg-white/10 text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      }`}
+                    >
+                      <UserIcon className="h-4 w-4" />
+                      {profile?.short_name || profile?.full_name || t('nav.profile')}
+                      <ChevronDown className={`h-3.5 w-3.5 transition-transform ${accountOpen ? 'rotate-180' : ''}`} />
+                    </button>
+                    {accountOpen && (
+                      <div className="absolute right-0 mt-2 w-44 bg-slate-900 border border-white/10 rounded-lg shadow-lg py-1 z-50">
+                        {accountLinks.map((link) => {
+                          const Icon = link.icon;
+                          return (
+                            <Link key={link.to} to={link.to} onClick={() => setAccountOpen(false)}
+                              className="flex items-center gap-2 px-3 py-2 text-sm text-slate-300 hover:text-white hover:bg-white/10">
+                              <Icon className="h-4 w-4" /> {link.label}
+                            </Link>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
                 <button onClick={handleSignOut} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
                   <LogOut className="h-4 w-4" /> {t('nav.signOut')}
                 </button>
@@ -87,6 +131,15 @@ export function Navbar() {
         {open && profile && (
           <div className="md:hidden pb-4 space-y-1">
             {links.map((link) => {
+              const Icon = link.icon;
+              return (
+                <Link key={link.to} to={link.to} onClick={() => setOpen(false)}
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(link.to) ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
+                  <Icon className="h-4 w-4" /> {link.label}
+                </Link>
+              );
+            })}
+            {isAdmin && accountLinks.map((link) => {
               const Icon = link.icon;
               return (
                 <Link key={link.to} to={link.to} onClick={() => setOpen(false)}
