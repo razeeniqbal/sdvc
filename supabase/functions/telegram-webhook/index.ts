@@ -269,9 +269,36 @@ Deno.serve(async (req: Request) => {
     });
   }
 
+  // Looks up one booking fresh and sends its Confirm/Reject card — used when a name is
+  // tapped in the /pending summary list, so the detail card only gets sent for the one
+  // booking the admin actually wants to act on, not all of them upfront.
+  async function sendPendingDetail(chatId: number, bookingId: string) {
+    const { data } = await supabase
+      .from("bookings")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
+      .eq("id", bookingId)
+      .maybeSingle();
+    if (!data) {
+      await sendMessage(chatId, "That booking isn't available anymore.", false);
+      return;
+    }
+    const row = data as unknown as BookingRow;
+    let partySize = 1;
+    if (row.booking_group_id) {
+      const { count } = await supabase
+        .from("bookings")
+        .select("id", { count: "exact", head: true })
+        .eq("booking_group_id", row.booking_group_id);
+      partySize = count ?? 1;
+    }
+    await sendConfirmCard(chatId, row, partySize);
+  }
+
   // Shared by /pending and its "sesspick:pending:<id>" button-tap equivalent. No filter
-  // shows every pending booking across all sessions (each card is already labeled with
-  // its session); a filter narrows to just that one.
+  // shows every pending booking across all sessions; a filter narrows to just that one.
+  // Posts one compact summary with a tappable button per person instead of flooding the
+  // chat with every booking's full Confirm/Reject card at once — tapping a name pulls up
+  // just that one card via sendPendingDetail().
   async function runPending(chatId: number, filter: SessionRow | undefined) {
     let query = supabase
       .from("bookings")
@@ -299,12 +326,26 @@ Deno.serve(async (req: Request) => {
       cards.push(row);
     }
 
-    await sendMessage(chatId, `🕒 <b>${cards.length} booking${cards.length > 1 ? "s" : ""} awaiting confirmation${scopeSuffix}</b>`);
+    const shown = cards.slice(0, 20);
+    const lines = shown.map((row, i) => {
+      const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+      const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
+      const sessionNote = filter ? "" : ` — ${escapeHtml(row.session?.title ?? "Unknown session")}`;
+      const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
+      return `${i + 1}) ${escapeHtml(name)}${genderTag(gender)}${sessionNote} · RM${Number(row.total_amount).toFixed(2)} · ${waitingHrs}h`;
+    });
 
-    for (const row of cards.slice(0, 20)) {
-      const partySize = row.booking_group_id ? rows.filter((r) => r.booking_group_id === row.booking_group_id).length : 1;
-      await sendConfirmCard(chatId, row, partySize);
-    }
+    await sendMessage(
+      chatId,
+      `🕒 <b>${cards.length} booking${cards.length > 1 ? "s" : ""} awaiting confirmation${scopeSuffix}</b>\n\n${lines.join("\n")}\n\nTap a name to confirm or reject:`,
+      true,
+      {
+        inline_keyboard: shown.map((row, i) => [{
+          text: `${i + 1}) ${row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player"}`,
+          callback_data: `pendetail:${row.id}`,
+        }]),
+      }
+    );
   }
 
   // No arg shows every pending booking across all sessions; /pending N or a button tap
@@ -458,6 +499,19 @@ Deno.serve(async (req: Request) => {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ callback_query_id: callback!.id, text }),
     });
+  }
+
+  // Button tap from the /pending summary list — pulls up just that one booking's
+  // Confirm/Reject card instead of them all being sent upfront.
+  if (action === "pendetail") {
+    const bookingIdArg = parts[1];
+    const chatId = callback.message?.chat.id;
+    if (!bookingIdArg || !chatId) {
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
+    await answerCallback("Loading…");
+    await sendPendingDetail(chatId, bookingIdArg);
+    return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
   // Button tap from sendSessionPicker() — runs the same logic /list, /notify, /pending,
