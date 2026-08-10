@@ -73,7 +73,7 @@ export function Navbar() {
                   return (
                     <Link key={link.to} to={link.to}
                       className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        isActive(link.to) ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'
+                        isActive(link.to) ? 'bg-rose-500 text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'
                       }`}>
                       <Icon className="h-4 w-4" />
                       {link.label}
@@ -134,7 +134,7 @@ export function Navbar() {
               const Icon = link.icon;
               return (
                 <Link key={link.to} to={link.to} onClick={() => setOpen(false)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(link.to) ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(link.to) ? 'bg-rose-500 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
                   <Icon className="h-4 w-4" /> {link.label}
                 </Link>
               );
@@ -143,7 +143,7 @@ export function Navbar() {
               const Icon = link.icon;
               return (
                 <Link key={link.to} to={link.to} onClick={() => setOpen(false)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(link.to) ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(link.to) ? 'bg-rose-500 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
                   <Icon className="h-4 w-4" /> {link.label}
                 </Link>
               );

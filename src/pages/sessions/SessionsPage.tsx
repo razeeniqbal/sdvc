@@ -123,8 +123,8 @@ export default function SessionsPage() {
               <Link
                 key={session.id}
                 to={`/sessions/${session.id}`}
-                className={`glass-card rounded-2xl border shadow-sm hover:shadow-lg hover:scale-[1.02] transition-all overflow-hidden group ${
-                  isAlmostFull ? 'border-amber-300' : 'border-white/50'
+                className={`bg-white rounded-2xl border shadow-sm hover:shadow-lg transition-all overflow-hidden group ${
+                  isAlmostFull ? 'border-amber-300' : 'border-slate-200'
                 }`}
               >
                 <div className="p-5">
@@ -163,7 +163,7 @@ export default function SessionsPage() {
                     <span className="text-2xl font-bold text-slate-900">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</span>
                     <span className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${
                       canBook
-                        ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white'
+                        ? 'bg-rose-600 text-white group-hover:bg-rose-700'
                         : 'bg-slate-100 text-slate-400'
                     }`}>
                       {canBook ? t('sessions.bookNow') : status === 'Fully Booked' ? t('sessions.waitlist') : t('sessions.view')}

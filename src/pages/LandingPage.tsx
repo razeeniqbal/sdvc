@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Clock, MapPin, Users, ArrowRight, MessageCircle, Phone, Info, Sparkles, Zap, Heart } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, ArrowRight, MessageCircle, Phone, Info, Sparkles, Heart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { fetchSessionsWithCounts, getSessionStatus, type SessionWithCount } from '@/lib/sessions';
@@ -64,9 +64,6 @@ export default function LandingPage() {
       <section className="relative h-[520px] sm:h-[620px] overflow-hidden">
         <img src={heroImage} alt="Volleyball" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-br from-rose-900/80 via-slate-900/70 to-orange-900/80" />
-        {/* Decorative anime-style elements */}
-        <div className="absolute top-20 right-10 w-32 h-32 rounded-full bg-rose-500/20 blur-3xl animate-float" />
-        <div className="absolute bottom-20 left-10 w-40 h-40 rounded-full bg-orange-400/20 blur-3xl animate-float" style={{ animationDelay: '1s' }} />
 
         <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex flex-col justify-center">
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-rose-200 text-sm font-medium mb-5 w-fit">
@@ -82,11 +79,11 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-3">
             {profile ? (
-              <Link to="/sessions" className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all animate-pulse-glow">
+              <Link to="/sessions" className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all">
                 {t('landing.bookSession')} <ArrowRight className="h-5 w-5" />
               </Link>
             ) : (
-              <Link to="/register" className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all animate-pulse-glow">
+              <Link to="/register" className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all">
                 {t('landing.getStarted')} <ArrowRight className="h-5 w-5" />
               </Link>
             )}
@@ -104,9 +101,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 flex items-center gap-2">
-                <Zap className="h-6 w-6 text-rose-500" /> {t('landing.openSessions')}
-              </h2>
+              <h2 className="text-2xl sm:text-3xl font-bold text-slate-900">{t('landing.openSessions')}</h2>
               <p className="text-slate-500 text-sm mt-1">{t('landing.openSessionsSubtitle')}</p>
             </div>
             {profile && (
@@ -128,7 +123,7 @@ export default function LandingPage() {
                 const slotsLeft = s.maximum_capacity - s.confirmed_count;
                 return (
                   <Link key={s.id} to={profile ? `/sessions/${s.id}` : '/register'}
-                    className={`glass-card rounded-2xl p-5 hover:shadow-xl hover:scale-[1.02] transition-all ${status === 'Almost Full' ? 'border-amber-300' : 'border-white/50'}`}>
+                    className={`bg-white border rounded-2xl p-5 hover:shadow-lg transition-all ${status === 'Almost Full' ? 'border-amber-300' : 'border-slate-200'}`}>
                     <div className="flex items-start justify-between mb-3">
                       <h3 className="font-bold text-slate-900">{s.title}</h3>
                       <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${status === 'Almost Full' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
@@ -157,14 +152,12 @@ export default function LandingPage() {
       {/* How it works + rules */}
       <section className="py-12 sm:py-16 px-4 sm:px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto">
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-8 flex items-center justify-center gap-2">
-            <Sparkles className="h-6 w-6 text-rose-500" /> {t('landing.howItWorks')}
-          </h2>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-8">{t('landing.howItWorks')}</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
             {steps.map((step, i) => {
               const Icon = step.icon;
               return (
-                <div key={i} className="glass-card rounded-2xl p-6 text-center">
+                <div key={i} className="bg-white border border-slate-200 rounded-2xl p-6 text-center">
                   <div className="flex h-12 w-12 mx-auto items-center justify-center rounded-xl bg-gradient-to-br from-rose-400 to-orange-400 text-white mb-3">
                     <Icon className="h-6 w-6" />
                   </div>
@@ -177,7 +170,7 @@ export default function LandingPage() {
           </div>
 
           {/* Session rules */}
-          <div className="mt-8 glass-card rounded-2xl p-6">
+          <div className="mt-8 bg-white border border-slate-200 rounded-2xl p-6">
             <div className="flex items-center gap-2 mb-4">
               <Info className="h-5 w-5 text-rose-400" />
               <h3 className="font-bold text-slate-900">{t('landing.sessionRulesTitle')}</h3>
@@ -196,9 +189,7 @@ export default function LandingPage() {
         <div className="max-w-5xl mx-auto grid sm:grid-cols-2 gap-8 items-center">
           <img src={aboutImage} alt="Volleyball players" className="rounded-2xl w-full h-64 object-cover shadow-lg" />
           <div>
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4 flex items-center gap-2">
-              <Heart className="h-6 w-6 text-rose-500" /> {t('landing.whyUsTitle', { clubName })}
-            </h2>
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-4">{t('landing.whyUsTitle', { clubName })}</h2>
             <ul className="space-y-2 text-slate-600">
               {whyUsPoints.map((b) => (
                 <li key={b} className="flex items-center gap-2">
@@ -220,7 +211,7 @@ export default function LandingPage() {
           <p className="text-slate-500 mb-8">{t('landing.getInTouchSubtitle')}</p>
           <div className="grid sm:grid-cols-2 gap-4">
             <a href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('landing.contactWhatsappMessage', { clubName }))} target="_blank" rel="noopener noreferrer"
-              className="glass-card rounded-2xl p-6 hover:shadow-lg transition-all text-left">
+              className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-all text-left">
               <div className="flex items-center gap-3 mb-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600"><Phone className="h-5 w-5" /></div>
                 <div>
@@ -231,7 +222,7 @@ export default function LandingPage() {
               <p className="text-sm text-green-600 font-medium">{t('landing.chatWithOnWhatsapp', { name: settings?.contact_person_name || 'us' })}</p>
             </a>
             <a href={settings?.whatsapp_group_link || '#'} target="_blank" rel="noopener noreferrer"
-              className="glass-card rounded-2xl p-6 hover:shadow-lg transition-all text-left">
+              className="bg-white border border-slate-200 rounded-2xl p-6 hover:shadow-lg transition-all text-left">
               <div className="flex items-center gap-3 mb-2">
                 <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-green-100 text-green-600"><MessageCircle className="h-5 w-5" /></div>
                 <div>
@@ -251,7 +242,7 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-slate-900 text-center mb-8">{t('landing.faqTitle')}</h2>
           <div className="space-y-3">
             {faqs.map((faq, i) => (
-              <div key={i} className="glass-card rounded-xl p-5">
+              <div key={i} className="bg-white border border-slate-200 rounded-xl p-5">
                 <h3 className="font-bold text-slate-900 text-sm mb-1">{faq.q}</h3>
                 <p className="text-slate-600 text-sm">{faq.a}</p>
               </div>
@@ -266,7 +257,7 @@ export default function LandingPage() {
           <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">{t('landing.readyToPlay')}</h2>
           <p className="text-slate-500 mb-6">{t('landing.readyToPlaySubtitle', { clubName })}</p>
           <Link to={profile ? '/sessions' : '/register'}
-            className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all animate-pulse-glow">
+            className="inline-flex items-center gap-2 px-7 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all">
             {profile ? t('landing.browseSessions') : t('landing.startPlaying')} <ArrowRight className="h-5 w-5" />
           </Link>
         </div>

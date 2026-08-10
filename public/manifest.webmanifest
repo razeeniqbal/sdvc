@@ -1,0 +1,13 @@
+{
+  "name": "Volleyball Sdn Bhd",
+  "short_name": "VSB",
+  "description": "Book volleyball sessions with Volleyball Sdn Bhd",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8fafc",
+  "theme_color": "#f43f5e",
+  "icons": [
+    { "src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg" },
+    { "src": "/logo.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}

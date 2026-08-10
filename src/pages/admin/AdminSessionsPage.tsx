@@ -20,6 +20,7 @@ export default function AdminSessionsPage() {
   const [sessions, setSessions] = useState<SessionWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [timeFilter, setTimeFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [blastSession, setBlastSession] = useState<SessionWithCount | null>(null);
   const [blastMessage, setBlastMessage] = useState('');
@@ -126,11 +127,20 @@ export default function AdminSessionsPage() {
     setBlastSession(null);
   }
 
-  const filtered = sessions.filter((s) => {
-    if (!search) return true;
-    const q = search.toLowerCase();
-    return s.title.toLowerCase().includes(q) || s.venue_name.toLowerCase().includes(q);
-  });
+  const today = new Date().toISOString().split('T')[0];
+
+  const filtered = sessions
+    .filter((s) => {
+      if (timeFilter === 'upcoming') return s.session_date >= today;
+      if (timeFilter === 'past') return s.session_date < today;
+      return true;
+    })
+    .filter((s) => {
+      if (!search) return true;
+      const q = search.toLowerCase();
+      return s.title.toLowerCase().includes(q) || s.venue_name.toLowerCase().includes(q);
+    })
+    .sort((a, b) => (timeFilter === 'past' ? b.session_date.localeCompare(a.session_date) : a.session_date.localeCompare(b.session_date)));
 
   if (loading) {
     return (
@@ -153,14 +163,29 @@ export default function AdminSessionsPage() {
         </Link>
       </div>
 
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-        <input
-          placeholder="Search by title or venue..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
+      <div className="flex flex-col sm:flex-row gap-3 mb-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <input
+            placeholder="Search by title or venue..."
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50 w-fit">
+          {(['upcoming', 'past', 'all'] as const).map((f) => (
+            <button
+              key={f}
+              onClick={() => setTimeFilter(f)}
+              className={`px-3.5 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${
+                timeFilter === f ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              }`}
+            >
+              {f}
+            </button>
+          ))}
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -168,12 +193,18 @@ export default function AdminSessionsPage() {
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-4">
             <CalendarDays className="h-8 w-8" />
           </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1">No sessions yet</h3>
-          <p className="text-slate-500 text-sm mb-4">Create your first volleyball session.</p>
-          <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all">
-            <Plus className="h-5 w-5" />
-            Create Session
-          </Link>
+          <h3 className="text-lg font-semibold text-slate-900 mb-1">
+            {timeFilter === 'past' ? 'No past sessions' : 'No sessions yet'}
+          </h3>
+          <p className="text-slate-500 text-sm mb-4">
+            {timeFilter === 'past' ? 'Sessions move here automatically once their date has passed.' : 'Create your first volleyball session.'}
+          </p>
+          {timeFilter !== 'past' && (
+            <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all">
+              <Plus className="h-5 w-5" />
+              Create Session
+            </Link>
+          )}
         </div>
       ) : (
         <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200">
