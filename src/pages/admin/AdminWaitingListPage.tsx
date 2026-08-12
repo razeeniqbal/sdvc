@@ -48,7 +48,7 @@ export default function AdminWaitingListPage() {
     if (entry.profile.phone_number) {
       const bookingUrl = `https://vsb-play.vercel.app/bookings/${bookingId}`;
       const name = entry.profile.short_name || entry.profile.full_name;
-      const message = `Hai ${name}! 🏐 Slot untuk "${session.title}" (${formatDate(session.session_date)}) telah ditempah untuk anda — RM${Number(session.price).toFixed(2)}. Sila bayar & muat naik resit secepat mungkin, kalau tidak slot akan dibatalkan. Bayar sini: ${bookingUrl}`;
+      const message = `Hai ${name}! 🏐 Slot untuk "${session.title}" (${formatDate(session.session_date)}) telah ditempah untuk anda. Harga RM${Number(session.price).toFixed(2)}. Sila bayar & muat naik resit secepat mungkin, kalau tidak slot akan dibatalkan. Bayar sini: ${bookingUrl}`;
       window.open(whatsappLink(entry.profile.phone_number, message), '_blank');
     } else {
       show('Booked, but this player has no phone number on file to message.', 'info');

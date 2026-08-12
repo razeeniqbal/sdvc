@@ -443,7 +443,7 @@ export default function AdminBookingsPage() {
                 <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
                   {isTbc ? (
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500">Final Amount (RM) — price was TBC</span>
+                      <span className="text-slate-500">Final Amount (RM), price was TBC</span>
                       <input
                         type="number" step="0.01" min="0"
                         className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"

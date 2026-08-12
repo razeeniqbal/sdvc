@@ -250,7 +250,7 @@ export default function AdminSessionFormPage() {
             <div>
               <label className={labelClass}>Price per Player (RM) *</label>
               <input type="number" step="0.01" min="0" className={inputClass} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-              <p className="text-xs text-slate-500 mt-1">Set to 0 for TBC (To Be Confirmed) — players can still lock a slot, and you finalize the amount per booking once turnout is known.</p>
+              <p className="text-xs text-slate-500 mt-1">Set to 0 for TBC (To Be Confirmed). Players can still lock a slot, and you finalize the amount per booking once turnout is known.</p>
             </div>
             <div>
               <label className={labelClass}>Maximum Players *</label>

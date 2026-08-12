@@ -120,7 +120,7 @@ function buildRosterMessage(session: SessionRow, players: RosterPlayer[]): strin
 // no bridge needed since it's manual, just formatted for zero-effort pasting.
 function buildNotifyMessage(session: SessionRow, filledCount: number): string {
   const remaining = session.maximum_capacity - filledCount;
-  const header = `${session.title.toUpperCase()} — ${formatMalayDateLabel(session.session_date)}`;
+  const header = `${session.title.toUpperCase()} (${formatMalayDateLabel(session.session_date)})`;
   if (remaining <= 0) {
     return `${header}\n\nUPDATE: SLOT DAH PENUH! 🏐\nTerima kasih semua yang dah daftar. Nak masuk waiting list boleh PM admin.`;
   }
@@ -197,7 +197,7 @@ Deno.serve(async (req: Request) => {
   async function sendSessionPicker(chatId: number, sessions: SessionRow[], commandName: string, headerText: string) {
     await sendMessage(chatId, headerText, false, {
       inline_keyboard: sessions.map((s) => [{
-        text: `${s.title} — ${formatMalayDateLabel(s.session_date)}`,
+        text: `${s.title} (${formatMalayDateLabel(s.session_date)})`,
         callback_data: `sesspick:${commandName}:${s.id}`,
       }]),
     });
@@ -222,7 +222,7 @@ Deno.serve(async (req: Request) => {
         return sessions[idx - 1];
       }
     }
-    await sendSessionPicker(chatId, sessions, commandName, "Multiple sessions coming up — which one?");
+    await sendSessionPicker(chatId, sessions, commandName, "Multiple sessions coming up, which one?");
     return null;
   }
 
@@ -237,7 +237,7 @@ Deno.serve(async (req: Request) => {
       if (sessions.length === 0) {
         await sendMessage(chatId, "No upcoming sessions.", false);
       } else {
-        await sendSessionPicker(chatId, sessions, commandName, "Not a valid session number — pick one:");
+        await sendSessionPicker(chatId, sessions, commandName, "Not a valid session number, pick one:");
       }
       return null;
     }
@@ -247,7 +247,7 @@ Deno.serve(async (req: Request) => {
   async function sendConfirmCard(chatId: number, row: BookingRow, partySize: number) {
     const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
     const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
-    const sessionLine = row.session ? `${row.session.title} — ${row.session.session_date}` : "Unknown session";
+    const sessionLine = row.session ? `${row.session.title} (${row.session.session_date})` : "Unknown session";
     const partyNote = partySize > 1 ? ` (+${partySize - 1} more)` : "";
     const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
     const text = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}${escapeHtml(partyNote)}\n${escapeHtml(sessionLine)}\nRef: ${row.booking_reference} · RM${Number(row.total_amount).toFixed(2)}\nWaiting: ${waitingHrs}h`;
@@ -311,7 +311,7 @@ Deno.serve(async (req: Request) => {
 
     const scopeSuffix = filter ? ` for ${filter.title}` : "";
     if (error || !data || data.length === 0) {
-      await sendMessage(chatId, `✅ No pending bookings${scopeSuffix} right now — all caught up!`);
+      await sendMessage(chatId, `✅ No pending bookings${scopeSuffix} right now, all caught up!`);
       return;
     }
 
@@ -330,7 +330,7 @@ Deno.serve(async (req: Request) => {
     const lines = shown.map((row, i) => {
       const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
       const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
-      const sessionNote = filter ? "" : ` — ${escapeHtml(row.session?.title ?? "Unknown session")}`;
+      const sessionNote = filter ? "" : ` · ${escapeHtml(row.session?.title ?? "Unknown session")}`;
       const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
       return `${i + 1}) ${escapeHtml(name)}${genderTag(gender)}${sessionNote} · RM${Number(row.total_amount).toFixed(2)} · ${waitingHrs}h`;
     });
@@ -383,7 +383,7 @@ Deno.serve(async (req: Request) => {
     const dateLabel = rawDate ? formatMalayDateLabel(rawDate) : "TBC";
     const friendlyDate = rawDate ? formatFriendlyDateLabel(rawDate) : "TBC";
     const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
-    const cardText = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}\n🏐 ${escapeHtml(sessionTitle)} — ${escapeHtml(dateLabel)}\n🎫 Ref: ${row.booking_reference} · 💰 RM${Number(row.total_amount).toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
+    const cardText = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}\n🏐 ${escapeHtml(sessionTitle)} (${escapeHtml(dateLabel)})\n🎫 Ref: ${row.booking_reference} · 💰 RM${Number(row.total_amount).toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
     const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, Number(row.total_amount));
 
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
@@ -437,7 +437,7 @@ Deno.serve(async (req: Request) => {
 
     const scopeSuffix = filter ? ` for ${filter.title}` : "";
     if (error || !data || data.length === 0) {
-      await sendMessage(chatId, `✅ No pending bookings${scopeSuffix} right now — all caught up!`);
+      await sendMessage(chatId, `✅ No pending bookings${scopeSuffix} right now, all caught up!`);
       return;
     }
 
@@ -453,7 +453,7 @@ Deno.serve(async (req: Request) => {
     const lines = shown.map((row, i) => {
       const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
       const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
-      const sessionNote = filter ? "" : ` — ${escapeHtml(row.session?.title ?? "Unknown session")}`;
+      const sessionNote = filter ? "" : ` · ${escapeHtml(row.session?.title ?? "Unknown session")}`;
       const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
       return `${i + 1}) ${escapeHtml(name)}${genderTag(gender)}${sessionNote} · RM${Number(row.total_amount).toFixed(2)} · ${waitingHrs}h`;
     });

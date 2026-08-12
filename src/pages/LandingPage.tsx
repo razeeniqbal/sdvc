@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Clock, MapPin, Users, ArrowRight, MessageCircle, Phone, Info, Sparkles, Heart } from 'lucide-react';
+import { Calendar, Clock, MapPin, Users, ArrowRight, MessageCircle, Phone, Info, Heart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { fetchSessionsWithCounts, getSessionStatus, type SessionWithCount } from '@/lib/sessions';
@@ -96,8 +96,7 @@ export default function LandingPage() {
         <div className="absolute inset-0 bg-gradient-to-br from-navy-950/85 via-navy-900/70 to-navy-950/85" />
 
         <div className="relative h-full max-w-5xl mx-auto px-4 sm:px-6 flex flex-col justify-center">
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-slate-200 text-sm font-medium mb-5 w-fit">
-            <Sparkles className="h-4 w-4" />
+          <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-white/10 backdrop-blur border border-white/20 text-slate-200 text-sm font-medium mb-5 w-fit">
             {t('landing.badge', { clubName })}
           </div>
           <h1 className="text-3xl sm:text-5xl font-semibold text-white tracking-tight mb-4">
