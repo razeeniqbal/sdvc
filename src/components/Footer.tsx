@@ -10,7 +10,7 @@ export function Footer() {
   useEffect(() => { fetchClubSettings().then(setSettings); }, []);
 
   return (
-    <footer className="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 border-t border-rose-900/30 mt-auto">
+    <footer className="bg-navy-900 border-t border-navy-800 mt-auto">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">

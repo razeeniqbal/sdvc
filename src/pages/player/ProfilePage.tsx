@@ -45,13 +45,13 @@ export default function ProfilePage() {
 
   if (!profile) return null;
 
-  const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none transition-all bg-white/80';
+  const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none transition-all bg-white';
   const labelClass = 'block text-sm font-medium text-slate-600 mb-1.5';
   const isComplete = !!profile.phone_number && !!profile.gender;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">{t('profile.title')}</h1>
+      <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-6">{t('profile.title')}</h1>
 
       {!isComplete && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-4 flex items-start gap-3">
@@ -63,9 +63,9 @@ export default function ProfilePage() {
         </div>
       )}
 
-      <div className="glass-card rounded-2xl p-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6">
         <div className="flex items-center gap-4 mb-6 pb-6 border-b border-slate-100">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-orange-400 text-white text-2xl font-bold">
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-navy-700 text-white text-2xl font-bold">
             {(profile.short_name || profile.full_name)?.charAt(0).toUpperCase() || 'P'}
           </div>
           <div>
@@ -73,7 +73,7 @@ export default function ProfilePage() {
             <p className="text-sm text-slate-500 flex items-center gap-1.5"><Phone className="h-3.5 w-3.5" />{profile.phone_number || t('profile.noPhoneNumber')}</p>
             <p className="text-sm text-slate-500 flex items-center gap-1.5 mt-0.5">
               <User className="h-3.5 w-3.5" />
-              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${profile.role === 'admin' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
+              <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${profile.role === 'admin' ? 'bg-navy-100 text-navy-700' : 'bg-blue-100 text-blue-700'}`}>
                 {profile.role === 'admin' ? t('profile.administrator') : t('profile.player')}
               </span>
             </p>
@@ -118,7 +118,7 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60">
+          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all disabled:opacity-60">
             {saving ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
             {saving ? t('profile.saving') : t('profile.saveChanges')}
           </button>

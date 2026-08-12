@@ -10,7 +10,7 @@ export function LanguageSwitcher({ className = '' }: { className?: string }) {
           key={lng}
           onClick={() => i18n.changeLanguage(lng)}
           className={`px-2 py-1 rounded-md transition-colors ${
-            i18n.language === lng ? 'bg-gradient-to-r from-rose-500 to-orange-500 text-white' : 'text-slate-300 hover:text-white'
+            i18n.language === lng ? 'bg-white text-navy-900' : 'text-slate-300 hover:text-white'
           }`}
         >
           {lng.toUpperCase()}

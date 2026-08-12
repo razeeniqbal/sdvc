@@ -64,7 +64,7 @@ export default function BookingConfirmationPage() {
   if (loading || !booking || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-orange-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
@@ -75,22 +75,21 @@ export default function BookingConfirmationPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <div className="glass-card rounded-2xl shadow-lg border border-white/50 overflow-hidden">
-        {/* Header */}
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm overflow-hidden">
         {isConfirmed ? (
-          <div className="bg-gradient-to-r from-rose-500 to-orange-500 p-6 sm:p-8 text-center">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20 mb-4">
-              <CheckCircle2 className="h-9 w-9 text-white" />
+          <div className="bg-green-600 p-6 sm:p-8 text-center">
+            <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white/15 mb-3">
+              <CheckCircle2 className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">{t('bookingConfirmation.bookingConfirmed')}</h1>
+            <h1 className="text-xl font-semibold text-white mb-1">{t('bookingConfirmation.bookingConfirmed')}</h1>
             <p className="text-green-100 text-sm">{t('bookingConfirmation.slotReserved')}</p>
           </div>
         ) : (
-          <div className="bg-gradient-to-r from-amber-500 to-orange-500 p-6 sm:p-8 text-center">
-            <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-white/20 mb-4">
-              <ClockPending className="h-9 w-9 text-white" />
+          <div className="bg-amber-500 p-6 sm:p-8 text-center">
+            <div className="inline-flex h-14 w-14 items-center justify-center rounded-full bg-white/15 mb-3">
+              <ClockPending className="h-8 w-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-white mb-1">{t('bookingConfirmation.slotLocked')}</h1>
+            <h1 className="text-xl font-semibold text-white mb-1">{t('bookingConfirmation.slotLocked')}</h1>
             <p className="text-amber-50 text-sm">{t('bookingConfirmation.awaitingConfirmation')}</p>
           </div>
         )}
@@ -194,21 +193,21 @@ export default function BookingConfirmationPage() {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <button
               onClick={handleAddToCalendar}
-              className="flex items-center justify-center gap-2 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-xl transition-colors"
+              className="flex items-center justify-center gap-2 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors"
             >
               <CalendarPlus className="h-5 w-5" />
               {t('bookingConfirmation.addToCalendar')}
             </button>
             <Link
               to="/bookings"
-              className="flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all"
+              className="flex items-center justify-center gap-2 py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all"
             >
               <Ticket className="h-5 w-5" />
               {t('bookingConfirmation.viewMyBookings')}
             </Link>
           </div>
 
-          <Link to="/sessions" className="flex items-center justify-center gap-1.5 text-sm text-rose-600 font-semibold hover:underline">
+          <Link to="/sessions" className="flex items-center justify-center gap-1.5 text-sm text-navy-700 font-semibold hover:underline">
             {t('bookingConfirmation.bookAnotherSession')}
             <ArrowRight className="h-4 w-4" />
           </Link>

@@ -4,7 +4,7 @@ import { Link } from 'react-router-dom';
 import { Plus, Search, Copy, Trash2, Edit, Users, CalendarDays, Megaphone, MoreVertical } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
-import { formatDate } from '@/lib/format';
+import { formatCurrency, formatDate } from '@/lib/format';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import { Spinner } from '@/components/LoadingScreen';
 import { SessionStatusBadge } from '@/components/StatusBadge';
@@ -145,7 +145,7 @@ export default function AdminSessionsPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-orange-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
@@ -154,10 +154,10 @@ export default function AdminSessionsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Session Management</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Session Management</h1>
           <p className="text-slate-500 text-sm mt-1">Create, edit, and manage volleyball sessions</p>
         </div>
-        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all">
+        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all">
           <Plus className="h-5 w-5" />
           Create Session
         </Link>
@@ -168,17 +168,17 @@ export default function AdminSessionsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
             placeholder="Search by title or venue..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div className="inline-flex rounded-lg border border-slate-200 p-1 bg-slate-50 w-fit">
+        <div className="inline-flex rounded-full border border-slate-200 p-1 bg-slate-50 w-fit">
           {(['upcoming', 'past', 'all'] as const).map((f) => (
             <button
               key={f}
               onClick={() => setTimeFilter(f)}
-              className={`px-3.5 py-1.5 rounded-md text-sm font-medium capitalize transition-colors ${
+              className={`px-3.5 py-1.5 rounded-full text-sm font-medium capitalize transition-colors ${
                 timeFilter === f ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
               }`}
             >
@@ -200,14 +200,14 @@ export default function AdminSessionsPage() {
             {timeFilter === 'past' ? 'Sessions move here automatically once their date has passed.' : 'Create your first volleyball session.'}
           </p>
           {timeFilter !== 'past' && (
-            <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all">
+            <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all">
               <Plus className="h-5 w-5" />
               Create Session
             </Link>
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200">
+        <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm">
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -224,7 +224,7 @@ export default function AdminSessionsPage() {
                 <tr key={s.id} className="hover:bg-slate-50">
                   <td className="px-4 py-3">
                     <p className="font-semibold text-slate-900 text-sm">{s.title}</p>
-                    <p className="text-xs text-slate-500">{s.price > 0 ? `RM${s.price.toFixed(2)}` : 'TBC'}</p>
+                    <p className="text-xs text-slate-500">{s.price > 0 ? formatCurrency(s.price) : 'TBC'}</p>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell text-sm text-slate-600">{formatDate(s.session_date)}</td>
                   <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-600">{s.venue_name}</td>
@@ -241,7 +241,7 @@ export default function AdminSessionsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <Link to={`/admin/sessions/${s.id}/edit`} className="p-2 text-slate-400 hover:text-orange-600 rounded-lg hover:bg-orange-50 transition-colors" title="Edit">
+                      <Link to={`/admin/sessions/${s.id}/edit`} className="p-2 text-slate-400 hover:text-navy-700 rounded-lg hover:bg-navy-50 transition-colors" title="Edit">
                         <Edit className="h-4 w-4" />
                       </Link>
                       <button onClick={() => setDeleteId(s.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors" title="Delete">

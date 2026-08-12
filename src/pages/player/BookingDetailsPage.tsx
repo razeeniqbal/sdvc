@@ -175,7 +175,7 @@ export default function BookingDetailsPage() {
   if (loading || !booking || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-orange-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
@@ -200,14 +200,14 @@ export default function BookingDetailsPage() {
         {t('bookingDetails.backToBookings')}
       </Link>
 
-      <div className="glass-card rounded-2xl border border-white/50 overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 p-6">
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
+        <div className="bg-navy-900 p-6">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h1 className="text-xl font-bold text-white">{session.title}</h1>
               <p className="font-mono text-sm text-slate-400 mt-1">{booking.booking_reference}</p>
               {booking.is_guest && (
-                <p className="text-sm text-rose-200 mt-1">{t('myBookings.bookingFor', { name: booking.guest_name })}</p>
+                <p className="text-sm text-slate-300 mt-1">{t('myBookings.bookingFor', { name: booking.guest_name })}</p>
               )}
               {groupBookings.length > 1 && (
                 <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 mt-1.5">
@@ -239,7 +239,7 @@ export default function BookingDetailsPage() {
               <InfoItem icon={Users} label={t('sessionDetails.capacityLabel')} value={t('bookingDetails.capacityValue', { count: session.maximum_capacity })} />
             </div>
             {session.maps_link && (
-              <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-rose-600 font-medium text-sm mt-3 hover:underline">
+              <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-navy-700 font-medium text-sm mt-3 hover:underline">
                 <MapPin className="h-4 w-4" />
                 {t('bookingDetails.viewOnMaps')}
               </a>
@@ -253,7 +253,7 @@ export default function BookingDetailsPage() {
               <div className="flex justify-between"><span className="text-slate-500">{t('bookingDetails.sessionFee')}</span><span className="font-medium">{formatCurrency(booking.subtotal)}</span></div>
               {booking.processing_fee > 0 && <div className="flex justify-between"><span className="text-slate-500">{t('bookingDetails.processingFee')}</span><span className="font-medium">{formatCurrency(booking.processing_fee)}</span></div>}
               {booking.discount_amount > 0 && <div className="flex justify-between text-green-600"><span>{t('bookingDetails.discount')}</span><span>-{formatCurrency(booking.discount_amount)}</span></div>}
-              <div className="flex justify-between pt-2 border-t border-slate-200"><span className="font-bold text-slate-900">{t('bookingDetails.total')}</span><span className="text-lg font-bold text-rose-600">{formatCurrency(booking.total_amount)}</span></div>
+              <div className="flex justify-between pt-2 border-t border-slate-200"><span className="font-bold text-slate-900">{t('bookingDetails.total')}</span><span className="text-lg font-bold text-navy-800">{formatCurrency(booking.total_amount)}</span></div>
             </div>
             {payments.length > 0 && (
               <div className="mt-3 space-y-2">
@@ -322,7 +322,7 @@ export default function BookingDetailsPage() {
                 <button
                   type="button"
                   onClick={() => setShowAddFriend(true)}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-rose-600 hover:text-rose-700"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 hover:text-navy-800"
                 >
                   <UserPlus className="h-4 w-4" />
                   {t('bookingDetails.addFriend')}
@@ -333,19 +333,19 @@ export default function BookingDetailsPage() {
                   <p className="text-xs text-slate-500 mb-3">{t('bookingDetails.addFriendDesc')}</p>
                   <div className="grid sm:grid-cols-3 gap-2">
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
                       placeholder={t('checkout.companionNamePlaceholder')}
                       value={friendForm.name}
                       onChange={(e) => setFriendForm({ ...friendForm, name: e.target.value })}
                     />
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
                       placeholder={t('checkout.companionPhone')}
                       value={friendForm.phone}
                       onChange={(e) => setFriendForm({ ...friendForm, phone: e.target.value })}
                     />
                     <select
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-rose-500 focus:ring-2 focus:ring-rose-500/20 outline-none"
+                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
                       value={friendForm.gender}
                       onChange={(e) => setFriendForm({ ...friendForm, gender: e.target.value })}
                       required
@@ -366,7 +366,7 @@ export default function BookingDetailsPage() {
                     <button
                       type="submit"
                       disabled={addingFriend}
-                      className="px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+                      className="px-4 py-2 bg-navy-700 hover:bg-navy-800 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
                     >
                       {addingFriend ? t('bookingDetails.addingFriend') : t('bookingDetails.saveFriend')}
                     </button>

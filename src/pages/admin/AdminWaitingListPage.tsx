@@ -68,7 +68,7 @@ export default function AdminWaitingListPage() {
   if (loading || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-orange-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
@@ -81,7 +81,7 @@ export default function AdminWaitingListPage() {
       </Link>
 
       <div className="mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Waiting List</h1>
+        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Waiting List</h1>
         <p className="text-slate-500 text-sm mt-1">{session.title} · {formatDate(session.session_date)} · {formatTime(session.start_time)}</p>
       </div>
 
@@ -96,7 +96,7 @@ export default function AdminWaitingListPage() {
       ) : (
         <div className="space-y-3">
           {entries.map((entry) => (
-            <div key={entry.id} className="bg-white rounded-xl border border-slate-200 p-4">
+            <div key={entry.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
               <div className="flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
                   <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 font-bold text-sm">

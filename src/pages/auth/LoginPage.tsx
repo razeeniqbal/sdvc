@@ -5,7 +5,6 @@ import { supabase } from '@/lib/supabase';
 import { phoneToEmail } from '@/lib/auth';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
-import { Zap } from 'lucide-react';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -28,39 +27,31 @@ export default function LoginPage() {
     navigate('/sessions');
   }
 
-  const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-3 text-slate-900 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none transition-all bg-white/80';
+  const inputClass = 'w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none transition-all bg-white';
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-rose-50 via-white to-orange-50 flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-md">
-        <div className="glass-card rounded-3xl shadow-xl p-6 sm:p-8">
-          <div className="text-center mb-6">
-            <div className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white mb-3 shadow-lg">
-              <Zap className="h-7 w-7" />
-            </div>
-            <h1 className="text-2xl font-bold text-slate-900">{t('auth.login.title')}</h1>
-            <p className="text-slate-500 text-sm mt-1">{t('auth.login.subtitle')}</p>
-          </div>
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-sm">
+        <div className="text-center mb-8">
+          <img src="/logo.jpg" alt="Logo" className="h-14 w-14 mx-auto rounded-xl object-cover mb-4" />
+          <h1 className="text-xl font-semibold text-slate-900">{t('auth.login.title')}</h1>
+          <p className="text-slate-500 text-sm mt-1">{t('auth.login.subtitle')}</p>
+        </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('auth.login.phoneLabel')}</label>
-              <input type="text" className={inputClass} placeholder={t('auth.login.phonePlaceholder')} value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">{t('auth.login.passwordLabel')}</label>
-              <input type="password" className={inputClass} value={password} onChange={(e) => setPassword(e.target.value)} />
-            </div>
+        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 sm:p-8">
+          <form onSubmit={handleSubmit} className="space-y-3">
+            <input type="text" aria-label={t('auth.login.phoneLabel')} className={inputClass} placeholder={t('auth.login.phonePlaceholder')} value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
+            <input type="password" aria-label={t('auth.login.passwordLabel')} className={inputClass} placeholder={t('auth.login.passwordLabel')} value={password} onChange={(e) => setPassword(e.target.value)} />
             <button type="submit" disabled={loading}
-              className="w-full py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+              className="w-full py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-1">
               {loading && <Spinner className="h-5 w-5" />}
               {loading ? t('auth.login.submitting') : t('auth.login.submit')}
             </button>
           </form>
 
-          <div className="flex flex-col items-center gap-2 mt-4">
-            <Link to="/forgot-password" className="text-sm text-rose-600 font-semibold hover:underline">{t('auth.login.forgotPassword')}</Link>
-            <p className="text-sm text-slate-500">{t('auth.login.newHere')} <Link to="/register" className="text-rose-600 font-semibold hover:underline">{t('auth.login.signUp')}</Link></p>
+          <div className="flex flex-col items-center gap-2 mt-5">
+            <Link to="/forgot-password" className="text-sm text-navy-700 font-medium hover:underline">{t('auth.login.forgotPassword')}</Link>
+            <p className="text-sm text-slate-500">{t('auth.login.newHere')} <Link to="/register" className="text-navy-700 font-medium hover:underline">{t('auth.login.signUp')}</Link></p>
           </div>
         </div>
       </div>

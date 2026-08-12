@@ -235,12 +235,12 @@ export default function AdminBookingsPage() {
   if (loading && bookings.length === 0) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-orange-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none';
+  const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none';
   const isTbc = !!selected && selected.total_amount === 0 && selected.payment_status !== 'Paid';
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const rangeStart = totalCount === 0 ? 0 : page * PAGE_SIZE + 1;
@@ -250,7 +250,7 @@ export default function AdminBookingsPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Booking Management</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Booking Management</h1>
           <p className="text-slate-500 text-sm mt-1">View, search, and manage all bookings</p>
         </div>
         <button onClick={exportCSV} disabled={exporting} className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors disabled:opacity-60">
@@ -260,7 +260,7 @@ export default function AdminBookingsPage() {
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="relative sm:col-span-2 lg:col-span-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input placeholder="Search name, phone, ref..." className={`${inputClass} pl-9`} value={filters.search} onChange={(e) => { setPage(0); setFilters({ ...filters, search: e.target.value }); }} />
@@ -282,7 +282,7 @@ export default function AdminBookingsPage() {
             type="checkbox"
             checked={hideCancelled}
             onChange={(e) => { setPage(0); setHideCancelled(e.target.checked); }}
-            className="h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500"
+            className="h-4 w-4 rounded border-slate-300 text-navy-600 focus:ring-navy-500"
           />
           Hide cancelled bookings
         </label>
@@ -300,7 +300,7 @@ export default function AdminBookingsPage() {
             <button
               key={b.id}
               onClick={() => { setSelected(b); setAmountInput(b.total_amount.toString()); }}
-              className="w-full text-left bg-white rounded-2xl border border-slate-200 p-4 hover:border-orange-300 transition-colors"
+              className="w-full text-left bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover:border-navy-300 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -324,7 +324,7 @@ export default function AdminBookingsPage() {
         </div>
 
         {/* Desktop table */}
-        <div className="hidden sm:block overflow-x-auto bg-white rounded-2xl border border-slate-200">
+        <div className="hidden sm:block overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm">
           <table className="w-full">
             <thead className="bg-slate-50 border-b border-slate-200">
               <tr>
@@ -359,7 +359,7 @@ export default function AdminBookingsPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-bold text-slate-900">{formatCurrency(b.total_amount)}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => { setSelected(b); setAmountInput(b.total_amount.toString()); }} className="p-2 text-slate-400 hover:text-orange-600 rounded-lg hover:bg-orange-50 transition-colors">
+                    <button onClick={() => { setSelected(b); setAmountInput(b.total_amount.toString()); }} className="p-2 text-slate-400 hover:text-navy-700 rounded-lg hover:bg-navy-50 transition-colors">
                       <Eye className="h-4 w-4" />
                     </button>
                   </td>
@@ -446,7 +446,7 @@ export default function AdminBookingsPage() {
                       <span className="text-slate-500">Final Amount (RM) — price was TBC</span>
                       <input
                         type="number" step="0.01" min="0"
-                        className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+                        className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
                         value={amountInput}
                         onChange={(e) => setAmountInput(e.target.value)}
                       />
@@ -553,7 +553,7 @@ function AdminNotes({ booking, onUpdate }: { booking: AdminBooking; onUpdate: ()
     <div>
       <h3 className="font-bold text-slate-900 mb-2 text-sm">Admin Notes</h3>
       <textarea
-        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none"
+        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
         rows={2}
         value={notes}
         onChange={(e) => setNotes(e.target.value)}

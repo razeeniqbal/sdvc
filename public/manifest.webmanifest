@@ -4,8 +4,8 @@
   "description": "Book volleyball sessions with Volleyball Sdn Bhd",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#f8fafc",
-  "theme_color": "#f43f5e",
+  "background_color": "#FAF7F0",
+  "theme_color": "#1E3A5F",
   "icons": [
     { "src": "/logo.jpg", "sizes": "192x192", "type": "image/jpeg" },
     { "src": "/logo.jpg", "sizes": "512x512", "type": "image/jpeg" }

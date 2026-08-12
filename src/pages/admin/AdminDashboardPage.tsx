@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-orange-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
@@ -81,10 +81,10 @@ export default function AdminDashboardPage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">Admin Dashboard</h1>
+          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Admin Dashboard</h1>
           <p className="text-slate-500 text-sm mt-1">Overview of club activity and performance</p>
         </div>
-        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all">
+        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all">
           <Plus className="h-5 w-5" />
           Create Session
         </Link>
@@ -92,35 +92,39 @@ export default function AdminDashboardPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <SummaryCard icon={CalendarDays} label="Upcoming Sessions" value={sessions.length.toString()} color="bg-rose-100 text-rose-600" />
+        <SummaryCard icon={CalendarDays} label="Upcoming Sessions" value={sessions.length.toString()} color="bg-navy-100 text-navy-700" />
         <SummaryCard icon={Ticket} label="Confirmed Bookings" value={totalConfirmed.toString()} color="bg-green-100 text-green-600" />
         <SummaryCard icon={AlertCircle} label="Awaiting Confirmation" value={awaitingConfirmation.toString()} color="bg-amber-100 text-amber-600" />
         <SummaryCard icon={DollarSign} label="Total Revenue" value={formatCurrency(revenue)} color="bg-green-100 text-green-600" />
         <SummaryCard icon={TrendingUp} label="Total Refunds" value={formatCurrency(refunds)} color="bg-slate-100 text-slate-500" />
-        <SummaryCard icon={Users} label="Almost Full Sessions" value={almostFull.length.toString()} color="bg-orange-100 text-orange-600" />
+        <SummaryCard icon={Users} label="Almost Full Sessions" value={almostFull.length.toString()} color="bg-amber-100 text-amber-700" />
       </div>
 
       <div className="grid lg:grid-cols-2 gap-6">
         {/* Weekly bookings chart */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-slate-500" />
             Weekly Bookings (Last 7 Days)
           </h2>
           <div className="flex items-end justify-between gap-2 h-40">
             {weeklyBookings.map((day, i) => (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div className="w-full bg-gradient-to-t from-rose-400 to-orange-400 rounded-t-lg transition-all hover:from-rose-500 hover:to-orange-500" style={{ height: `${(day.count / maxWeekly) * 100}%`, minHeight: '4px' }}>
-                  <div className="text-center text-xs font-bold text-white pt-1">{day.count > 0 ? day.count : ''}</div>
+              <div key={i} className="flex-1 flex flex-col items-center h-full">
+                <span className="text-xs font-semibold text-slate-700 h-4">{day.count > 0 ? day.count : ''}</span>
+                <div className="relative w-full flex-1 min-h-0 bg-slate-100 rounded-md overflow-hidden flex items-end">
+                  <div
+                    className="w-full bg-navy-600 rounded-md transition-colors hover:bg-navy-700"
+                    style={{ height: day.count > 0 ? `${(day.count / maxWeekly) * 100}%` : 0 }}
+                  />
                 </div>
-                <span className="text-xs text-slate-500">{day.label}</span>
+                <span className="text-xs text-slate-500 mt-1">{day.label}</span>
               </div>
             ))}
           </div>
         </div>
 
         {/* Booking status distribution */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
             <BarChart3 className="h-5 w-5 text-slate-500" />
             Booking Status Distribution
@@ -156,7 +160,7 @@ export default function AdminDashboardPage() {
 
       {/* Almost full sessions */}
       {almostFull.length > 0 && (
-        <div className="mt-6 bg-white rounded-2xl border border-slate-200 p-5">
+        <div className="mt-6 bg-white rounded-2xl border border-slate-200 shadow-sm p-5">
           <h2 className="font-bold text-slate-900 mb-4 flex items-center gap-2">
             <AlertCircle className="h-5 w-5 text-amber-500" />
             Sessions Almost Full
@@ -180,11 +184,11 @@ export default function AdminDashboardPage() {
 
 function SummaryCard({ icon: Icon, label, value, color }: { icon: LucideIcon; label: string; value: string; color: string }) {
   return (
-    <div className="bg-white rounded-2xl border border-slate-200 p-4">
+    <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
       <div className={`inline-flex h-10 w-10 items-center justify-center rounded-lg ${color} mb-3`}>
         <Icon className="h-5 w-5" />
       </div>
-      <p className="text-xl font-bold text-slate-900">{value}</p>
+      <p className="text-lg font-semibold text-slate-900">{value}</p>
       <p className="text-sm text-slate-500">{label}</p>
     </div>
   );

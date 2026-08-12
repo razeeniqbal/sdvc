@@ -105,7 +105,7 @@ export default function SessionDetailsPage() {
   if (loading || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-orange-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
@@ -123,11 +123,11 @@ export default function SessionDetailsPage() {
         {t('sessionDetails.backToSessions')}
       </Link>
 
-      <div className="glass-card rounded-2xl border border-white/50 shadow-sm overflow-hidden">
-        <div className="bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 p-6 sm:p-8">
+      <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+        <div className="bg-navy-900 p-6 sm:p-8">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-white mb-2">{session.title}</h1>
+              <h1 className="text-xl sm:text-2xl font-semibold text-white mb-2">{session.title}</h1>
               <p className="text-slate-400">{getDayName(session.session_date)} · {formatDate(session.session_date)}</p>
             </div>
             <span className={`inline-flex items-center rounded-full border px-3 py-1 text-sm font-medium ${
@@ -159,14 +159,12 @@ export default function SessionDetailsPage() {
 
           {players.length > 0 && (
             <div>
-              <h2 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
-                <Users className="h-5 w-5 text-rose-500" /> {t('sessionDetails.whosPlaying', { count: players.length })}
-              </h2>
+              <h2 className="font-bold text-slate-900 mb-2">{t('sessionDetails.whosPlaying', { count: players.length })}</h2>
               <div className="space-y-1.5">
                 {players.map((p, i) => (
                   <div key={i} className="flex items-center justify-between gap-2 bg-slate-50 rounded-xl px-3 py-2">
                     <span className="flex items-center gap-2 text-sm text-slate-600 min-w-0">
-                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-orange-400 text-white text-[10px] font-bold">
+                      <span className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full bg-navy-100 text-navy-700 text-[10px] font-bold">
                         {p.display_name.charAt(0).toUpperCase()}
                       </span>
                       <span className="truncate">{p.display_name}</span>
@@ -184,7 +182,7 @@ export default function SessionDetailsPage() {
               <h2 className="font-bold text-slate-900 mb-2">{t('sessionDetails.venueAddress')}</h2>
               <p className="text-slate-600">{session.venue_address}</p>
               {session.maps_link && (
-                <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-orange-600 font-medium text-sm mt-2 hover:underline">
+                <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-navy-700 font-medium text-sm mt-2 hover:underline">
                   <MapPin className="h-4 w-4" />
                   {t('sessionDetails.viewOnMaps')}
                 </a>
@@ -196,7 +194,7 @@ export default function SessionDetailsPage() {
             <h2 className="font-bold text-slate-900 mb-2">{t('sessionDetails.sessionRules')}</h2>
             <ul className="space-y-1.5 text-sm text-slate-600">
               {rules.map((rule) => (
-                <li key={rule} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-rose-500 flex-shrink-0 mt-0.5" /> {rule}</li>
+                <li key={rule} className="flex items-start gap-2"><CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" /> {rule}</li>
               ))}
             </ul>
           </div>
@@ -259,20 +257,20 @@ export default function SessionDetailsPage() {
             <div className="flex items-center justify-between mb-4">
               <div>
                 <p className="text-sm text-slate-500">{t('sessionDetails.pricePerPlayer')}</p>
-                <p className="text-3xl font-bold text-slate-900">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</p>
+                <p className="text-2xl font-semibold text-slate-900">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</p>
                 {session.price === 0 && <p className="text-xs text-amber-600 mt-0.5">{t('sessionDetails.tbcNote')}</p>}
               </div>
               <div className="text-right text-sm text-slate-500">
                 <p>{t('sessionDetails.bookingDeadline', { date: session.booking_close_at ? formatDate(session.booking_close_at) : t('common.none') })}</p>
                 <p>{t('sessionDetails.cancellationDeadline')}</p>
-                <p className="text-rose-600 font-medium">{t('sessionDetails.nonRefundable')}</p>
+                <p className="text-amber-700 font-medium">{t('sessionDetails.nonRefundable')}</p>
               </div>
             </div>
 
             {canBook ? (
               <button
                 onClick={() => navigate(`/checkout/${session.id}`)}
-                className="w-full py-4 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl text-lg transition-all"
+                className="w-full py-4 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl text-lg transition-all"
               >
                 {t('sessionDetails.bookThisSession')}
               </button>

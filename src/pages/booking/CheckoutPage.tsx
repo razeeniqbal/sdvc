@@ -196,12 +196,12 @@ export default function CheckoutPage() {
   if (loading || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-orange-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-orange-500 focus:ring-2 focus:ring-orange-500/20 outline-none transition-colors';
+  const inputClass = 'w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none transition-colors';
   const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
   const totalPlayers = 1 + companions.length;
 
@@ -212,7 +212,7 @@ export default function CheckoutPage() {
         {t('checkout.backToSession')}
       </Link>
 
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">{t('checkout.title')}</h1>
+      <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-6">{t('checkout.title')}</h1>
 
       {/* A single <form> acts as the grid container so `order` can resequence the three
           sections independently of the DOM: on mobile that puts the summary between the
@@ -221,7 +221,7 @@ export default function CheckoutPage() {
           into place as fields+policy stacked on the left and summary spanning the right. */}
       <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6">
         {/* Player details (order 1) */}
-        <div className="lg:col-span-2 order-1 bg-white rounded-2xl border border-slate-200 p-6">
+        <div className="lg:col-span-2 order-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
           <h2 className="font-bold text-slate-900 mb-4">{t('checkout.playerDetails')}</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -290,7 +290,7 @@ export default function CheckoutPage() {
             <button
               type="button"
               onClick={addCompanion}
-              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-orange-600 hover:text-orange-700"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 hover:text-navy-800"
             >
               <UserPlus className="h-4 w-4" />
               {t('checkout.addCompanion')}
@@ -300,7 +300,7 @@ export default function CheckoutPage() {
 
         {/* Summary (order 2 on mobile; spans both rows on the right on desktop) */}
         <div className="order-2 lg:row-span-2">
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 lg:sticky lg:top-20">
+          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:sticky lg:top-20">
             <h2 className="font-bold text-slate-900 mb-4">{t('checkout.bookingSummary')}</h2>
             <div className="space-y-3 text-sm">
               <div>
@@ -328,14 +328,14 @@ export default function CheckoutPage() {
               )}
             </div>
             <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg p-3">
-              <Clock className="h-4 w-4 text-orange-500 flex-shrink-0" />
+              <Clock className="h-4 w-4 text-navy-500 flex-shrink-0" />
               {t('checkout.lockedNotice')}
             </div>
           </div>
         </div>
 
         {/* Policy + submit (order 3) */}
-        <div className="lg:col-span-2 order-3 bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+        <div className="lg:col-span-2 order-3 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
           {/* Cancellation policy */}
           <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
             <div className="flex items-start gap-2 mb-3">
@@ -351,7 +351,7 @@ export default function CheckoutPage() {
               </div>
             </div>
             <label className="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-orange-500 focus:ring-orange-500" />
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-navy-600 focus:ring-navy-500" />
               <span className="text-sm text-amber-900">{t('checkout.agreeLabel')}</span>
             </label>
           </div>
@@ -361,7 +361,7 @@ export default function CheckoutPage() {
           <button
             type="submit"
             disabled={submitting || !agreed}
-            className="w-full py-3.5 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
           >
             {submitting && <Spinner className="h-5 w-5" />}
             {submitting ? t('checkout.lockingSlot') : totalPlayers > 1 ? t('checkout.lockSlotsButton', { count: totalPlayers }) : t('checkout.lockMySlot')}

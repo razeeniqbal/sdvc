@@ -1,13 +1,11 @@
-import { Loader2, Zap } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
 
 export function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-rose-50 via-white to-orange-50">
+    <div className="min-h-screen flex items-center justify-center bg-slate-50">
       <div className="flex flex-col items-center gap-3">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-rose-500 to-orange-500 text-white shadow-lg animate-pulse-glow">
-          <Zap className="h-6 w-6 animate-pulse" />
-        </div>
-        <p className="text-slate-500 text-sm">Loading...</p>
+        <img src="/logo.jpg" alt="Logo" className="h-12 w-12 rounded-2xl object-cover shadow-lg" />
+        <Spinner className="h-5 w-5 text-navy-600" />
       </div>
     </div>
   );

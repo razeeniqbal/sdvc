@@ -132,20 +132,20 @@ export default function AdminSettingsPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-rose-500" />
+        <Spinner className="h-8 w-8 text-navy-600" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none transition-all bg-white/80';
+  const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none transition-all bg-white';
   const labelClass = 'block text-sm font-medium text-slate-600 mb-1.5';
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 mb-6">Settings</h1>
+      <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-6">Settings</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
           <h2 className="font-bold text-slate-900">Club Information</h2>
           <div>
             <label className={labelClass}>Club Name</label>
@@ -153,7 +153,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
           <h2 className="font-bold text-slate-900 flex items-center gap-2"><Phone className="h-5 w-5 text-slate-500" /> Contact Person</h2>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -167,7 +167,7 @@ export default function AdminSettingsPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4">
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
           <h2 className="font-bold text-slate-900 flex items-center gap-2"><MessageCircle className="h-5 w-5 text-green-500" /> WhatsApp Group</h2>
           <div>
             <label className={labelClass}>WhatsApp Group Link</label>
@@ -182,14 +182,14 @@ export default function AdminSettingsPage() {
           </label>
         </div>
 
-        <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white font-bold rounded-xl transition-all disabled:opacity-60">
+        <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all disabled:opacity-60">
           {saving ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
           {saving ? 'Saving...' : 'Save Settings'}
         </button>
       </form>
 
       {/* Payment QR code */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 space-y-4 mt-6">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4 mt-6">
         <h2 className="font-bold text-slate-900 flex items-center gap-2"><QrCode className="h-5 w-5 text-blue-500" /> Payment QR Code</h2>
         <p className="text-sm text-slate-500">Shown to players after they lock a slot, so they can scan and pay via DuitNow (or your bank's QR) directly.</p>
         {qrUrl && (
@@ -208,9 +208,9 @@ export default function AdminSettingsPage() {
       </div>
 
       {/* Admin Management */}
-      <div className="bg-white rounded-2xl border border-slate-200 p-6 mt-6">
+      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 mt-6">
         <h2 className="font-bold text-slate-900 flex items-center gap-2 mb-4">
-          <UserCog className="h-5 w-5 text-rose-500" />
+          <UserCog className="h-5 w-5 text-navy-600" />
           Manage Admins
         </h2>
         <p className="text-sm text-slate-500 mb-4">Promote or demote users between player and admin roles.</p>
@@ -219,7 +219,7 @@ export default function AdminSettingsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
             placeholder="Search by name or phone..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-rose-400 focus:ring-2 focus:ring-rose-400/20 outline-none bg-white/80"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none bg-white"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -227,9 +227,9 @@ export default function AdminSettingsPage() {
 
         <div className="space-y-2 max-h-80 overflow-y-auto">
           {filteredUsers.map((u) => (
-            <div key={u.id} className="flex items-center justify-between bg-white/60 rounded-xl p-3 border border-slate-100">
+            <div key={u.id} className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border border-slate-100">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-rose-400 to-orange-400 text-white text-sm font-bold">
+                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-200 text-slate-600 text-sm font-bold">
                   {(u.short_name || u.full_name)?.charAt(0).toUpperCase()}
                 </div>
                 <div>
@@ -238,16 +238,16 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2">
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-rose-100 text-rose-700' : 'bg-blue-100 text-blue-700'}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-navy-100 text-navy-700' : 'bg-blue-100 text-blue-700'}`}>
                   {u.role === 'admin' ? 'Admin' : 'Player'}
                 </span>
                 <button
                   onClick={() => toggleAdmin(u)}
                   disabled={promoting}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all disabled:opacity-50 ${
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 ${
                     u.role === 'admin'
                       ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                      : 'bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 text-white'
+                      : 'bg-navy-700 hover:bg-navy-800 text-white'
                   }`}
                 >
                   {u.role === 'admin' ? 'Demote' : 'Make Admin'}

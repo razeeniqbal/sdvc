@@ -55,7 +55,7 @@ export function Navbar() {
   const isActive = (path: string) => location.pathname === path || (path !== '/admin' && location.pathname.startsWith(path));
 
   return (
-    <nav className="sticky top-0 z-50 bg-gradient-to-r from-slate-900 via-rose-950 to-slate-900 border-b border-rose-900/30">
+    <nav className="sticky top-0 z-50 bg-navy-900 border-b border-navy-800">
       <div className="max-w-5xl mx-auto px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between">
           <Link to={profile ? '/sessions' : '/'} className="flex items-center gap-2">
@@ -72,8 +72,8 @@ export function Navbar() {
                   const Icon = link.icon;
                   return (
                     <Link key={link.to} to={link.to}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                        isActive(link.to) ? 'bg-rose-500 text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
+                        isActive(link.to) ? 'bg-white/10 text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'
                       }`}>
                       <Icon className="h-4 w-4" />
                       {link.label}
@@ -84,7 +84,7 @@ export function Navbar() {
                   <div className="relative" ref={accountRef}>
                     <button
                       onClick={() => setAccountOpen(!accountOpen)}
-                      className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium transition-colors ${
                         accountOpen ? 'bg-white/10 text-white' : 'text-slate-300 hover:text-white hover:bg-white/10'
                       }`}
                     >
@@ -107,7 +107,7 @@ export function Navbar() {
                     )}
                   </div>
                 )}
-                <button onClick={handleSignOut} className="flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
+                <button onClick={handleSignOut} className="flex items-center gap-1.5 px-3 py-2 rounded-full text-sm font-medium text-slate-300 hover:text-white hover:bg-white/10 transition-colors">
                   <LogOut className="h-4 w-4" /> {t('nav.signOut')}
                 </button>
                 <LanguageSwitcher className="ml-1" />
@@ -123,7 +123,7 @@ export function Navbar() {
             <div className="flex items-center gap-2">
               <LanguageSwitcher />
               <Link to="/login" className="px-4 py-2 text-sm font-medium text-slate-300 hover:text-white transition-colors">{t('nav.logIn')}</Link>
-              <Link to="/register" className="px-4 py-2 text-sm font-bold text-white bg-gradient-to-r from-rose-500 to-orange-500 hover:from-rose-600 hover:to-orange-600 rounded-lg transition-all">{t('nav.signUp')}</Link>
+              <Link to="/register" className="px-4 py-2 text-sm font-semibold text-navy-900 bg-white hover:bg-slate-100 rounded-lg transition-colors">{t('nav.signUp')}</Link>
             </div>
           )}
         </div>
@@ -134,7 +134,7 @@ export function Navbar() {
               const Icon = link.icon;
               return (
                 <Link key={link.to} to={link.to} onClick={() => setOpen(false)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(link.to) ? 'bg-rose-500 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-full text-sm font-medium ${isActive(link.to) ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
                   <Icon className="h-4 w-4" /> {link.label}
                 </Link>
               );
@@ -143,12 +143,12 @@ export function Navbar() {
               const Icon = link.icon;
               return (
                 <Link key={link.to} to={link.to} onClick={() => setOpen(false)}
-                  className={`flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium ${isActive(link.to) ? 'bg-rose-500 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
+                  className={`flex items-center gap-2 px-3 py-2.5 rounded-full text-sm font-medium ${isActive(link.to) ? 'bg-white/10 text-white' : 'text-slate-300 hover:bg-white/10'}`}>
                   <Icon className="h-4 w-4" /> {link.label}
                 </Link>
               );
             })}
-            <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium text-slate-300 hover:bg-white/10">
+            <button onClick={handleSignOut} className="w-full flex items-center gap-2 px-3 py-2.5 rounded-full text-sm font-medium text-slate-300 hover:bg-white/10">
               <LogOut className="h-4 w-4" /> {t('nav.signOut')}
             </button>
           </div>
