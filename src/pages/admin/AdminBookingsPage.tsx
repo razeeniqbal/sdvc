@@ -241,7 +241,10 @@ export default function AdminBookingsPage() {
   }
 
   const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none';
-  const isTbc = !!selected && selected.total_amount === 0 && selected.payment_status !== 'Paid';
+  // Editable while unpaid so it can be corrected if the session price changed after
+  // booking; the input defaults to the session's current price, not the stale snapshot
+  // taken when the booking was created.
+  const showAmountEditor = !!selected && selected.payment_status !== 'Paid';
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const rangeStart = totalCount === 0 ? 0 : page * PAGE_SIZE + 1;
   const rangeEnd = Math.min(totalCount, (page + 1) * PAGE_SIZE);
@@ -299,7 +302,7 @@ export default function AdminBookingsPage() {
           {bookings.map((b) => (
             <button
               key={b.id}
-              onClick={() => { setSelected(b); setAmountInput(b.total_amount.toString()); }}
+              onClick={() => { setSelected(b); setAmountInput((b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toString()); }}
               className="w-full text-left bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover:border-navy-300 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between gap-3">
@@ -441,9 +444,9 @@ export default function AdminBookingsPage() {
               <div>
                 <h3 className="font-bold text-slate-900 mb-2 text-sm">Payment</h3>
                 <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
-                  {isTbc ? (
+                  {showAmountEditor ? (
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500">Final Amount (RM), price was TBC</span>
+                      <span className="text-slate-500">Final Amount (RM)</span>
                       <input
                         type="number" step="0.01" min="0"
                         className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
@@ -496,8 +499,8 @@ export default function AdminBookingsPage() {
                 <div className="flex flex-wrap gap-2">
                   {selected.payment_status !== 'Paid' && selected.booking_status !== 'Cancelled by Player' && selected.booking_status !== 'Cancelled by Admin' && (
                     <button
-                      onClick={() => confirmBooking(selected, isTbc ? parseFloat(amountInput) || 0 : undefined)}
-                      disabled={actionLoading || (isTbc && !amountInput)}
+                      onClick={() => confirmBooking(selected, showAmountEditor ? parseFloat(amountInput) || 0 : undefined)}
+                      disabled={actionLoading || (showAmountEditor && !amountInput)}
                       className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 font-medium rounded-lg text-sm border border-green-200 transition-colors disabled:opacity-60"
                     >
                       <DollarSign className="h-4 w-4" />

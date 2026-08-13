@@ -1,24 +1,16 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Calendar, Clock, MapPin, Users, ArrowRight, MessageCircle, Phone, Info, Heart } from 'lucide-react';
+import { Calendar, Users, ArrowRight, MessageCircle, Phone, Info, Heart } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { fetchSessionsWithCounts, getSessionStatus, type SessionWithCount } from '@/lib/sessions';
-import { formatCurrency, formatDate, formatTime } from '@/lib/format';
 import type { ClubSettings } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
+import { SessionCard } from '@/components/SessionCard';
 
 const heroImage = 'https://images.pexels.com/photos/6203569/pexels-photo-6203569.jpeg?auto=compress&cs=tinysrgb&w=1600';
 const aboutImage = 'https://images.pexels.com/photos/6203525/pexels-photo-6203525.jpeg?auto=compress&cs=tinysrgb&w=1200';
-
-const sessionStatusKeyMap: Record<string, string> = {
-  Available: 'sessionStatus.available',
-  'Almost Full': 'sessionStatus.almostFull',
-  'Fully Booked': 'sessionStatus.fullyBooked',
-  'Booking Closed': 'sessionStatus.bookingClosed',
-  Cancelled: 'sessionStatus.cancelled',
-};
 
 // Fades a section in the first time it scrolls into view. Disconnects after firing
 // once so it doesn't re-trigger on scroll-up, and does nothing (renders normally)
@@ -147,32 +139,9 @@ export default function LandingPage() {
             </div>
           ) : (
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {openSessions.slice(0, 6).map((s) => {
-                const status = getSessionStatus(s, s.confirmed_count);
-                const slotsLeft = s.maximum_capacity - s.confirmed_count;
-                return (
-                  <Link key={s.id} to={profile ? `/sessions/${s.id}` : '/register'}
-                    className={`bg-white border shadow-sm rounded-2xl p-5 hover:shadow-lg hover:-translate-y-0.5 transition-all ${status === 'Almost Full' ? 'border-amber-300' : 'border-slate-200'}`}>
-                    <div className="flex items-start justify-between mb-3">
-                      <h3 className="font-bold text-slate-900">{s.title}</h3>
-                      <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${status === 'Almost Full' ? 'bg-amber-100 text-amber-700' : 'bg-green-100 text-green-700'}`}>
-                        {t(sessionStatusKeyMap[status] || status)}
-                      </span>
-                    </div>
-                    <div className="space-y-1.5 text-sm text-slate-500">
-                      <div className="flex items-center gap-2"><Calendar className="h-4 w-4" /> {formatDate(s.session_date)}</div>
-                      <div className="flex items-center gap-2"><Clock className="h-4 w-4" /> {formatTime(s.start_time)} - {formatTime(s.end_time)}</div>
-                      <div className="flex items-center gap-2"><MapPin className="h-4 w-4" /> {s.venue_name}</div>
-                    </div>
-                    <div className="mt-4 pt-4 border-t border-slate-200 flex items-center justify-between">
-                      <span className="text-lg font-semibold text-slate-900">{formatCurrency(s.price)}</span>
-                      <span className={`text-sm font-bold ${slotsLeft <= 3 ? 'text-amber-600' : 'text-slate-600'}`}>
-                        {t('common.slotsLeft', { count: slotsLeft })}
-                      </span>
-                    </div>
-                  </Link>
-                );
-              })}
+              {openSessions.slice(0, 6).map((s) => (
+                <SessionCard key={s.id} session={s} to={profile ? `/sessions/${s.id}` : '/register'} />
+              ))}
             </div>
           )}
         </div>
