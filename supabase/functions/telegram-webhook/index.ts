@@ -33,12 +33,38 @@ interface BookingRow {
   total_amount: number;
   created_at: string;
   booking_group_id: string | null;
-  session: { title: string; session_date: string } | null;
+  session: { id: string; title: string; session_date: string; price: number } | null;
   profile: { full_name: string; short_name: string | null; phone_number: string | null; gender: string | null } | null;
 }
 
 function genderTag(gender: string | null | undefined): string {
   return gender ? ` (${gender === 'Male' ? 'M' : 'F'})` : '';
+}
+
+// Bookings here are always still unpaid, so the amount owed should track the session's
+// current price rather than the snapshot taken when the booking was created — an admin
+// who updates a TBC/incorrect price afterward expects these views to follow it.
+function displayAmount(row: BookingRow): number {
+  return row.session?.price ?? row.total_amount;
+}
+
+// Groups rows into per-session buckets, preserving first-seen order, so a combined
+// list (e.g. /pending or /reminder with no session filter) can be rendered as separate
+// blocks instead of one interleaved list.
+function groupBySession(rows: BookingRow[]): { title: string; rows: BookingRow[] }[] {
+  const groups: { key: string; title: string; rows: BookingRow[] }[] = [];
+  const indexByKey = new Map<string, number>();
+  for (const row of rows) {
+    const key = row.session?.id ?? "unknown";
+    let idx = indexByKey.get(key);
+    if (idx === undefined) {
+      idx = groups.length;
+      indexByKey.set(key, idx);
+      groups.push({ key, title: row.session?.title ?? "Unknown session", rows: [] });
+    }
+    groups[idx].rows.push(row);
+  }
+  return groups;
 }
 
 interface SessionRow {
@@ -250,7 +276,7 @@ Deno.serve(async (req: Request) => {
     const sessionLine = row.session ? `${row.session.title} (${row.session.session_date})` : "Unknown session";
     const partyNote = partySize > 1 ? ` (+${partySize - 1} more)` : "";
     const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
-    const text = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}${escapeHtml(partyNote)}\n${escapeHtml(sessionLine)}\nRef: ${row.booking_reference} · RM${Number(row.total_amount).toFixed(2)}\nWaiting: ${waitingHrs}h`;
+    const text = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}${escapeHtml(partyNote)}\n${escapeHtml(sessionLine)}\nRef: ${row.booking_reference} · RM${displayAmount(row).toFixed(2)}\nWaiting: ${waitingHrs}h`;
 
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
@@ -275,7 +301,7 @@ Deno.serve(async (req: Request) => {
   async function sendPendingDetail(chatId: number, bookingId: string) {
     const { data } = await supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles(full_name, short_name, phone_number, gender)")
       .eq("id", bookingId)
       .maybeSingle();
     if (!data) {
@@ -302,7 +328,7 @@ Deno.serve(async (req: Request) => {
   async function runPending(chatId: number, filter: SessionRow | undefined) {
     let query = supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles(full_name, short_name, phone_number, gender)")
       .eq("booking_status", "Pending Payment")
       .order("created_at", { ascending: true })
       .limit(50);
@@ -327,24 +353,34 @@ Deno.serve(async (req: Request) => {
     }
 
     const shown = cards.slice(0, 20);
-    const lines = shown.map((row, i) => {
-      const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
-      const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
-      const sessionNote = filter ? "" : ` · ${escapeHtml(row.session?.title ?? "Unknown session")}`;
-      const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
-      return `${i + 1}) ${escapeHtml(name)}${genderTag(gender)}${sessionNote} · RM${Number(row.total_amount).toFixed(2)} · ${waitingHrs}h`;
-    });
+    // With no filter, bookings span multiple sessions — group them into separate
+    // labeled blocks instead of one interleaved list; a filter already means everything
+    // shown is from the same session, so a single unlabeled group is enough.
+    const groups = filter ? [{ title: filter.title, rows: shown }] : groupBySession(shown);
+
+    const lines: string[] = [];
+    const buttons: { text: string; callback_data: string }[][] = [];
+    let n = 0;
+    for (const group of groups) {
+      if (!filter) {
+        if (lines.length > 0) lines.push("");
+        lines.push(`🏐 <b>${escapeHtml(group.title)}</b>`);
+      }
+      for (const row of group.rows) {
+        n++;
+        const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+        const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
+        const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
+        lines.push(`${n}) ${escapeHtml(name)}${genderTag(gender)} · RM${displayAmount(row).toFixed(2)} · ${waitingHrs}h`);
+        buttons.push([{ text: `${n}) ${name}`, callback_data: `pendetail:${row.id}` }]);
+      }
+    }
 
     await sendMessage(
       chatId,
       `🕒 <b>${cards.length} booking${cards.length > 1 ? "s" : ""} awaiting confirmation${scopeSuffix}</b>\n\n${lines.join("\n")}\n\nTap a name to confirm or reject:`,
       true,
-      {
-        inline_keyboard: shown.map((row, i) => [{
-          text: `${i + 1}) ${row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player"}`,
-          callback_data: `pendetail:${row.id}`,
-        }]),
-      }
+      { inline_keyboard: buttons }
     );
   }
 
@@ -383,8 +419,9 @@ Deno.serve(async (req: Request) => {
     const dateLabel = rawDate ? formatMalayDateLabel(rawDate) : "TBC";
     const friendlyDate = rawDate ? formatFriendlyDateLabel(rawDate) : "TBC";
     const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
-    const cardText = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}\n🏐 ${escapeHtml(sessionTitle)} (${escapeHtml(dateLabel)})\n🎫 Ref: ${row.booking_reference} · 💰 RM${Number(row.total_amount).toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
-    const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, Number(row.total_amount));
+    const amount = displayAmount(row);
+    const cardText = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}\n🏐 ${escapeHtml(sessionTitle)} (${escapeHtml(dateLabel)})\n🎫 Ref: ${row.booking_reference} · 💰 RM${amount.toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
+    const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, amount);
 
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",
@@ -405,7 +442,7 @@ Deno.serve(async (req: Request) => {
   async function sendReminderDetail(chatId: number, bookingId: string) {
     const { data } = await supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles(full_name, short_name, phone_number, gender)")
       .eq("id", bookingId)
       .maybeSingle();
     if (!data) {
@@ -428,7 +465,7 @@ Deno.serve(async (req: Request) => {
   async function runReminder(chatId: number, filter: SessionRow | undefined) {
     let query = supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(title, session_date), profile:profiles(full_name, short_name, phone_number, gender)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles(full_name, short_name, phone_number, gender)")
       .eq("booking_status", "Pending Payment")
       .order("created_at", { ascending: true })
       .limit(50);
@@ -450,24 +487,32 @@ Deno.serve(async (req: Request) => {
     }
 
     const shown = withPhone.slice(0, 20);
-    const lines = shown.map((row, i) => {
-      const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
-      const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
-      const sessionNote = filter ? "" : ` · ${escapeHtml(row.session?.title ?? "Unknown session")}`;
-      const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
-      return `${i + 1}) ${escapeHtml(name)}${genderTag(gender)}${sessionNote} · RM${Number(row.total_amount).toFixed(2)} · ${waitingHrs}h`;
-    });
+    // Same per-session grouping as /pending — see comment there.
+    const groups = filter ? [{ title: filter.title, rows: shown }] : groupBySession(shown);
+
+    const lines: string[] = [];
+    const buttons: { text: string; callback_data: string }[][] = [];
+    let n = 0;
+    for (const group of groups) {
+      if (!filter) {
+        if (lines.length > 0) lines.push("");
+        lines.push(`🏐 <b>${escapeHtml(group.title)}</b>`);
+      }
+      for (const row of group.rows) {
+        n++;
+        const name = row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player";
+        const gender = row.is_guest ? row.guest_gender : row.profile?.gender;
+        const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
+        lines.push(`${n}) ${escapeHtml(name)}${genderTag(gender)} · RM${displayAmount(row).toFixed(2)} · ${waitingHrs}h`);
+        buttons.push([{ text: `${n}) ${name}`, callback_data: `remdetail:${row.id}` }]);
+      }
+    }
 
     await sendMessage(
       chatId,
       `📣 <b>${shown.length} reminder${shown.length > 1 ? "s" : ""} ready${scopeSuffix}</b>\n\n${lines.join("\n")}\n\nTap a name to get their WhatsApp reminder:`,
       true,
-      {
-        inline_keyboard: shown.map((row, i) => [{
-          text: `${i + 1}) ${row.is_guest ? row.guest_name ?? "Guest" : row.profile?.short_name || row.profile?.full_name || "Player"}`,
-          callback_data: `remdetail:${row.id}`,
-        }]),
-      }
+      { inline_keyboard: buttons }
     );
   }
 
