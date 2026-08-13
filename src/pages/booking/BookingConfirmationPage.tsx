@@ -71,7 +71,7 @@ export default function BookingConfirmationPage() {
 
   const isConfirmed = booking.booking_status === 'Confirmed';
   const allBookings = groupBookings.length > 0 ? groupBookings : [booking];
-  const totalAmount = allBookings.reduce((sum, b) => sum + Number(b.total_amount), 0);
+  const totalAmount = allBookings.reduce((sum, b) => sum + (b.payment_status !== 'Paid' ? session.price : Number(b.total_amount)), 0);
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">

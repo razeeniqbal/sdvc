@@ -133,7 +133,7 @@ export default function MyBookingsPage() {
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
                   <StatusBadge status={b.booking_status} />
-                  <span className="text-sm font-bold text-slate-900">{formatCurrency(b.total_amount)}</span>
+                  <span className="text-sm font-bold text-slate-900">{formatCurrency(b.payment_status !== 'Paid' ? b.session.price : b.total_amount)}</span>
                 </div>
               </div>
             </Link>

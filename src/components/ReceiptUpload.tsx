@@ -29,7 +29,10 @@ export function ReceiptUpload({ booking, session, profile, qrUrl, groupBookings,
   const [showQrLightbox, setShowQrLightbox] = useState(false);
 
   const party = groupBookings && groupBookings.length > 0 ? groupBookings : [booking];
-  const totalAmount = party.reduce((sum, b) => sum + Number(b.total_amount), 0);
+  // Unpaid bookings follow the session's current price rather than the stale snapshot
+  // taken when the slot was locked, so a price finalized after booking (e.g. a TBC
+  // session) doesn't leave the payer looking at the wrong amount to pay.
+  const totalAmount = party.reduce((sum, b) => sum + (b.payment_status !== 'Paid' ? session.price : Number(b.total_amount)), 0);
 
   async function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];

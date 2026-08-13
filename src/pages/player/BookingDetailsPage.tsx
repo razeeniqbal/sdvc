@@ -250,10 +250,10 @@ export default function BookingDetailsPage() {
           <div>
             <h2 className="font-bold text-slate-900 mb-3">{t('bookingDetails.paymentDetails')}</h2>
             <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">{t('bookingDetails.sessionFee')}</span><span className="font-medium">{formatCurrency(booking.subtotal)}</span></div>
+              <div className="flex justify-between"><span className="text-slate-500">{t('bookingDetails.sessionFee')}</span><span className="font-medium">{formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.subtotal)}</span></div>
               {booking.processing_fee > 0 && <div className="flex justify-between"><span className="text-slate-500">{t('bookingDetails.processingFee')}</span><span className="font-medium">{formatCurrency(booking.processing_fee)}</span></div>}
               {booking.discount_amount > 0 && <div className="flex justify-between text-green-600"><span>{t('bookingDetails.discount')}</span><span>-{formatCurrency(booking.discount_amount)}</span></div>}
-              <div className="flex justify-between pt-2 border-t border-slate-200"><span className="font-bold text-slate-900">{t('bookingDetails.total')}</span><span className="text-lg font-bold text-navy-800">{formatCurrency(booking.total_amount)}</span></div>
+              <div className="flex justify-between pt-2 border-t border-slate-200"><span className="font-bold text-slate-900">{t('bookingDetails.total')}</span><span className="text-lg font-bold text-navy-800">{formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.total_amount)}</span></div>
             </div>
             {payments.length > 0 && (
               <div className="mt-3 space-y-2">

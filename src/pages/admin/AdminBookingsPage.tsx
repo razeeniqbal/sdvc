@@ -136,7 +136,7 @@ export default function AdminBookingsPage() {
       b.session.session_date,
       b.booking_status,
       b.payment_status,
-      b.total_amount.toFixed(2),
+      (b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toFixed(2),
       b.created_at,
     ]);
     setExporting(false);
@@ -315,7 +315,7 @@ export default function AdminBookingsPage() {
                   <p className="text-xs text-slate-500">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
                   <p className="font-mono text-xs text-slate-500 mt-1">{b.booking_reference}</p>
                 </div>
-                <p className="text-sm font-bold text-slate-900 flex-shrink-0">{formatCurrency(b.total_amount)}</p>
+                <p className="text-sm font-bold text-slate-900 flex-shrink-0">{formatCurrency(b.payment_status !== 'Paid' ? b.session.price : b.total_amount)}</p>
               </div>
               <p className="text-xs text-slate-500 mt-2 truncate">{b.session.title} · {formatDate(b.session.session_date)}</p>
               <div className="mt-2 flex items-center gap-2">
@@ -360,9 +360,9 @@ export default function AdminBookingsPage() {
                       {b.receipt_path && <Receipt className="h-3.5 w-3.5 text-blue-500" />}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right text-sm font-bold text-slate-900">{formatCurrency(b.total_amount)}</td>
+                  <td className="px-4 py-3 text-right text-sm font-bold text-slate-900">{formatCurrency(b.payment_status !== 'Paid' ? b.session.price : b.total_amount)}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => { setSelected(b); setAmountInput(b.total_amount.toString()); }} className="p-2 text-slate-400 hover:text-navy-700 rounded-lg hover:bg-navy-50 transition-colors">
+                    <button onClick={() => { setSelected(b); setAmountInput((b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toString()); }} className="p-2 text-slate-400 hover:text-navy-700 rounded-lg hover:bg-navy-50 transition-colors">
                       <Eye className="h-4 w-4" />
                     </button>
                   </td>
