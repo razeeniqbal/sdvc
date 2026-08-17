@@ -1,5 +1,5 @@
 import { useEffect, useState, type FormEvent } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ShieldCheck, Clock, UserPlus, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const { t } = useTranslation();
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { profile, refreshProfile } = useAuth();
   const { show } = useToast();
   const [session, setSession] = useState<Session | null>(null);
@@ -37,7 +38,10 @@ export default function CheckoutPage() {
   });
   const [companions, setCompanions] = useState<Companion[]>([]);
   const [needsPasskey, setNeedsPasskey] = useState(false);
-  const [unlocked, setUnlocked] = useState(false);
+  // Already verified on the session details page immediately before this navigation —
+  // skip asking a second time. A direct link to this URL has no such state, so it
+  // still falls through to the passkey prompt below.
+  const [unlocked, setUnlocked] = useState(() => !!(location.state as { passkeyVerified?: boolean } | null)?.passkeyVerified);
 
   useEffect(() => {
     if (!sessionId || !profile) return;

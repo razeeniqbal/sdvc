@@ -276,7 +276,7 @@ export default function SessionDetailsPage() {
               <PasskeyGate sessionId={session.id} onUnlocked={() => setUnlocked(true)} />
             ) : canBook ? (
               <button
-                onClick={() => navigate(`/checkout/${session.id}`)}
+                onClick={() => navigate(`/checkout/${session.id}`, { state: { passkeyVerified: true } })}
                 className="w-full py-4 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl text-lg transition-all"
               >
                 {t('sessionDetails.bookThisSession')}
