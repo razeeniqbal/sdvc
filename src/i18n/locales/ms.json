@@ -164,6 +164,13 @@
     "waitlist": "Senarai Menunggu",
     "view": "Lihat"
   },
+  "passkey": {
+    "title": "Sesi Peribadi",
+    "subtitle": "Sesi ini memerlukan passkey untuk mendaftar. Tanya admin kelab jika anda tiada passkey.",
+    "placeholder": "Masukkan passkey",
+    "unlock": "Buka Kunci",
+    "error": "Passkey salah. Sila cuba lagi."
+  },
   "sessionDetails": {
     "backToSessions": "Kembali ke sesi",
     "aboutSession": "Tentang sesi ini",

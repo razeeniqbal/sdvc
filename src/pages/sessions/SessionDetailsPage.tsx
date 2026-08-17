@@ -10,6 +10,7 @@ import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { Spinner } from '@/components/LoadingScreen';
 import { StatusBadge, GenderBadge } from '@/components/StatusBadge';
+import { PasskeyGate } from '@/components/PasskeyGate';
 import type { ClubSettings, BookingStatus, Gender, WaitingListEntry } from '@/types/database';
 
 interface SessionPlayer {
@@ -37,6 +38,8 @@ export default function SessionDetailsPage() {
   const [myWaitlistEntry, setMyWaitlistEntry] = useState<WaitingListEntry | null>(null);
   const [settings, setSettings] = useState<ClubSettings | null>(null);
   const [players, setPlayers] = useState<SessionPlayer[]>([]);
+  const [needsPasskey, setNeedsPasskey] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
 
   useEffect(() => {
     fetchClubSettings().then(setSettings);
@@ -52,6 +55,8 @@ export default function SessionDetailsPage() {
       setSession({ ...data, confirmed_count: (count as number) || 0 } as SessionWithCount);
       const { data: playerList } = await supabase.rpc('session_player_list', { p_session_id: id });
       setPlayers((playerList || []) as SessionPlayer[]);
+      const { data: requiresPasskey } = await supabase.rpc('session_requires_passkey', { p_session_id: id });
+      setNeedsPasskey(!!requiresPasskey);
       // Was this player already waitlisted for this session? The old version only
       // tracked this in local state after a fresh join click, so returning to the page
       // never showed up here.
@@ -267,7 +272,9 @@ export default function SessionDetailsPage() {
               </div>
             </div>
 
-            {canBook ? (
+            {needsPasskey && !unlocked ? (
+              <PasskeyGate sessionId={session.id} onUnlocked={() => setUnlocked(true)} />
+            ) : canBook ? (
               <button
                 onClick={() => navigate(`/checkout/${session.id}`)}
                 className="w-full py-4 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl text-lg transition-all"

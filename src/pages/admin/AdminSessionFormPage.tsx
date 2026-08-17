@@ -34,6 +34,7 @@ export default function AdminSessionFormPage() {
     cancellation_deadline: '24',
     status: 'Open' as SessionStatus,
     notes: '',
+    passkey: '',
   });
 
   const [recurring, setRecurring] = useState({
@@ -64,7 +65,10 @@ export default function AdminSessionFormPage() {
             cancellation_deadline: s.cancellation_deadline ? s.cancellation_deadline.replace(' hours', '') : '24',
             status: s.status,
             notes: s.notes || '',
+            passkey: '',
           });
+          const { data: pk } = await supabase.from('session_passkeys').select('passkey').eq('session_id', id).maybeSingle();
+          if (pk) setForm((f) => ({ ...f, passkey: pk.passkey }));
         }
         setLoading(false);
         return;
@@ -96,6 +100,18 @@ export default function AdminSessionFormPage() {
     })();
   }, [id]);
 
+  // Upserts or clears this session's passkey row to match the form field — a blank
+  // field means the session goes back to (or stays) public. Returns the error (if any)
+  // instead of swallowing it, since a failure here (e.g. the session_passkeys table
+  // migration not having been applied yet) would otherwise look identical to success.
+  async function savePasskey(sessionId: string): Promise<string | null> {
+    const value = form.passkey.trim();
+    const { error } = value
+      ? await supabase.from('session_passkeys').upsert({ session_id: sessionId, passkey: value })
+      : await supabase.from('session_passkeys').delete().eq('session_id', sessionId);
+    return error?.message ?? null;
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!profile) return;
@@ -123,11 +139,15 @@ export default function AdminSessionFormPage() {
     if (isEdit) {
       const { error } = await supabase.from('sessions').update(sessionData).eq('id', id);
       if (error) { show(error.message, 'error'); setSaving(false); return; }
+      const pkError = await savePasskey(id);
+      if (pkError) { show(`Session updated, but the passkey failed to save: ${pkError}`, 'error'); setSaving(false); return; }
       show('Session updated', 'success');
     } else {
       sessionData.created_by = profile.id;
-      const { error } = await supabase.from('sessions').insert(sessionData);
+      const { data: created, error } = await supabase.from('sessions').insert(sessionData).select().single();
       if (error) { show(error.message, 'error'); setSaving(false); return; }
+      const pkError = await savePasskey(created.id);
+      if (pkError) { show(`Session created, but the passkey failed to save: ${pkError}`, 'error'); setSaving(false); return; }
 
       // Create recurring sessions
       if (recurring.enabled && recurring.endDate) {
@@ -141,10 +161,14 @@ export default function AdminSessionFormPage() {
           d.setDate(d.getDate() + 7);
         }
         if (sessions.length > 0) {
-          const { error: recError } = await supabase.from('sessions').insert(sessions);
+          const { data: recCreated, error: recError } = await supabase.from('sessions').insert(sessions).select();
           if (recError) {
             show(`Main session created, but recurring sessions failed: ${recError.message}`, 'error');
           } else {
+            // Recurring instances share the same passkey (or lack of one) as the main session.
+            if (form.passkey.trim() && recCreated) {
+              await Promise.all(recCreated.map((s: { id: string }) => savePasskey(s.id)));
+            }
             show(`Session created with ${sessions.length} recurring sessions`, 'success');
           }
         } else {
@@ -215,6 +239,12 @@ export default function AdminSessionFormPage() {
               <option value="Closed">Closed</option>
               <option value="Cancelled">Cancelled</option>
             </select>
+          </div>
+
+          <div>
+            <label className={labelClass}>Passkey (optional)</label>
+            <input className={inputClass} value={form.passkey} onChange={(e) => setForm({ ...form, passkey: e.target.value })} placeholder="Leave blank for a public session" />
+            <p className="text-xs text-slate-500 mt-1">If set, players must enter this exact passkey before they can register — makes the session private/invite-only. It's never shown to players anywhere else, so share it directly.</p>
           </div>
         </div>
 

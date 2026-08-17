@@ -11,6 +11,7 @@ import { friendlyProfileError } from '@/lib/auth';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import type { Session, Booking } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
+import { PasskeyGate } from '@/components/PasskeyGate';
 
 interface Companion {
   name: string;
@@ -35,6 +36,8 @@ export default function CheckoutPage() {
     gender: '',
   });
   const [companions, setCompanions] = useState<Companion[]>([]);
+  const [needsPasskey, setNeedsPasskey] = useState(false);
+  const [unlocked, setUnlocked] = useState(false);
 
   useEffect(() => {
     if (!sessionId || !profile) return;
@@ -46,6 +49,10 @@ export default function CheckoutPage() {
         return;
       }
       setSession(data as Session);
+      // Re-checked here too (not just on the session details page) since this page is
+      // reachable directly by URL, which would otherwise skip the passkey prompt entirely.
+      const { data: requiresPasskey } = await supabase.rpc('session_requires_passkey', { p_session_id: sessionId });
+      setNeedsPasskey(!!requiresPasskey);
       setForm({
         short_name: profile.short_name || profile.full_name || '',
         full_name: profile.full_name || '',
@@ -197,6 +204,18 @@ export default function CheckoutPage() {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
         <Spinner className="h-8 w-8 text-navy-600" />
+      </div>
+    );
+  }
+
+  if (needsPasskey && !unlocked) {
+    return (
+      <div className="max-w-md mx-auto px-4 sm:px-6 py-6 sm:py-8">
+        <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4">
+          <ArrowLeft className="h-4 w-4" />
+          {t('checkout.backToSession')}
+        </Link>
+        <PasskeyGate sessionId={session.id} onUnlocked={() => setUnlocked(true)} />
       </div>
     );
   }

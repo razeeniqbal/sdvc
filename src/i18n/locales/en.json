@@ -164,6 +164,13 @@
     "waitlist": "Waitlist",
     "view": "View"
   },
+  "passkey": {
+    "title": "Private Session",
+    "subtitle": "This session needs a passkey to register. Ask the club admin if you don't have it.",
+    "placeholder": "Enter passkey",
+    "unlock": "Unlock",
+    "error": "Incorrect passkey. Please try again."
+  },
   "sessionDetails": {
     "backToSessions": "Back to sessions",
     "aboutSession": "About this session",
