@@ -8,7 +8,7 @@ const corsHeaders = {
 };
 
 interface TelegramMessage {
-  chat: { id: number; type: string };
+  chat: { id: number };
   message_id: number;
   text?: string;
   caption?: string;
@@ -18,7 +18,7 @@ interface TelegramMessage {
 interface TelegramCallbackQuery {
   id: string;
   data?: string;
-  from?: { id: number; first_name?: string };
+  from?: { first_name?: string };
   message?: TelegramMessage;
 }
 
@@ -555,111 +555,46 @@ Deno.serve(async (req: Request) => {
     await runReminder(chatId, filter);
   }
 
-  // Posts an announcement either straight to the group (when run from the group itself
-  // — chatId already is the group) or, when run from an admin's private DM, as a
-  // preview with a "Post to Group" button instead of silently posting somewhere only
-  // the admin can see. Confirming the button is what actually reaches the group.
-  async function sendGroupAnnouncement(chatId: number, isPrivate: boolean, cmdName: string, sessionId: string, text: string) {
-    if (!isPrivate) {
-      await sendMessage(chatId, text, false);
-      return;
-    }
-    await sendMessage(chatId, `${text}\n\n— Preview only, not sent yet —`, false, {
-      inline_keyboard: [[{ text: "📢 Post to Group", callback_data: `postgroup:${cmdName}:${sessionId}` }]],
-    });
-  }
-
   // Shared by /notify and its button-tap equivalent. Generates the copy-paste-ready
   // group update text — nothing automated, just saves the admin from typing out slot
   // counts by hand.
-  async function runNotify(chatId: number, session: SessionRow, isPrivate = false) {
+  async function runNotify(chatId: number, session: SessionRow) {
     const { data: filledCount } = await supabase.rpc("confirmed_booking_count", { p_session_id: session.id });
-    await sendGroupAnnouncement(chatId, isPrivate, "notify", session.id, buildNotifyMessage(session, (filledCount as number) ?? 0));
+    await sendMessage(chatId, buildNotifyMessage(session, (filledCount as number) ?? 0), false);
   }
 
   // Same multi-session picker as /list.
-  async function handleNotifyCommand(chatId: number, arg: string | undefined, isPrivate = false) {
+  async function handleNotifyCommand(chatId: number, arg: string | undefined) {
     const session = await resolveSession(chatId, arg, "notify");
     if (!session) return;
-    await runNotify(chatId, session, isPrivate);
+    await runNotify(chatId, session);
   }
 
   // Posts the "SLOT OPEN" announcement for a newly opened session.
-  async function runSlotOpen(chatId: number, session: SessionRow, isPrivate = false) {
-    await sendGroupAnnouncement(chatId, isPrivate, "slotopen", session.id, buildSlotOpenMessage(session));
+  async function runSlotOpen(chatId: number, session: SessionRow) {
+    await sendMessage(chatId, buildSlotOpenMessage(session), false);
   }
 
   // Same multi-session picker as /list.
-  async function handleSlotOpenCommand(chatId: number, arg: string | undefined, isPrivate = false) {
+  async function handleSlotOpenCommand(chatId: number, arg: string | undefined) {
     const session = await resolveSession(chatId, arg, "slotopen");
     if (!session) return;
-    await runSlotOpen(chatId, session, isPrivate);
-  }
-
-  // Verifies a one-time code generated from the website's Profile page and, if valid,
-  // stamps this DM's chat id (== the sender's Telegram user id, for a private chat) as
-  // that admin's telegram_user_id — the only place that column is ever written from.
-  async function handleLinkCommand(chatId: number, code: string | undefined) {
-    if (!code) {
-      await sendMessage(chatId, "Usage: /link <code> — generate a code from your Profile page on the website first.", false);
-      return;
-    }
-    const { data: match } = await supabase
-      .from("profiles")
-      .select("id, telegram_link_code_expires_at")
-      .eq("telegram_link_code", code)
-      .maybeSingle();
-    if (!match || !match.telegram_link_code_expires_at || new Date(match.telegram_link_code_expires_at) < new Date()) {
-      await sendMessage(chatId, "That code is invalid or expired. Generate a new one from your Profile page.", false);
-      return;
-    }
-    const { error } = await supabase
-      .from("profiles")
-      .update({ telegram_user_id: chatId, telegram_link_code: null, telegram_link_code_expires_at: null })
-      .eq("id", match.id);
-    if (error) {
-      await sendMessage(chatId, `Couldn't link: ${error.message}`, false);
-      return;
-    }
-    await sendMessage(chatId, "✅ Linked! You can now use bot commands here privately — try /list or /pending.", false);
+    await runSlotOpen(chatId, session);
   }
 
   const update = await req.json();
 
   // Bot commands (e.g. "/pending" or "/pending@YourBotName" in a group) arrive as
-  // regular messages, not callback_query. Trusted two ways: the configured group chat
-  // (wholesale, as before), or a private DM from an admin who has linked their Telegram
-  // account via /link — anything else is ignored.
+  // regular messages, not callback_query. Only trusted from the one configured group
+  // chat — everything else is ignored.
   if (update.message?.text) {
     const msg = update.message as TelegramMessage;
+    if (!configuredChatId || String(msg.chat.id) !== configuredChatId) {
+      return new Response("ok", { status: 200, headers: corsHeaders });
+    }
     const parts = (msg.text ?? "").trim().split(/\s+/);
     const command = parts[0].split("@")[0].toLowerCase();
     const arg = parts[1];
-
-    const isGroup = !!configuredChatId && String(msg.chat.id) === configuredChatId;
-    const isPrivateChat = msg.chat.type === "private";
-
-    if (!isGroup && !isPrivateChat) {
-      return new Response("ok", { status: 200, headers: corsHeaders });
-    }
-
-    if (isPrivateChat && !isGroup) {
-      if (command === "/link") {
-        await handleLinkCommand(msg.chat.id, arg);
-        return new Response("ok", { status: 200, headers: corsHeaders });
-      }
-      const { data: admin } = await supabase.from("profiles").select("id").eq("telegram_user_id", msg.chat.id).eq("role", "admin").maybeSingle();
-      if (!admin) {
-        if (command.startsWith("/")) {
-          await sendMessage(msg.chat.id, "You're not linked as an admin. Generate a link code from your Profile page on the website, then send /link <code> here.", false);
-        }
-        return new Response("ok", { status: 200, headers: corsHeaders });
-      }
-    }
-
-    // Only meaningfully true for a verified admin DM at this point — the group branch
-    // always passes false, so notify/slotopen keep posting straight to the group there.
-    const isPrivate = isPrivateChat && !isGroup;
     if (command === "/pending") {
       await handlePendingCommand(msg.chat.id, arg);
     } else if (command === "/list") {
@@ -667,9 +602,9 @@ Deno.serve(async (req: Request) => {
     } else if (command === "/reminder") {
       await handleReminderCommand(msg.chat.id, arg);
     } else if (command === "/notify") {
-      await handleNotifyCommand(msg.chat.id, arg, isPrivate);
+      await handleNotifyCommand(msg.chat.id, arg);
     } else if (command === "/slotopen") {
-      await handleSlotOpenCommand(msg.chat.id, arg, isPrivate);
+      await handleSlotOpenCommand(msg.chat.id, arg);
     }
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
@@ -682,17 +617,8 @@ Deno.serve(async (req: Request) => {
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
-  const callbackChat = callback.message?.chat;
-  const isGroupCallback = !!configuredChatId && String(callbackChat?.id) === configuredChatId;
-  const isPrivateCallback = callbackChat?.type === "private";
-  if (!isGroupCallback && !isPrivateCallback) {
+  if (!configuredChatId || String(callback.message?.chat.id) !== configuredChatId) {
     return new Response("ok", { status: 200, headers: corsHeaders });
-  }
-  if (isPrivateCallback && !isGroupCallback) {
-    const { data: admin } = await supabase.from("profiles").select("id").eq("telegram_user_id", callbackChat!.id).eq("role", "admin").maybeSingle();
-    if (!admin) {
-      return new Response("ok", { status: 200, headers: corsHeaders });
-    }
   }
 
   const parts = callback.data.split(":");
@@ -751,53 +677,11 @@ Deno.serve(async (req: Request) => {
       return new Response("ok", { status: 200, headers: corsHeaders });
     }
     const sessionRow = session as SessionRow;
-    const isPrivate = callback.message?.chat.type === "private";
     if (cmdName === "list") await runRoster(chatId, sessionRow);
-    else if (cmdName === "notify") await runNotify(chatId, sessionRow, isPrivate);
+    else if (cmdName === "notify") await runNotify(chatId, sessionRow);
     else if (cmdName === "pending") await runPending(chatId, sessionRow);
     else if (cmdName === "reminder") await runReminder(chatId, sessionRow);
-    else if (cmdName === "slotopen") await runSlotOpen(chatId, sessionRow, isPrivate);
-    return new Response("ok", { status: 200, headers: corsHeaders });
-  }
-
-  // Button tap from a DM preview (sendGroupAnnouncement) — actually posts the
-  // announcement to the real group chat, then edits the DM preview to confirm. Only
-  // reachable from a private chat, but re-checks the tapper is still a linked admin
-  // anyway, in case they were unlinked between generating the preview and tapping it.
-  if (action === "postgroup") {
-    // Admin-DM-origin already verified by the shared gate above this point.
-    const cmdName = parts[1];
-    const sessionId = parts[2];
-    const dmChatId = callback.message?.chat.id;
-    if (!sessionId || !dmChatId) {
-      return new Response("ok", { status: 200, headers: corsHeaders });
-    }
-    await answerCallback("Posting…");
-    const { data: session } = await supabase.from("sessions").select("*").eq("id", sessionId).maybeSingle();
-    if (!session || !configuredChatId) {
-      await sendMessage(dmChatId, "That session isn't available anymore.", false);
-      return new Response("ok", { status: 200, headers: corsHeaders });
-    }
-    const sessionRow = session as SessionRow;
-    let text: string | null = null;
-    if (cmdName === "notify") {
-      const { data: filledCount } = await supabase.rpc("confirmed_booking_count", { p_session_id: sessionRow.id });
-      text = buildNotifyMessage(sessionRow, (filledCount as number) ?? 0);
-    } else if (cmdName === "slotopen") {
-      text = buildSlotOpenMessage(sessionRow);
-    }
-    if (text) await sendMessage(Number(configuredChatId), text, false);
-
-    const originalText = callback.message?.text ?? "";
-    await fetch(`https://api.telegram.org/bot${botToken}/editMessageText`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        chat_id: dmChatId,
-        message_id: callback.message!.message_id,
-        text: `${originalText.replace(/\n\n— Preview only, not sent yet —$/, "")}\n\n✅ Posted to group`,
-      }),
-    });
+    else if (cmdName === "slotopen") await runSlotOpen(chatId, sessionRow);
     return new Response("ok", { status: 200, headers: corsHeaders });
   }
 
