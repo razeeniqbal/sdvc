@@ -45,6 +45,9 @@ export interface Profile {
   emergency_contact_phone: string | null;
   gender: Gender | null;
   role: UserRole;
+  telegram_user_id: number | null;
+  telegram_link_code: string | null;
+  telegram_link_code_expires_at: string | null;
   created_at: string;
   updated_at: string;
 }

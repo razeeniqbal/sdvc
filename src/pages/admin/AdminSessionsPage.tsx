@@ -122,8 +122,8 @@ export default function AdminSessionsPage() {
     setBlasting(true);
     const ok = await sendGroupBlast(blastMessage);
     setBlasting(false);
-    if (!ok) { show('Failed to send WhatsApp blast', 'error'); return; }
-    show('WhatsApp blast sent', 'success');
+    if (!ok) { show('Failed to send Telegram blast', 'error'); return; }
+    show('Telegram blast sent', 'success');
     setBlastSession(null);
   }
 
