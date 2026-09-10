@@ -198,7 +198,7 @@ function waMeLink(phone: string, message: string): string {
 }
 
 function buildReminderText(name: string, sessionTitle: string, friendlyDate: string, amount: number): string {
-  return `Hai ${name}! 👋\nSlot anda untuk *${sessionTitle}* (${friendlyDate}) masih belum dibayar (RM${amount.toFixed(2)}).\n\nSila selesaikan bayaran sebelum 24 jam dari tarikh sesi. Jika tidak, slot akan dibuka semula untuk pemain lain. Terima kasih! 🙏`;
+  return `Hai ${name}! 👋\nSlot anda untuk *${sessionTitle}* (${friendlyDate}) masih belum dibayar (RM${amount.toFixed(2)}).\n\nSila selesaikan bayaran dalam masa 1 jam. Jika tidak, slot akan dibuka semula untuk pemain lain. Terima kasih! 🙏`;
 }
 
 Deno.serve(async (req: Request) => {
