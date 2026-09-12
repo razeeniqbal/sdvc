@@ -142,10 +142,26 @@
     },
     "forgotPassword": {
       "title": "Lupa Kata Laluan",
-      "subtitle": "Memandangkan akaun menggunakan nombor telefon dan bukan e-mel, penetapan semula kata laluan dikendalikan oleh admin kelab.",
+      "subtitleStep1": "Masukkan nombor telefon anda dan kami akan memaklumkan admin kelab. Mereka akan menghantar pautan tetapan semula kepada anda di WhatsApp.",
+      "phoneLabel": "Nombor Telefon",
+      "phonePlaceholder": "cth. 0123456789",
+      "requestCode": "Minta Pautan Tetapan Semula",
+      "requesting": "Sedang meminta...",
+      "errorPhoneRequired": "Masukkan nombor telefon anda",
+      "errorNoAccount": "Tiada akaun dijumpai dengan nombor telefon itu",
+      "subtitleStep2": "Minta admin kelab hantar pautan tetapan semula anda di WhatsApp, kemudian ketik pautan itu untuk tetapkan kata laluan baharu.",
+      "askAdmin": "Minta Pautan Daripada Admin",
+      "newPasswordLabel": "Kata Laluan Baharu",
+      "confirmPasswordLabel": "Sahkan Kata Laluan Baharu",
+      "resetPassword": "Tetapkan Semula Kata Laluan",
+      "resetting": "Sedang menetapkan semula...",
+      "errorPasswordLength": "Kata laluan mesti sekurang-kurangnya 6 aksara",
+      "errorPasswordMismatch": "Kata laluan tidak sepadan",
+      "errorInvalidCode": "Pautan tetapan semula ini tidak sah atau telah tamat tempoh. Minta admin berikan pautan baharu.",
+      "success": "Kata laluan ditetapkan semula! Anda kini boleh log masuk.",
       "messageAdmin": "Mesej Admin di WhatsApp",
       "backToLogin": "Kembali ke Log Masuk",
-      "whatsappMessage": "Hai, saya terlupa kata laluan untuk akaun {{clubName}} saya. Boleh anda bantu saya tetapkan semula?"
+      "whatsappMessage": "Hai, saya terlupa kata laluan untuk akaun {{clubName}} saya. Nombor telefon saya {{phone}}. Boleh anda hantar pautan tetapan semula saya?"
     }
   },
   "sessions": {
@@ -334,6 +350,16 @@
     "saveChanges": "Simpan Perubahan",
     "saving": "Sedang menyimpan...",
     "noPhoneNumber": "Tiada nombor telefon",
-    "profileUpdated": "Profil dikemas kini!"
+    "profileUpdated": "Profil dikemas kini!",
+    "changePassword": {
+      "title": "Tukar Kata Laluan",
+      "newPasswordLabel": "Kata Laluan Baharu",
+      "confirmPasswordLabel": "Sahkan Kata Laluan Baharu",
+      "submit": "Kemas Kini Kata Laluan",
+      "submitting": "Sedang mengemas kini...",
+      "errorPasswordLength": "Kata laluan mesti sekurang-kurangnya 6 aksara",
+      "errorPasswordMismatch": "Kata laluan tidak sepadan",
+      "success": "Kata laluan dikemas kini!"
+    }
   }
 }

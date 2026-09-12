@@ -1,6 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { User, Phone, AlertCircle, Save } from 'lucide-react';
+import { User, Phone, AlertCircle, Save, Lock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyProfileError } from '@/lib/auth';
 import { useAuth } from '@/context/AuthContext';
@@ -20,6 +20,20 @@ export default function ProfilePage() {
     emergency_contact_name: profile?.emergency_contact_name || '',
     emergency_contact_phone: profile?.emergency_contact_phone || '',
   });
+  const [changingPassword, setChangingPassword] = useState(false);
+  const [passwordForm, setPasswordForm] = useState({ new_password: '', confirm_password: '' });
+
+  async function handleChangePassword(e: FormEvent) {
+    e.preventDefault();
+    if (passwordForm.new_password.length < 6) { show(t('profile.changePassword.errorPasswordLength'), 'error'); return; }
+    if (passwordForm.new_password !== passwordForm.confirm_password) { show(t('profile.changePassword.errorPasswordMismatch'), 'error'); return; }
+    setChangingPassword(true);
+    const { error } = await supabase.auth.updateUser({ password: passwordForm.new_password });
+    setChangingPassword(false);
+    if (error) { show(error.message, 'error'); return; }
+    setPasswordForm({ new_password: '', confirm_password: '' });
+    show(t('profile.changePassword.success'), 'success');
+  }
 
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
@@ -121,6 +135,26 @@ export default function ProfilePage() {
           <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all disabled:opacity-60">
             {saving ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
             {saving ? t('profile.saving') : t('profile.saveChanges')}
+          </button>
+        </form>
+      </div>
+
+      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 mt-4">
+        <h2 className="font-bold text-slate-900 flex items-center gap-2 mb-4"><Lock className="h-5 w-5 text-slate-500" /> {t('profile.changePassword.title')}</h2>
+        <form onSubmit={handleChangePassword} className="space-y-4">
+          <div className="grid sm:grid-cols-2 gap-4">
+            <div>
+              <label className={labelClass}>{t('profile.changePassword.newPasswordLabel')}</label>
+              <input type="password" className={inputClass} value={passwordForm.new_password} onChange={(e) => setPasswordForm({ ...passwordForm, new_password: e.target.value })} />
+            </div>
+            <div>
+              <label className={labelClass}>{t('profile.changePassword.confirmPasswordLabel')}</label>
+              <input type="password" className={inputClass} value={passwordForm.confirm_password} onChange={(e) => setPasswordForm({ ...passwordForm, confirm_password: e.target.value })} />
+            </div>
+          </div>
+          <button type="submit" disabled={changingPassword} className="inline-flex items-center gap-2 px-6 py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all disabled:opacity-60">
+            {changingPassword ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
+            {changingPassword ? t('profile.changePassword.submitting') : t('profile.changePassword.submit')}
           </button>
         </form>
       </div>

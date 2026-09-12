@@ -12,6 +12,7 @@ const LandingPage = lazy(() => import('@/pages/LandingPage'));
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
 const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
 const ForgotPasswordPage = lazy(() => import('@/pages/auth/ForgotPasswordPage'));
+const ResetPasswordPage = lazy(() => import('@/pages/auth/ResetPasswordPage'));
 
 const SessionsPage = lazy(() => import('@/pages/sessions/SessionsPage'));
 const SessionDetailsPage = lazy(() => import('@/pages/sessions/SessionDetailsPage'));
@@ -45,6 +46,7 @@ function App() {
                   <Route path="/register" element={<PublicOnlyRoute><RegisterPage /></PublicOnlyRoute>} />
                   <Route path="/login" element={<PublicOnlyRoute><LoginPage /></PublicOnlyRoute>} />
                   <Route path="/forgot-password" element={<PublicOnlyRoute><ForgotPasswordPage /></PublicOnlyRoute>} />
+                  <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 
                   <Route path="/sessions" element={<ProtectedRoute><SessionsPage /></ProtectedRoute>} />
                   <Route path="/sessions/:id" element={<ProtectedRoute><SessionDetailsPage /></ProtectedRoute>} />

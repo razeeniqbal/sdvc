@@ -1,15 +1,24 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
-import { Save, MessageCircle, Phone, Bell, UserCog, Search, Trash2, QrCode, Upload, Users, ShieldCheck, Download, CalendarDays } from 'lucide-react';
+import { Save, MessageCircle, Phone, Bell, UserCog, Search, Trash2, QrCode, Upload, Users, ShieldCheck, Download, CalendarDays, KeyRound, Clock } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
-import { fetchClubSettings } from '@/lib/settings';
+import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { uploadClubQrImage } from '@/lib/receipts';
-import { formatDate } from '@/lib/format';
+import { formatDate, formatDateTime } from '@/lib/format';
 import { Spinner } from '@/components/LoadingScreen';
 import { GenderBadge } from '@/components/StatusBadge';
 import type { Profile } from '@/types/database';
 
 type RoleFilter = 'all' | 'admin' | 'player';
+
+interface PasswordResetRequest {
+  id: string;
+  token: string;
+  phone_number: string;
+  expires_at: string;
+  created_at: string;
+  profile: { full_name: string; short_name: string | null } | null;
+}
 
 type Tab = 'general' | 'payment' | 'admins';
 
@@ -33,6 +42,10 @@ export default function AdminSettingsPage() {
   const [promoting, setPromoting] = useState(false);
   const [deleteUser, setDeleteUser] = useState<Profile | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [resetUser, setResetUser] = useState<Profile | null>(null);
+  const [newPassword, setNewPassword] = useState('');
+  const [resetting, setResetting] = useState(false);
+  const [resetRequests, setResetRequests] = useState<PasswordResetRequest[]>([]);
 
   // Payment QR code
   const [qrUrl, setQrUrl] = useState<string | null>(null);
@@ -54,7 +67,18 @@ export default function AdminSettingsPage() {
       setLoading(false);
     });
     loadUsers();
+    loadResetRequests();
   }, []);
+
+  async function loadResetRequests() {
+    const { data } = await supabase
+      .from('password_reset_requests')
+      .select('id, token, phone_number, expires_at, created_at, profile:profiles(full_name, short_name)')
+      .eq('status', 'pending')
+      .gt('expires_at', new Date().toISOString())
+      .order('created_at', { ascending: false });
+    setResetRequests((data || []) as unknown as PasswordResetRequest[]);
+  }
 
   async function handleQrUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -129,6 +153,28 @@ export default function AdminSettingsPage() {
     show(`${deleteUser.short_name || deleteUser.full_name}'s account was deleted`, 'success');
     setDeleteUser(null);
     loadUsers();
+  }
+
+  async function handleResetPassword() {
+    if (!resetUser) return;
+    if (newPassword.length < 6) { show('Password must be at least 6 characters', 'error'); return; }
+    setResetting(true);
+    const { data: { session } } = await supabase.auth.getSession();
+    const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/reset-password`;
+    const res = await fetch(apiUrl, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${session?.access_token}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_user_id: resetUser.id, new_password: newPassword }),
+    });
+    const body = await res.json();
+    setResetting(false);
+    if (!res.ok) { show(body.error || 'Failed to reset password', 'error'); return; }
+    show(`${resetUser.short_name || resetUser.full_name}'s password was reset`, 'success');
+    setResetUser(null);
+    setNewPassword('');
   }
 
   function exportUsersCSV() {
@@ -279,6 +325,38 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
+          {resetRequests.length > 0 && (
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+              <h2 className="font-bold text-slate-900 flex items-center gap-2 mb-1">
+                <KeyRound className="h-5 w-5 text-navy-600" />
+                Password Reset Requests
+              </h2>
+              <p className="text-sm text-slate-500 mb-4">A player requested a password reset below. Send them the link on WhatsApp, they'll tap it to set a new password themselves.</p>
+              <div className="space-y-2">
+                {resetRequests.map((r) => (
+                  <div key={r.id} className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border border-slate-100">
+                    <div>
+                      <p className="font-medium text-slate-900 text-sm">{r.profile?.short_name || r.profile?.full_name}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
+                        <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone_number}</span>
+                        <span className="flex items-center gap-1"><Clock className="h-3 w-3" />Requested {formatDateTime(r.created_at)}</span>
+                      </div>
+                    </div>
+                    <a
+                      href={whatsappLink(r.phone_number, `Hi ${r.profile?.short_name || r.profile?.full_name}, here's your password reset link: ${window.location.origin}/reset-password/${r.token}\nIt expires in 15 minutes.`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-lg transition-colors flex-shrink-0"
+                    >
+                      <MessageCircle className="h-3.5 w-3.5" />
+                      Send Link
+                    </a>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-1 gap-3">
               <h2 className="font-bold text-slate-900 flex items-center gap-2">
@@ -362,6 +440,13 @@ export default function AdminSettingsPage() {
                     {u.role === 'admin' ? 'Demote' : 'Make Admin'}
                   </button>
                   <button
+                    onClick={() => { setResetUser(u); setNewPassword(''); }}
+                    title="Reset password"
+                    className="p-1.5 text-slate-400 hover:text-navy-700 rounded-lg hover:bg-slate-100 transition-colors"
+                  >
+                    <KeyRound className="h-4 w-4" />
+                  </button>
+                  <button
                     onClick={() => setDeleteUser(u)}
                     title="Delete account"
                     className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
@@ -371,6 +456,33 @@ export default function AdminSettingsPage() {
                 </div>
               </div>
             ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Reset password dialog */}
+      {resetUser && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setResetUser(null)}>
+          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-slate-900 mb-2">Reset {resetUser.short_name || resetUser.full_name}'s password</h3>
+            <p className="text-sm text-slate-500 mb-4">
+              Set a new password for this account. Share it with the player yourself, e.g. via WhatsApp.
+            </p>
+            <input
+              type="text"
+              autoFocus
+              className={inputClass}
+              placeholder="New password (min. 6 characters)"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+            />
+            <div className="flex gap-3 mt-4">
+              <button onClick={() => setResetUser(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
+              <button onClick={handleResetPassword} disabled={resetting} className="flex-1 py-2.5 bg-navy-700 hover:bg-navy-800 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+                {resetting && <Spinner className="h-4 w-4" />}
+                {resetting ? 'Resetting...' : 'Reset Password'}
+              </button>
             </div>
           </div>
         </div>

@@ -142,10 +142,26 @@
     },
     "forgotPassword": {
       "title": "Forgot Password",
-      "subtitle": "Since accounts use a phone number instead of email, password resets are handled by the club admin.",
+      "subtitleStep1": "Enter your phone number and we'll notify the club admin. They'll send you a reset link on WhatsApp.",
+      "phoneLabel": "Phone Number",
+      "phonePlaceholder": "e.g. 0123456789",
+      "requestCode": "Request Reset Link",
+      "requesting": "Requesting...",
+      "errorPhoneRequired": "Enter your phone number",
+      "errorNoAccount": "No account found with that phone number",
+      "subtitleStep2": "Ask the club admin to send you your reset link on WhatsApp, then tap it to set a new password.",
+      "askAdmin": "Ask Admin for My Reset Link",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "Confirm New Password",
+      "resetPassword": "Reset Password",
+      "resetting": "Resetting...",
+      "errorPasswordLength": "Password must be at least 6 characters",
+      "errorPasswordMismatch": "Passwords do not match",
+      "errorInvalidCode": "This reset link is invalid or has expired. Ask the admin for a new one.",
+      "success": "Password reset! You can now log in.",
       "messageAdmin": "Message Admin on WhatsApp",
       "backToLogin": "Back to Login",
-      "whatsappMessage": "Hi, I forgot my password for my {{clubName}} account. Can you help me reset it?"
+      "whatsappMessage": "Hi, I forgot my password for my {{clubName}} account. My phone number is {{phone}}. Can you send me my reset link?"
     }
   },
   "sessions": {
@@ -334,6 +350,16 @@
     "saveChanges": "Save Changes",
     "saving": "Saving...",
     "noPhoneNumber": "No phone number",
-    "profileUpdated": "Profile updated!"
+    "profileUpdated": "Profile updated!",
+    "changePassword": {
+      "title": "Change Password",
+      "newPasswordLabel": "New Password",
+      "confirmPasswordLabel": "Confirm New Password",
+      "submit": "Update Password",
+      "submitting": "Updating...",
+      "errorPasswordLength": "Password must be at least 6 characters",
+      "errorPasswordMismatch": "Passwords do not match",
+      "success": "Password updated!"
+    }
   }
 }
