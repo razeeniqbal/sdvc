@@ -26,17 +26,10 @@ export async function createNotification(
 }
 
 async function postToTelegramNotify(body: Record<string, string | undefined>): Promise<boolean> {
-  const apiUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/telegram-notify`;
-  const headers = {
-    Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`,
-    'Content-Type': 'application/json',
-  };
-  const response = await fetch(apiUrl, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(body),
-  });
-  return response.ok;
+  // invoke() sends the signed-in member's token; the function rejects the public
+  // anon key so outsiders can't post to the club group.
+  const { error } = await supabase.functions.invoke('telegram-notify', { body });
+  return !error;
 }
 
 async function sendTelegramMessage(message: string): Promise<boolean> {

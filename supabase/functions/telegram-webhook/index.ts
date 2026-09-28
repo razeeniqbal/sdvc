@@ -7,6 +7,14 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, X-Telegram-Bot-Api-Secret-Token",
 };
 
+// Public player app. Override with the SITE_URL function secret if the domain changes.
+const SITE_URL = (Deno.env.get("SITE_URL") ?? "https://vsb.madebyrazeen.com").replace(/\/$/, "");
+
+// Unpaid bookings are held this long (and never past 2h before start) before the
+// system releases the place to the waiting list — keep in sync with
+// supabase/launch/v2_launch_rules.sql.
+const HOLD_HOURS = 12;
+
 interface TelegramMessage {
   chat: { id: number };
   message_id: number;
@@ -158,9 +166,9 @@ function buildNotifyMessage(session: SessionRow, filledCount: number): string {
   const remaining = session.maximum_capacity - filledCount;
   const header = `${session.title.toUpperCase()} (${formatMalayDateLabel(session.session_date)})`;
   if (remaining <= 0) {
-    return `${header}\n\nUPDATE: SLOT DAH PENUH! 🏐\nTerima kasih semua yang dah daftar. Nak masuk waiting list boleh PM admin.`;
+    return `${header}\n\nUPDATE: SLOT DAH PENUH! 🏐\nTerima kasih semua yang dah daftar. Nak masuk waiting list, join di sini — kalau ada slot kosong, sistem akan masukkan anda secara automatik:\n${SITE_URL}/sessions/${session.id}`;
   }
-  return `${header}\n\nUPDATE: SLOT TINGGAL LAGI ${remaining} ORANG\nMana yang belum bayar sila bayar, nanti system akan cancel booking kalau hold lama sangat.`;
+  return `${header}\n\nUPDATE: SLOT TINGGAL LAGI ${remaining} ORANG\nMana yang belum bayar sila bayar & upload resit. Booking yang tak bayar dalam ${HOLD_HOURS} jam akan dibatalkan dan slot diberi kepada waiting list.\n\nBooking: ${SITE_URL}/sessions/${session.id}`;
 }
 
 // Initial "a new session is open for booking" announcement — distinct from
@@ -181,7 +189,7 @@ function buildSlotOpenMessage(session: SessionRow): string {
     `⏰: ${formatSlotTime(session.start_time)} - ${formatSlotTime(session.end_time)}`,
     `💵: ${priceLine}`,
     "",
-    `Booking: https://vsb-play.vercel.app/sessions/${session.id}`,
+    `Booking: ${SITE_URL}/sessions/${session.id}`,
   ].join("\n");
 }
 
@@ -197,8 +205,10 @@ function waMeLink(phone: string, message: string): string {
   return `https://wa.me/${normalizePhone(phone)}?text=${encodeURIComponent(message)}`;
 }
 
-function buildReminderText(name: string, sessionTitle: string, friendlyDate: string, amount: number): string {
-  return `Hai ${name}! 👋\nSlot anda untuk *${sessionTitle}* (${friendlyDate}) masih belum dibayar (RM${amount.toFixed(2)}).\n\nSila selesaikan bayaran dalam masa 1 jam. Jika tidak, slot akan dibuka semula untuk pemain lain. Terima kasih! 🙏`;
+// The WhatsApp nudge links straight to the player's booking, where they can pay and
+// upload the receipt. Uploading a receipt stops the hold clock.
+function buildReminderText(name: string, sessionTitle: string, friendlyDate: string, amount: number, bookingId: string): string {
+  return `Hai ${name}! 👋\nSlot anda untuk *${sessionTitle}* (${friendlyDate}) masih belum dibayar (RM${amount.toFixed(2)}).\n\nSila bayar dan muat naik resit dalam masa ${HOLD_HOURS} jam dari tempahan (atau sebelum 2 jam sebelum game). Jika tidak, slot akan dilepaskan kepada senarai menunggu.\n\nBayar di sini: ${SITE_URL}/bookings/${bookingId}\n\nTerima kasih! 🙏`;
 }
 
 Deno.serve(async (req: Request) => {
@@ -453,7 +463,7 @@ Deno.serve(async (req: Request) => {
     const waitingHrs = Math.max(0, Math.round((Date.now() - new Date(row.created_at).getTime()) / 3_600_000));
     const amount = displayAmount(row);
     const cardText = `👤 <b>${escapeHtml(name)}</b>${escapeHtml(genderTag(gender))}\n🏐 ${escapeHtml(sessionTitle)} (${escapeHtml(dateLabel)})\n🎫 Ref: ${row.booking_reference} · 💰 RM${amount.toFixed(2)}\n⏳ Waiting ${waitingHrs}h for payment`;
-    const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, amount);
+    const reminderMsg = buildReminderText(name, sessionTitle, friendlyDate, amount, row.id);
 
     await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
       method: "POST",

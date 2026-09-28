@@ -10,6 +10,7 @@ import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { OpsBadge, type OpsTone } from '@/components/admin/AdminUI';
 import { useSessionWorkspace } from './sessionWorkspace';
 import type { WaitingListEntry, Profile, WaitingListStatus } from '@/types/database';
+import { bookingLink } from '@/lib/site';
 
 interface WaitlistEntry extends WaitingListEntry {
   profile: Profile;
@@ -57,7 +58,7 @@ export default function AdminWaitingListPage() {
     if (error) { show(error.message, 'error'); return; }
 
     if (entry.profile.phone_number) {
-      const bookingUrl = `https://vsb-play.vercel.app/bookings/${bookingId}`;
+      const bookingUrl = bookingLink(bookingId);
       const name = entry.profile.short_name || entry.profile.full_name;
       const message = `Hai ${name}! 🏐 Slot untuk "${session.title}" (${formatDate(session.session_date)}) telah ditempah untuk anda. Harga RM${Number(session.price).toFixed(2)}. Sila bayar & muat naik resit secepat mungkin, kalau tidak slot akan dibatalkan. Bayar sini: ${bookingUrl}`;
       window.open(whatsappLink(entry.profile.phone_number, message), '_blank');
