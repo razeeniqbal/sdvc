@@ -153,7 +153,7 @@ export default function CheckoutPage() {
     // Lock the slot(s); admin will manually confirm each booking. No processing fee —
     // payment is collected manually (bank transfer/cash), not via an online processor.
     // Companions share a booking_group_id purely for display grouping; each still gets
-    // its own row so admins can confirm/cancel and track attendance per person.
+    // its own row so admins can confirm/cancel each person.
     const bookingGroupId = companions.length > 0 ? crypto.randomUUID() : null;
     // Every row must set the same keys explicitly — PostgREST's bulk insert sends a
     // literal NULL (not the column default) for any key missing from a given row when

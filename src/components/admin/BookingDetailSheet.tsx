@@ -8,7 +8,6 @@ import { amountDue, confirmBooking, issueRefund, saveAdminNotes, updateBookingSt
 import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { BookingOpsBadge, PaymentOpsBadge } from '@/components/admin/statusBadges';
-import type { BookingStatus } from '@/types/database';
 import { useAvatarMap } from '@/lib/avatars';
 
 // Operational detail for one booking, as a right-hand sheet so the list stays
@@ -176,9 +175,6 @@ export function BookingDetailSheet({ booking, onClose, onChanged }: {
                 </button>
               )}
               <div className="flex flex-wrap gap-2">
-                {booking.booking_status === 'Confirmed' && (
-                  <button onClick={() => run(() => updateBookingStatus(booking, 'Completed' as BookingStatus), 'Marked completed')} disabled={busy} className="adm-btn flex-1">Mark completed</button>
-                )}
                 {booking.payment_status === 'Paid' && booking.booking_status !== 'Refunded' && (
                   <button onClick={() => run(() => issueRefund(booking), 'Refund recorded')} disabled={busy} className="adm-btn flex-1">Record refund</button>
                 )}

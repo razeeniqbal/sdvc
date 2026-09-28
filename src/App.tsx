@@ -34,7 +34,6 @@ const AdminSessionLayout = lazy(() => import('@/pages/admin/AdminSessionLayout')
 const AdminSessionOverview = lazy(() => import('@/pages/admin/AdminSessionOverview'));
 const AdminSessionBookings = lazy(() => import('@/pages/admin/AdminSessionBookings'));
 const AdminBookingsPage = lazy(() => import('@/pages/admin/AdminBookingsPage'));
-const AdminAttendancePage = lazy(() => import('@/pages/admin/AdminAttendancePage'));
 const AdminWaitingListPage = lazy(() => import('@/pages/admin/AdminWaitingListPage'));
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 const AdminPaymentsPage = lazy(() => import('@/pages/admin/AdminPaymentsPage'));
@@ -80,11 +79,10 @@ function adminRoutes(base: string) {
       <Route path="sessions" element={<Lazy><AdminSessionsPage /></Lazy>} />
       <Route path="sessions/new" element={<Lazy><AdminSessionFormPage /></Lazy>} />
       <Route path="sessions/:id/edit" element={<Lazy><AdminSessionFormPage /></Lazy>} />
-      {/* Session workspace — attendance & waiting list live here, not in global nav */}
+      {/* Session workspace: bookings & waiting list for one session, not in global nav */}
       <Route path="sessions/:id" element={<Lazy><AdminSessionLayout /></Lazy>}>
         <Route index element={<Lazy><AdminSessionOverview /></Lazy>} />
         <Route path="bookings" element={<Lazy><AdminSessionBookings /></Lazy>} />
-        <Route path="attendance" element={<Lazy><AdminAttendancePage /></Lazy>} />
         <Route path="waiting-list" element={<Lazy><AdminWaitingListPage /></Lazy>} />
       </Route>
       <Route path="bookings" element={<Lazy><AdminBookingsPage /></Lazy>} />

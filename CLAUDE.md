@@ -15,15 +15,14 @@ Two experiences, one design system:
   lives under **My VSB** (/profile) via the avatar menu. Routes ≠ navigation.
 - **VSB Admin** (`AdminShell`, src/components/admin): its own full-height
   console — sidebar on desktop, header + drawer below lg, no consumer
-  navbar/footer. Attendance and the waiting list live inside the session
-  workspace (/admin/sessions/:id/…), never in global admin nav. Admin uses
+  navbar/footer. The waiting list lives inside the session workspace
+  (/admin/sessions/:id/…), never in global admin nav. Admin uses
   `.adm-*` primitives and `AdminUI` (Stat, OpsBadge, SectionTitle); don't reuse
   player components like SessionCard there. Booking/payment actions live once
   in `lib/adminBookings.ts` and the shared `BookingDetailSheet` — Bookings,
   Payments and the session workspace all use them; never re-implement them.
-- **Player stats** come from `lib/myGames.ts`: games = past non-cancelled own
-  bookings, attended = marked present, attendance % = attended ÷ marked games
-  (shown as "–" until something is marked). Never estimate unmarked games.
+- **Player stats** come from `playerActivity` in `lib/myGames.ts` (see Player
+  identity below). Game states are booking status + date only.
 - Player session details is one scrollable page (no tabs); tabs are for
   operational context switching (admin session workspace).
 
@@ -59,7 +58,8 @@ Two experiences, one design system:
   experience_range / play_reasons, CHECK-validated machine values): the
   player's own description, optional, never gates booking. Real activity
   (`playerActivity`): games = past sessions with a Confirmed/Completed booking,
-  venues = distinct venues of those, upcoming. No attendance %, no ratings,
+  venues = distinct venues of those, upcoming. No attendance anywhere in V2
+  (the table stays for V1, which shares the database), no ratings,
   no invented jersey numbers.
 - **Player card composition** follows the approved V2 concept: the generated
   character dominates the top and fades into the identity panel; position

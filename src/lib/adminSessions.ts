@@ -6,13 +6,13 @@ import type { OpsTone } from '@/components/admin/AdminUI';
 // come from one bookings query instead of the per-session RPC the player site uses.
 
 export interface AdminSession extends Session {
-  active_count: number; // players holding a place: pending + confirmed (+ completed, once attended)
-  confirmed_count: number; // Confirmed, or Completed after attendance
+  active_count: number; // players holding a place: pending + confirmed (+ completed)
+  confirmed_count: number; // Confirmed or Completed
   pending_count: number; // Pending Payment
 }
 
-// Statuses that hold a place in a session. 'Completed' is what a Confirmed
-// booking becomes once attendance marks the player present.
+// Statuses that hold a place in a session. 'Completed' can still be set by
+// the V1 app, which shares this database.
 export const PLACE_HOLDING = ['Pending Payment', 'Confirmed', 'Completed'];
 
 // ownerId: organizer console, only their own sessions.

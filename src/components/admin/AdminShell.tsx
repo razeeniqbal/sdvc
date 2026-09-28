@@ -8,8 +8,8 @@ import { useMyAvatar } from '@/lib/avatars';
 
 // VSB console: the club operations console for admins, and the organizer
 // console (own games only) for organizers. Its own full-height application
-// shell: no consumer navbar, footer or player tab bar. Attendance and the
-// waiting list are deliberately NOT here; they live inside a session.
+// shell: no consumer navbar, footer or player tab bar. The waiting list is
+// deliberately NOT here; it lives inside a session.
 
 interface Item { to: string; label: string; icon: LucideIcon; end?: boolean; soon?: boolean }
 

@@ -314,9 +314,7 @@
     "processingFee": "Yuran pemprosesan",
     "discount": "Diskaun",
     "total": "Jumlah",
-    "attendance": "Kehadiran",
     "statusLabel": "Status:",
-    "notRecorded": "Tidak direkodkan",
     "paymentFallback": "Pembayaran",
     "bookingCancelled": "Tempahan Dibatalkan",
     "cancelledOn": "Dibatalkan pada {{date}}",
@@ -738,7 +736,7 @@
     "organizer": {
       "payTo": "Bayar kepada penganjur, {{name}}, untuk permainan ini.",
       "title": "Anjur permainan",
-      "intro": "Mahu menganjurkan permainan VSB sendiri? Penganjur mencipta sesi, mengesahkan bayaran dan merekod kehadiran untuk permainan mereka, dan pemain membayar terus kepada mereka. Setiap permohonan disemak oleh admin.",
+      "intro": "Mahu menganjurkan permainan VSB sendiri? Penganjur mencipta sesi, mengesahkan bayaran dan mengurus senarai menunggu untuk permainan mereka, dan pemain membayar terus kepada mereka. Setiap permohonan disemak oleh admin.",
       "messageLabel": "Ceritakan tentang permainan anda (pilihan)",
       "messagePlaceholder": "Contohnya: di mana dan bila anda bermain, dan berapa ramai pemain biasanya menyertai.",
       "apply": "Mohon jadi penganjur",
@@ -747,7 +745,7 @@
       "pendingTitle": "Permohonan dihantar",
       "pendingBody": "Anda memohon pada {{date}}. Admin akan menyemaknya dan anda akan menerima pemberitahuan.",
       "rejected": "Permohonan anda pada {{date}} tidak diluluskan. Anda boleh memohon semula.",
-      "youAre": "Anda seorang penganjur. Cipta permainan, sahkan bayaran dan rekod kehadiran dalam Konsol Penganjur.",
+      "youAre": "Anda seorang penganjur. Cipta permainan, sahkan bayaran dan urus senarai menunggu dalam Konsol Penganjur.",
       "noQr": "Tambah QR pembayaran anda supaya pemain boleh membayar anda. Sehingga itu, mereka melihat QR kelab.",
       "paymentQr": "QR pembayaran"
     },

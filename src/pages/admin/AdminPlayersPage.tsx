@@ -19,7 +19,7 @@ import { experienceKey, playstyleKey, reasonKey, vibeKey, yourGameOf } from '@/l
 // from the player's own (non-guest) bookings only. Contact and emergency
 // details appear here for admins and never in player-facing Community views.
 
-interface Activity { booked: number; played: number; attended: number; upcoming: number; last: string | null }
+interface Activity { booked: number; played: number; upcoming: number; last: string | null }
 type BookingRow = { user_id: string; booking_status: string; is_guest: boolean; session: { session_date: string } | null };
 
 const ACTIVE = ['Pending Payment', 'Confirmed', 'Completed', 'No Show'];
@@ -46,15 +46,16 @@ export default function AdminPlayersPage() {
       const map = new Map<string, Activity>();
       ((bs || []) as unknown as BookingRow[]).forEach((b) => {
         if (!ACTIVE.includes(b.booking_status) || !b.session) return;
-        const a = map.get(b.user_id) || { booked: 0, played: 0, attended: 0, upcoming: 0, last: null };
+        const a = map.get(b.user_id) || { booked: 0, played: 0, upcoming: 0, last: null };
         const date = b.session.session_date;
         a.booked++;
         if (date >= today) a.upcoming++;
-        else if (b.booking_status !== 'Pending Payment') {
+        // Played = a past game with a Confirmed/Completed booking (same rule
+        // as the player card; no attendance).
+        else if (b.booking_status === 'Confirmed' || b.booking_status === 'Completed') {
           a.played++;
           if (!a.last || date > a.last) a.last = date;
         }
-        if (b.booking_status === 'Completed') a.attended++;
         map.set(b.user_id, a);
       });
       setProfiles((ps || []) as Profile[]);
@@ -143,7 +144,6 @@ export default function AdminPlayersPage() {
             <th className="w-32">Level</th>
             <th className="hidden w-24 lg:table-cell">Gender</th>
             <th className="w-24 text-right">Played</th>
-            <th className="w-24 text-right">Attended</th>
             <th className="w-32">Last game</th>
           </tr>
         </thead>
@@ -168,7 +168,6 @@ export default function AdminPlayersPage() {
                 <td>{p.skill_level || <span className="text-muted">-</span>}</td>
                 <td className="hidden lg:table-cell">{p.gender || <span className="text-muted">Not set</span>}</td>
                 <td className="text-right font-display text-lg font-bold text-chalk">{a?.played ?? 0}</td>
-                <td className="text-right font-display text-lg font-bold text-chalk">{a?.attended ?? 0}</td>
                 <td className="text-slate-300">{a?.last ? formatDateShort(a.last) : <span className="text-muted">Never</span>}</td>
               </tr>
             );
@@ -240,7 +239,6 @@ function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profi
   }, [onClose]);
 
   const name = profile.short_name || profile.full_name;
-  const attendance = activity && activity.played > 0 ? Math.round((activity.attended / activity.played) * 100) : null;
   const facts: [string, string][] = [
     ['Full name', profile.full_name],
     ['Position', profile.playing_position || 'Not set'],
@@ -275,7 +273,7 @@ function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profi
           <section className="grid grid-cols-3 gap-4 border-b border-ink-600 pb-5">
             <Stat label="Played" value={activity?.played ?? 0} />
             <Stat label="Upcoming" value={activity?.upcoming ?? 0} />
-            <Stat label="Attended" value={activity?.attended ?? 0} hint={attendance !== null ? `${attendance}% of played` : undefined} />
+            <Stat label="Booked" value={activity?.booked ?? 0} hint="All-time places" />
           </section>
 
           <section>
@@ -310,7 +308,7 @@ function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profi
             ) : <Spinner className="h-4 w-4 text-vsb-500" />}
           </section>
 
-          <p className="text-xs text-muted">"Attended" counts bookings marked present in session attendance. Role changes are managed in Club Settings → Admins.</p>
+          <p className="text-xs text-muted">Played counts past games with a confirmed booking. Role changes are managed in Club Settings → Admins.</p>
         </div>
       </aside>
     </div>

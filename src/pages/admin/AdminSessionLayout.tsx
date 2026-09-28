@@ -12,8 +12,8 @@ import { sessionImage } from '@/lib/sessionMedia';
 import type { Session } from '@/types/database';
 import { useConsoleScope } from '@/lib/consoleScope';
 
-// Session operations workspace: /admin/sessions/:id[/bookings|/attendance|/waiting-list].
-// Attendance and the waiting list live here — in the context of one session —
+// Session operations workspace: /admin/sessions/:id[/bookings|/waiting-list].
+// The waiting list lives here, in the context of one session,
 // rather than as global admin destinations.
 
 export default function AdminSessionLayout() {
@@ -70,7 +70,6 @@ export default function AdminSessionLayout() {
   const tabs = [
     { to: '', label: 'Overview', end: true },
     { to: 'bookings', label: 'Bookings', count: session.active_count },
-    { to: 'attendance', label: 'Attendance' },
     { to: 'waiting-list', label: 'Waitlist', count: waitingCount },
   ];
 
