@@ -8,6 +8,10 @@ interface AuthContextValue {
   profile: Profile | null;
   loading: boolean;
   isAdmin: boolean;
+  /** Approved organizer: runs their own games in the console. */
+  isOrganizer: boolean;
+  /** Admin or organizer: may open the console. */
+  isStaff: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -69,6 +73,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     profile,
     loading,
     isAdmin: profile?.role === 'admin',
+    isOrganizer: profile?.role === 'organizer',
+    isStaff: profile?.role === 'admin' || profile?.role === 'organizer',
     refreshProfile,
     signOut,
   };

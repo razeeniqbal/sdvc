@@ -6,6 +6,7 @@ import { useToast } from '@/context/ToastContext';
 import { bookingDisplayName, formatCurrency, formatDateTime } from '@/lib/format';
 import { uploadReceipt, getReceiptSignedUrl } from '@/lib/receipts';
 import { notifyReceiptUploaded } from '@/lib/notifications';
+import { useSessionPayee } from '@/lib/organizers';
 import type { Booking, Session, Profile } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
@@ -13,14 +14,16 @@ interface ReceiptUploadProps {
   booking: Booking;
   session: Session;
   profile: Profile;
+  /** Club QR. Games created by an organizer use that organizer's QR instead. */
   qrUrl?: string | null;
   /** Companion bookings made in the same checkout (including `booking` itself), if any. */
   groupBookings?: Booking[];
   onUploaded?: (path: string) => void;
 }
 
-export function ReceiptUpload({ booking, session, profile, qrUrl, groupBookings, onUploaded }: ReceiptUploadProps) {
+export function ReceiptUpload({ booking, session, profile, qrUrl: clubQrUrl, groupBookings, onUploaded }: ReceiptUploadProps) {
   const { t } = useTranslation();
+  const { qrUrl, organizer } = useSessionPayee(session.id, clubQrUrl);
   const { show } = useToast();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
@@ -94,6 +97,16 @@ export function ReceiptUpload({ booking, session, profile, qrUrl, groupBookings,
           <button type="button" onClick={() => setShowQrLightbox(true)} className="text-xs text-vsb-400 hover:underline mt-0.5">
             {t('receipt.tapToEnlarge')}
           </button>
+          {organizer && (
+            <div className="mt-3 text-center text-sm">
+              <p className="text-slate-300">{t('v2.organizer.payTo', { name: organizer.name })}</p>
+              {(organizer.bankName || organizer.accountNumber) && (
+                <p className="mt-0.5 font-mono text-xs text-slate-400">
+                  {[organizer.bankName, organizer.accountName, organizer.accountNumber].filter(Boolean).join(' · ')}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

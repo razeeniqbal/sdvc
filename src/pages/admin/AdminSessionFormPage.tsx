@@ -8,8 +8,11 @@ import type { Session, SessionStatus, SkillLevel } from '@/types/database';
 import { SKILL_LEVELS } from '@/lib/volleyball';
 import { sessionImage, uploadSessionCover } from '@/lib/sessionMedia';
 import { Spinner } from '@/components/LoadingScreen';
+import { useConsoleScope } from '@/lib/consoleScope';
 
 export default function AdminSessionFormPage() {
+  const scope = useConsoleScope();
+  const [notYours, setNotYours] = useState(false);
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
@@ -52,6 +55,7 @@ export default function AdminSessionFormPage() {
         const { data } = await supabase.from('sessions').select('*').eq('id', id).maybeSingle();
         if (data) {
           const s = data as Session;
+          if (scope.ownerId && s.created_by !== scope.ownerId) { setNotYours(true); setLoading(false); return; }
           setForm({
             title: s.title,
             description: s.description || '',
@@ -83,7 +87,8 @@ export default function AdminSessionFormPage() {
       // Prefill new session from the most recently created one, so recurring
       // weekly sessions only need the date changed. Each newly created session
       // becomes the source for the next prefill.
-      const { data: last } = await supabase.from('sessions').select('*').order('created_at', { ascending: false }).limit(1).maybeSingle();
+      const lastQuery = supabase.from('sessions').select('*').order('created_at', { ascending: false }).limit(1);
+      const { data: last } = await (scope.ownerId ? lastQuery.eq('created_by', scope.ownerId) : lastQuery).maybeSingle();
       if (last) {
         const s = last as Session;
         setForm((f) => ({
@@ -106,7 +111,7 @@ export default function AdminSessionFormPage() {
       }
       setLoading(false);
     })();
-  }, [id]);
+  }, [id, scope.ownerId]);
 
   // Upserts or clears this session's passkey row to match the form field — a blank
   // field means the session goes back to (or stays) public. Returns the error (if any)
@@ -205,6 +210,15 @@ export default function AdminSessionFormPage() {
 
     setSaving(false);
     navigate('/admin/sessions');
+  }
+
+  if (notYours) {
+    return (
+      <div className="adm-page">
+        <p className="font-display text-2xl font-bold uppercase text-chalk">Session not found</p>
+        <p className="mt-1 text-sm text-muted">You can only edit games you created.</p>
+      </div>
+    );
   }
 
   if (loading) {

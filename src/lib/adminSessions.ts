@@ -15,9 +15,11 @@ export interface AdminSession extends Session {
 // booking becomes once attendance marks the player present.
 export const PLACE_HOLDING = ['Pending Payment', 'Confirmed', 'Completed'];
 
-export async function fetchAdminSessions(): Promise<AdminSession[]> {
+// ownerId: organizer console, only their own sessions.
+export async function fetchAdminSessions(ownerId: string | null = null): Promise<AdminSession[]> {
+  const sessionsQuery = supabase.from('sessions').select('*').order('session_date', { ascending: true });
   const [{ data: sessions }, { data: active }] = await Promise.all([
-    supabase.from('sessions').select('*').order('session_date', { ascending: true }),
+    ownerId ? sessionsQuery.eq('created_by', ownerId) : sessionsQuery,
     supabase.from('bookings').select('session_id, booking_status').in('booking_status', PLACE_HOLDING),
   ]);
   const tally = new Map<string, { confirmed: number; pending: number }>();

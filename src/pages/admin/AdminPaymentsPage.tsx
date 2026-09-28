@@ -5,13 +5,14 @@ import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { bookingDisplayName, formatCurrency, formatDateTime } from '@/lib/format';
 import { getReceiptSignedUrl } from '@/lib/receipts';
-import { ADMIN_BOOKING_SELECT, amountDue, confirmBooking, type AdminBooking } from '@/lib/adminBookings';
+import { amountDue, confirmBooking, type AdminBooking } from '@/lib/adminBookings';
 import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { AdminPageHeader } from '@/components/admin/AdminUI';
 import { BookingOpsBadge, PaymentOpsBadge } from '@/components/admin/statusBadges';
 import { BookingDetailSheet } from '@/components/admin/BookingDetailSheet';
 import { useAvatarMap } from '@/lib/avatars';
+import { scopeBookings, useConsoleScope } from '@/lib/consoleScope';
 
 // Payments = the human verification queue over existing booking/payment data.
 // No new payment model: "needs review" is a pending booking with a receipt,
@@ -37,6 +38,8 @@ function sessionLine(b: AdminBooking) {
 }
 
 export default function AdminPaymentsPage() {
+  const consoleScope = useConsoleScope();
+  const own = consoleScope.ownerId;
   const { show } = useToast();
   const [params, setParams] = useSearchParams();
   const qp = params.get('queue') as Queue | null;
@@ -52,14 +55,14 @@ export default function AdminPaymentsPage() {
     setLoading(true);
     const order = queue === 'review' ? { col: 'receipt_uploaded_at', asc: true } : { col: 'created_at', asc: false };
     const [list, ...cs] = await Promise.all([
-      scope(supabase.from('bookings').select(ADMIN_BOOKING_SELECT).order(order.col, { ascending: order.asc }), queue).limit(100),
-      ...(Object.keys(LABEL) as Queue[]).map((k) => scope(supabase.from('bookings').select('id', { count: 'exact', head: true }), k)),
+      scopeBookings(scope(supabase.from('bookings').select(consoleScope.bookingSelect).order(order.col, { ascending: order.asc }), queue), own).limit(100),
+      ...(Object.keys(LABEL) as Queue[]).map((k) => scopeBookings(scope(supabase.from('bookings').select(own ? 'id, session:sessions!inner(created_by)' : 'id', { count: 'exact', head: true }), k), own)),
     ]);
     setRows((list.data || []) as unknown as AdminBooking[]);
     const keys = Object.keys(LABEL) as Queue[];
     setCounts(Object.fromEntries(keys.map((k, i) => [k, cs[i].count ?? 0])) as Record<Queue, number>);
     setLoading(false);
-  }, [queue]);
+  }, [queue, own, consoleScope.bookingSelect]);
 
   useEffect(() => { load(); }, [load]);
 

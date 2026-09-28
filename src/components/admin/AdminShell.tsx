@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CalendarDays, CreditCard, LayoutGrid, LogOut, Menu, Settings, Ticket, Users, X, type LucideIcon } from 'lucide-react';
+import { ArrowLeft, CalendarDays, CreditCard, LayoutGrid, LogOut, Menu, QrCode, Settings, Ticket, Users, X, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { VsbLogo } from '@/components/VsbLogo';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { useMyAvatar } from '@/lib/avatars';
 
-// VSB Admin — the club operations console. Its own full-height application
+// VSB console: the club operations console for admins, and the organizer
+// console (own games only) for organizers. Its own full-height application
 // shell: no consumer navbar, footer or player tab bar. Attendance and the
 // waiting list are deliberately NOT here; they live inside a session.
 
@@ -26,10 +27,24 @@ const GROUPS: { heading?: string; items: Item[] }[] = [
   { heading: 'System', items: [{ to: '/admin/settings', label: 'Club Settings', icon: Settings }] },
 ];
 
+// Organizers: their own games, the money for them, and where players pay.
+const ORGANIZER_GROUPS: { heading?: string; items: Item[] }[] = [
+  {
+    heading: 'My games',
+    items: [
+      { to: '/admin/sessions', label: 'Sessions', icon: CalendarDays },
+      { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
+      { to: '/admin/payments', label: 'Payments', icon: CreditCard },
+    ],
+  },
+  { heading: 'Setup', items: [{ to: '/admin/payment-qr', label: 'Payment QR', icon: QrCode }] },
+];
+
 function NavItems({ onNavigate }: { onNavigate?: () => void }) {
+  const { isOrganizer } = useAuth();
   return (
-    <nav aria-label="Admin" className="flex-1 space-y-6 overflow-y-auto px-3 py-2">
-      {GROUPS.map((g, i) => (
+    <nav aria-label={isOrganizer ? 'Organizer' : 'Admin'} className="flex-1 space-y-6 overflow-y-auto px-3 py-2">
+      {(isOrganizer ? ORGANIZER_GROUPS : GROUPS).map((g, i) => (
         <div key={i}>
           {g.heading && <p className="adm-label mb-2 px-3">{g.heading}</p>}
           <ul className="space-y-0.5">
@@ -70,7 +85,7 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
-  const { profile, signOut } = useAuth();
+  const { profile, signOut, isOrganizer } = useAuth();
   const navigate = useNavigate();
   const name = profile?.short_name || profile?.full_name || 'Admin';
   const avatar = useMyAvatar(profile?.id);
@@ -83,7 +98,7 @@ function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
         <PlayerAvatar name={name} src={avatar?.thumb} size="sm" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-chalk">{name}</p>
-          <p className="text-xs text-muted">Administrator</p>
+          <p className="text-xs text-muted">{isOrganizer ? 'Organizer' : 'Administrator'}</p>
         </div>
         <button onClick={() => { signOut(); navigate('/'); }} aria-label="Sign out" className="p-1.5 text-muted hover:text-chalk">
           <LogOut className="h-4 w-4" />
@@ -94,10 +109,11 @@ function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function Brand() {
+  const { isOrganizer } = useAuth();
   return (
-    <Link to="/admin" className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400">
+    <Link to={isOrganizer ? '/admin/sessions' : '/admin'} className="flex items-center gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400">
       <VsbLogo variant="mark" className="h-6" />
-      <span className="border-l border-ink-500 pl-3 font-display text-sm font-bold uppercase tracking-[0.25em] text-muted">Admin</span>
+      <span className="border-l border-ink-500 pl-3 font-display text-sm font-bold uppercase tracking-[0.25em] text-muted">{isOrganizer ? 'Organizer' : 'Admin'}</span>
     </Link>
   );
 }

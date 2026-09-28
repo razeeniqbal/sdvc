@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { ChevronLeft, ChevronRight, Download, Receipt, Search } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { bookingDisplayName, formatCurrency } from '@/lib/format';
-import { ADMIN_BOOKING_SELECT, amountDue, type AdminBooking } from '@/lib/adminBookings';
+import { amountDue, type AdminBooking } from '@/lib/adminBookings';
 import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { AdminPageHeader } from '@/components/admin/AdminUI';
@@ -10,6 +10,7 @@ import { BookingOpsBadge, PaymentOpsBadge } from '@/components/admin/statusBadge
 import { BookingDetailSheet } from '@/components/admin/BookingDetailSheet';
 import type { Session } from '@/types/database';
 import { useAvatarMap } from '@/lib/avatars';
+import { scopeBookings, scopeSessions, useConsoleScope } from '@/lib/consoleScope';
 
 const PAGE_SIZE = 25;
 
@@ -37,6 +38,7 @@ function shortDate(iso: string) {
 // Also rendered inside the session workspace (Bookings tab) with `sessionId`,
 // which locks the session filter and drops the page-level header.
 export default function AdminBookingsPage({ sessionId }: { sessionId?: string } = {}) {
+  const scope = useConsoleScope();
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
@@ -86,8 +88,8 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
     const to = from + PAGE_SIZE - 1;
     const term = sanitizeSearchTerm(filters.search);
     const userIds = term ? await getSearchUserIds(term) : [];
-    let query = supabase.from('bookings').select(ADMIN_BOOKING_SELECT, { count: 'exact' }).order('created_at', { ascending: false });
-    query = applyFilters(query, term, userIds);
+    let query = supabase.from('bookings').select(scope.bookingSelect, { count: 'exact' }).order('created_at', { ascending: false });
+    query = scopeBookings(applyFilters(query, term, userIds), scope.ownerId);
     const { data, count } = await query.range(from, to);
     setBookings((data || []) as unknown as AdminBooking[]);
     setTotalCount(count ?? 0);
@@ -97,8 +99,8 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
 
   useEffect(() => {
     if (sessionId) return;
-    supabase.from('sessions').select('*').order('session_date', { ascending: false }).then(({ data }) => setSessions((data || []) as Session[]));
-  }, [sessionId]);
+    scopeSessions(supabase.from('sessions').select('*').order('session_date', { ascending: false }), scope.ownerId).then(({ data }) => setSessions((data || []) as Session[]));
+  }, [sessionId, scope.ownerId]);
 
   // Single debounced trigger for every filter + page change — short enough to
   // feel instant for clicks while coalescing keystrokes in the search box.
@@ -111,8 +113,8 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
     setExporting(true);
     const term = sanitizeSearchTerm(filters.search);
     const userIds = term ? await getSearchUserIds(term) : [];
-    let query = supabase.from('bookings').select(ADMIN_BOOKING_SELECT).order('created_at', { ascending: false });
-    query = applyFilters(query, term, userIds);
+    let query = supabase.from('bookings').select(scope.bookingSelect).order('created_at', { ascending: false });
+    query = scopeBookings(applyFilters(query, term, userIds), scope.ownerId);
     const { data } = await query;
     const rows = ((data || []) as unknown as AdminBooking[]).map((b) => [
       b.booking_reference,

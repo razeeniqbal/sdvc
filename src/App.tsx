@@ -5,7 +5,7 @@ import { ToastProvider } from '@/context/ToastContext';
 import { Navbar, PlayerTabBar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { LoadingScreen } from '@/components/LoadingScreen';
-import { ProtectedRoute, AdminRoute } from '@/components/ProtectedRoute';
+import { ProtectedRoute, AdminRoute, AdminOnly, OrganizerOnly } from '@/components/ProtectedRoute';
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ScrollToTop } from '@/components/ScrollToTop';
@@ -39,6 +39,7 @@ const AdminWaitingListPage = lazy(() => import('@/pages/admin/AdminWaitingListPa
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 const AdminPaymentsPage = lazy(() => import('@/pages/admin/AdminPaymentsPage'));
 const AdminPlayersPage = lazy(() => import('@/pages/admin/AdminPlayersPage'));
+const OrganizerPaymentPage = lazy(() => import('@/pages/admin/OrganizerPaymentPage'));
 
 // Dev-only design review route; the import is dead-code-eliminated in production builds.
 const V2PreviewPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/V2PreviewPage')) : null;
@@ -74,7 +75,7 @@ const Lazy = ({ children }: { children: ReactNode }) => <Suspense fallback={<Loa
 function adminRoutes(base: string) {
   return (
     <>
-      <Route index element={<Lazy><AdminDashboardPage /></Lazy>} />
+      <Route index element={<AdminOnly><Lazy><AdminDashboardPage /></Lazy></AdminOnly>} />
       <Route path="sessions" element={<Lazy><AdminSessionsPage /></Lazy>} />
       <Route path="sessions/new" element={<Lazy><AdminSessionFormPage /></Lazy>} />
       <Route path="sessions/:id/edit" element={<Lazy><AdminSessionFormPage /></Lazy>} />
@@ -87,8 +88,9 @@ function adminRoutes(base: string) {
       </Route>
       <Route path="bookings" element={<Lazy><AdminBookingsPage /></Lazy>} />
       <Route path="payments" element={<Lazy><AdminPaymentsPage /></Lazy>} />
-      <Route path="players" element={<Lazy><AdminPlayersPage /></Lazy>} />
-      <Route path="settings" element={<Lazy><AdminSettingsPage /></Lazy>} />
+      <Route path="players" element={<AdminOnly><Lazy><AdminPlayersPage /></Lazy></AdminOnly>} />
+      <Route path="settings" element={<AdminOnly><Lazy><AdminSettingsPage /></Lazy></AdminOnly>} />
+      <Route path="payment-qr" element={<OrganizerOnly><Lazy><OrganizerPaymentPage /></Lazy></OrganizerOnly>} />
       <Route path="*" element={<Navigate to={base} replace />} />
     </>
   );

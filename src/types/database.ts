@@ -31,7 +31,7 @@ export type WaitingListStatus = 'Waiting' | 'Offered' | 'Booked' | 'Expired' | '
 
 export type AttendanceStatus = 'Attended' | 'Absent' | 'No Show' | 'Cancelled';
 
-export type UserRole = 'player' | 'admin';
+export type UserRole = 'player' | 'admin' | 'organizer';
 
 export type Gender = 'Male' | 'Female';
 
@@ -186,3 +186,24 @@ export const PAYMENT_METHODS: PaymentMethod[] = [
   'Manual Bank Transfer',
   'Cash',
 ];
+
+export type OrganizerApplicationStatus = 'pending' | 'approved' | 'rejected';
+
+export interface OrganizerApplication {
+  id: string;
+  user_id: string;
+  message: string;
+  status: OrganizerApplicationStatus;
+  reviewed_by: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+}
+
+export interface OrganizerPaymentProfile {
+  user_id: string;
+  qr_path: string | null;
+  bank_name: string | null;
+  account_name: string | null;
+  account_number: string | null;
+  updated_at: string;
+}

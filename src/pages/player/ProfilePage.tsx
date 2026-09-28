@@ -16,6 +16,7 @@ import { fetchMyEntitlement, useMyAvatar, type Entitlement } from '@/lib/avatars
 import type { PlayingPosition, SkillLevel } from '@/types/database';
 import { vsbAssets } from '@/lib/vsbAssets';
 import { setShowInCommunity } from '@/lib/community';
+import { OrganizeSection } from '@/components/vsb/OrganizeSection';
 
 // MY VSB — the player's hub. Hierarchy: identity → next game → recent games
 // → volleyball profile → account & safety. Profile/account editing is inline
@@ -285,6 +286,9 @@ export default function ProfilePage() {
         </div>
         <p className="mt-2 text-sm font-semibold text-muted" aria-live="polite">{profile.show_in_community ? t('v2.community.visibleOn') : t('v2.community.visibleOff')}</p>
       </section>
+
+      {/* ===== Organize games ===== */}
+      <OrganizeSection />
 
       {/* ===== Account & safety ===== */}
       <section id="settings" aria-labelledby="acct-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">

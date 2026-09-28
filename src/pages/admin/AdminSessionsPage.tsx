@@ -11,6 +11,8 @@ import { sendGroupBlast } from '@/lib/notifications';
 import { Spinner } from '@/components/LoadingScreen';
 import { AdminPageHeader, OpsBadge } from '@/components/admin/AdminUI';
 import type { Session } from '@/types/database';
+import { useConsoleScope } from '@/lib/consoleScope';
+import { useAuth } from '@/context/AuthContext';
 
 type Filter = 'upcoming' | 'completed' | 'cancelled' | 'all';
 
@@ -20,6 +22,8 @@ function dateBits(iso: string) {
 }
 
 export default function AdminSessionsPage() {
+  const scope = useConsoleScope();
+  const { profile } = useAuth();
   const { show } = useToast();
   const navigate = useNavigate();
   const [sessions, setSessions] = useState<AdminSession[]>([]);
@@ -60,11 +64,12 @@ export default function AdminSessionsPage() {
   }
 
   async function load() {
-    setSessions(await fetchAdminSessions());
+    setSessions(await fetchAdminSessions(scope.ownerId));
     setLoading(false);
   }
 
-  useEffect(() => { load(); }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { load(); }, [scope.ownerId]);
 
   async function handleDuplicate(id: string) {
     const session = sessions.find((s) => s.id === id);
@@ -90,6 +95,7 @@ export default function AdminSessionsPage() {
       cancellation_deadline: session.cancellation_deadline,
       status: session.status,
       notes: session.notes,
+      created_by: profile?.id,
     });
     if (error) { show(error.message, 'error'); return; }
     show('Session duplicated for next week', 'success');

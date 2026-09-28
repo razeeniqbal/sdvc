@@ -10,6 +10,7 @@ import { Spinner } from '@/components/LoadingScreen';
 import { OpsBadge } from '@/components/admin/AdminUI';
 import { sessionImage } from '@/lib/sessionMedia';
 import type { Session } from '@/types/database';
+import { useConsoleScope } from '@/lib/consoleScope';
 
 // Session operations workspace: /admin/sessions/:id[/bookings|/attendance|/waiting-list].
 // Attendance and the waiting list live here — in the context of one session —
@@ -21,6 +22,7 @@ export default function AdminSessionLayout() {
   const [session, setSession] = useState<AdminSession | null>(null);
   const [waitingCount, setWaitingCount] = useState(0);
   const [missing, setMissing] = useState(false);
+  const scope = useConsoleScope();
 
   const reload = useCallback(async () => {
     if (!id) return;
@@ -29,12 +31,12 @@ export default function AdminSessionLayout() {
       supabase.from('bookings').select('booking_status').eq('session_id', id).in('booking_status', PLACE_HOLDING),
       supabase.from('waiting_list').select('id', { count: 'exact', head: true }).eq('session_id', id).eq('status', 'Waiting'),
     ]);
-    if (!s) { setMissing(true); return; }
+    if (!s || (scope.ownerId && (s as Session).created_by !== scope.ownerId)) { setMissing(true); return; }
     const confirmed = (active || []).filter((b: { booking_status: string }) => b.booking_status !== 'Pending Payment').length;
     const pending = (active || []).length - confirmed;
     setSession({ ...(s as Session), confirmed_count: confirmed, pending_count: pending, active_count: confirmed + pending });
     setWaitingCount(waiting ?? 0);
-  }, [id]);
+  }, [id, scope.ownerId]);
 
   useEffect(() => { reload(); }, [reload]);
 

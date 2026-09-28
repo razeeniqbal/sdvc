@@ -22,7 +22,7 @@ const topLink = ({ isActive }: { isActive: boolean }) =>
 
 export function Navbar() {
   const { t } = useTranslation();
-  const { profile, isAdmin, signOut } = useAuth();
+  const { profile, isAdmin, isOrganizer, signOut } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -82,10 +82,10 @@ export function Navbar() {
                 <div role="menu" className="animate-pop absolute right-0 mt-2 w-60 origin-top-right border border-ink-600 bg-ink-800 py-2 shadow-2xl shadow-black/50">
                   <Link role="menuitem" to="/profile" className={itemClass}>{t('v2.nav.myVsb')}</Link>
                   <Link role="menuitem" to="/bookings" className={itemClass}>{t('v2.nav.myGames')}</Link>
-                  {isAdmin && (
+                  {(isAdmin || isOrganizer) && (
                     <div className="my-2 border-t border-ink-600 pt-2">
-                      <Link role="menuitem" to="/admin" className={`${itemClass} flex items-center gap-2`}>
-                        <ShieldCheck className="h-4 w-4 text-vsb-400" aria-hidden /> {t('v2.nav.adminConsole')}
+                      <Link role="menuitem" to={isAdmin ? '/admin' : '/admin/sessions'} className={`${itemClass} flex items-center gap-2`}>
+                        <ShieldCheck className="h-4 w-4 text-vsb-400" aria-hidden /> {isAdmin ? t('v2.nav.adminConsole') : t('v2.nav.organizerConsole')}
                       </Link>
                     </div>
                   )}

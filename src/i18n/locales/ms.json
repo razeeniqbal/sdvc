@@ -561,7 +561,8 @@
       "language": "Bahasa",
       "mobileLabel": "Utama",
       "adminConsole": "Konsol Admin",
-      "community": "Komuniti"
+      "community": "Komuniti",
+      "organizerConsole": "Konsol Penganjur"
     },
     "footer": {
       "tagline": "Kenal · Main · Hubung · Bersama",
@@ -720,6 +721,22 @@
         "Closed": "Ditutup",
         "Cancelled": "Dibatalkan"
       }
+    },
+    "organizer": {
+      "payTo": "Bayar kepada penganjur, {{name}}, untuk permainan ini.",
+      "title": "Anjur permainan",
+      "intro": "Mahu menganjurkan permainan VSB sendiri? Penganjur mencipta sesi, mengesahkan bayaran dan merekod kehadiran untuk permainan mereka, dan pemain membayar terus kepada mereka. Setiap permohonan disemak oleh admin.",
+      "messageLabel": "Ceritakan tentang permainan anda (pilihan)",
+      "messagePlaceholder": "Contohnya: di mana dan bila anda bermain, dan berapa ramai pemain biasanya menyertai.",
+      "apply": "Mohon jadi penganjur",
+      "applied": "Permohonan dihantar. Admin akan menyemaknya.",
+      "applyError": "Tidak dapat menghantar permohonan. Cuba lagi.",
+      "pendingTitle": "Permohonan dihantar",
+      "pendingBody": "Anda memohon pada {{date}}. Admin akan menyemaknya dan anda akan menerima pemberitahuan.",
+      "rejected": "Permohonan anda pada {{date}} tidak diluluskan. Anda boleh memohon semula.",
+      "youAre": "Anda seorang penganjur. Cipta permainan, sahkan bayaran dan rekod kehadiran dalam Konsol Penganjur.",
+      "noQr": "Tambah QR pembayaran anda supaya pemain boleh membayar anda. Sehingga itu, mereka melihat QR kelab.",
+      "paymentQr": "QR pembayaran"
     }
   }
 }

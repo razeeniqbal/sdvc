@@ -7,6 +7,7 @@ import { PLAYING_POSITIONS, POSITION_ABBR, SKILL_LEVELS } from '@/lib/volleyball
 import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { AdminPageHeader, OpsBadge, Stat } from '@/components/admin/AdminUI';
+import { OrganizerApplications } from '@/components/admin/OrganizerApplications';
 import type { Profile } from '@/types/database';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
@@ -80,7 +81,7 @@ export default function AdminPlayersPage() {
 
   if (loading) return <div className="flex min-h-[60vh] items-center justify-center"><Spinner className="h-8 w-8 text-vsb-500" /></div>;
 
-  const members = profiles.filter((p) => p.role === 'player');
+  const members = profiles.filter((p) => p.role === 'player' || p.role === 'organizer');
   const activeRecently = members.filter((p) => {
     const last = activity.get(p.id)?.last;
     if (!last) return false;
@@ -92,6 +93,7 @@ export default function AdminPlayersPage() {
   return (
     <div className="adm-page">
       <AdminPageHeader meta="Operations" title="Players" subtitle="Everyone with a VSB account." />
+      <div className="mt-8"><OrganizerApplications /></div>
 
       <section aria-label="Membership numbers" className="grid grid-cols-2 gap-x-6 gap-y-8 border-y border-ink-600 py-6 lg:grid-cols-4">
         <Stat label="Registered players" value={members.length} hint={`${profiles.length - members.length} admin account${profiles.length - members.length === 1 ? '' : 's'} not counted`} />
@@ -157,6 +159,7 @@ export default function AdminPlayersPage() {
                       {p.short_name && p.short_name !== p.full_name && <span className="block truncate text-xs text-muted">{p.full_name}</span>}
                     </span>
                     {p.role === 'admin' && <OpsBadge tone="info">Admin</OpsBadge>}
+                    {p.role === 'organizer' && <OpsBadge tone="good">Organizer</OpsBadge>}
                   </button>
                 </td>
                 <td className="font-display text-base font-bold text-vsb-300">{p.playing_position ? POSITION_ABBR[p.playing_position] : <span className="text-muted">-</span>}</td>
@@ -241,7 +244,7 @@ function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profi
     ['Skill level', profile.skill_level || 'Not set'],
     ['Gender', profile.gender || 'Not set'],
     ['Member since', formatDateShort(profile.created_at)],
-    ['Role', profile.role === 'admin' ? 'Administrator' : 'Player'],
+    ['Role', profile.role === 'admin' ? 'Administrator' : profile.role === 'organizer' ? 'Organizer' : 'Player'],
   ];
 
   return (
