@@ -130,9 +130,9 @@ export default function ProfilePage() {
     <div className="bg-ink text-chalk">
       {/* ===== Identity ===== */}
       <section id="card" aria-labelledby="myvsb-name" className="vsb-gutter relative scroll-mt-16 overflow-hidden border-b border-ink-600 py-10 lg:py-16">
-        <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:gap-16">
-          <div className="mx-auto w-full max-w-[20rem] lg:mx-0">
-            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} gender={profile.gender} stats={stats} artSrc={avatar?.image} />
+        <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] xl:gap-16">
+          <div className="mx-auto w-full max-w-[24rem] lg:mx-0">
+            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} stats={stats} artSrc={avatar?.image} />
             {(!avatar || entitlement?.unlimited || (entitlement?.remaining ?? 0) > 0) && (
               <Link to="/profile/player" className={`mt-4 w-full font-display uppercase tracking-wider ${avatar ? 'v2-btn-secondary' : 'v2-btn-primary'}`}>
                 {avatar ? t('v2.create.regenerate') : t('v2.landing.createPlayer')} <ArrowRight className="h-4 w-4" aria-hidden />

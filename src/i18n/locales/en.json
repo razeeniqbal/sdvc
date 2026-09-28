@@ -536,7 +536,8 @@
       "ariaLabel": "VSB player card for {{name}}",
       "games": "Games",
       "attended": "Attended",
-      "attendance": "Attendance"
+      "attendance": "Attendance",
+      "flexible": "Flexible"
     },
     "profile": {
       "title": "My VSB Player",
@@ -665,7 +666,14 @@
         "BAD_STYLE": "Something was out of date. Refresh the page and try again.",
         "UPLOAD_FAILED": "We couldn't upload your photo. Check your connection and try again.",
         "NETWORK": "Connection problem. Your free generation was not used, so you can try again."
-      }
+      },
+      "stepPosition": "Position",
+      "reusing": "Your card uses {{name}} · {{level}} from your profile.",
+      "firstFree": "Your first player generation is free.",
+      "readyTitle": "Your VSB player is ready.",
+      "readyAlt": "{{name}} as a VSB player",
+      "viewCard": "View player card",
+      "yourCard": "Your player card"
     },
     "community": {
       "meta": "The people of VSB",

@@ -4,14 +4,17 @@ import { useTranslation } from 'react-i18next';
 import { ArrowLeft, ArrowRight, ImagePlus, RotateCcw } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { fetchMyEntitlement, generateMyAvatar, GenerationError, useMyAvatar, type Entitlement } from '@/lib/avatars';
-import { POSITION_KEY, SKILL_LEVEL_KEY } from '@/lib/volleyball';
+import { PLAYING_POSITIONS, POSITION_KEY, SKILL_LEVEL_KEY } from '@/lib/volleyball';
+import { supabase } from '@/lib/supabase';
+import type { PlayingPosition } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 import { PlayerCard } from '@/components/PlayerCard';
 
-// CREATE YOUR VSB PLAYER — upload → crop/preview → confirm details →
-// free-generation confirmation → generate → saved. Uploading, cropping and
-// previewing happen in the browser and never touch the entitlement; only the
-// explicit "Generate" confirmation calls the server.
+// CREATE YOUR VSB PLAYER: photo → crop → position → generate → "your player
+// is ready". Only the photo and the position are asked for; name, level and
+// gender are reused from the profile. Uploading, cropping and previewing never
+// touch the entitlement; only the explicit "Generate" confirmation calls the
+// server. The AI is infrastructure: the result is presented as the player.
 
 type Step = 'upload' | 'crop' | 'confirm' | 'generating' | 'done' | 'error';
 
@@ -20,7 +23,7 @@ const OUTPUT = 1024; // exported square photo (px)
 
 export default function CreatePlayerPage() {
   const { t } = useTranslation();
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const avatar = useMyAvatar(profile?.id);
   const [step, setStep] = useState<Step>('upload');
@@ -32,6 +35,7 @@ export default function CreatePlayerPage() {
   const [cropped, setCropped] = useState<{ blob: Blob; url: string } | null>(null);
   const [confirming, setConfirming] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+  const [position, setPosition] = useState<PlayingPosition>(profile?.playing_position ?? 'Flexible / Any Position');
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -110,6 +114,12 @@ export default function CreatePlayerPage() {
     setConfirming(false);
     setStep('generating');
     try {
+      // Position is profile data (the card shows it); save a change first.
+      if (position !== profile.playing_position) {
+        const { error } = await supabase.from('profiles').update({ playing_position: position }).eq('id', profile.id);
+        if (error) throw error;
+        await refreshProfile();
+      }
       await generateMyAvatar(profile.id, cropped.blob);
       setStep('done');
     } catch (e) {
@@ -122,7 +132,7 @@ export default function CreatePlayerPage() {
   }
 
   const stepIndex = { upload: 1, crop: 2, confirm: 3, generating: 4, done: 4, error: 4 }[step];
-  const steps = [t('v2.create.stepPhoto'), t('v2.create.stepCrop'), t('v2.create.stepConfirm'), t('v2.create.stepGenerate')];
+  const steps = [t('v2.create.stepPhoto'), t('v2.create.stepCrop'), t('v2.create.stepPosition'), t('v2.create.stepGenerate')];
 
   return (
     <div className="bg-ink text-chalk">
@@ -132,7 +142,7 @@ export default function CreatePlayerPage() {
         </Link>
       </div>
 
-      <div className="vsb-gutter grid gap-12 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,22rem)] lg:py-16">
+      <div className="vsb-gutter grid gap-12 py-10 lg:grid-cols-[minmax(0,1fr)_minmax(0,24rem)] lg:py-16">
         <div className="min-w-0">
           <p className="vsb-meta mb-3">{t('v2.create.meta')}</p>
           <h1 className="vsb-display text-5xl sm:text-6xl">{t('v2.create.titleLine1')}<br /><span className="text-vsb-500">{t('v2.create.titleLine2')}</span></h1>
@@ -194,28 +204,34 @@ export default function CreatePlayerPage() {
               </div>
             )}
 
-            {/* 03 — confirm details */}
+            {/* 03 — position */}
             {step === 'confirm' && cropped && (
               <div className="grid gap-8 sm:grid-cols-[12rem_minmax(0,1fr)]">
                 <img src={cropped.url} alt={t('v2.create.yourPhoto')} className="h-48 w-48 border border-ink-600 object-cover" />
                 <div className="space-y-5">
-                  <p className="text-slate-300">{t('v2.create.confirmIntro')}</p>
-                  <dl className="grid grid-cols-2 gap-4">
-                    <Fact label={t('profile.displayNameLabel')} value={profile.short_name || profile.full_name} />
-                    <Fact label={t('v2.profile.position')} value={profile.playing_position ? t(POSITION_KEY[profile.playing_position]) : t('v2.profile.notSet')} />
-                    <Fact label={t('v2.sessions.skillLevel')} value={profile.skill_level ? t(SKILL_LEVEL_KEY[profile.skill_level]) : t('v2.profile.notSet')} />
-                  </dl>
-                  <p className="text-xs text-muted">{t('v2.create.detailsNote')} <Link to="/profile" className="text-vsb-400 hover:text-vsb-300">{t('v2.myVsb.edit')}</Link></p>
+                  <div>
+                    <label htmlFor="cp-position" className="vsb-meta mb-2 block">{t('v2.profile.position')}</label>
+                    <select id="cp-position" value={position} onChange={(e) => setPosition(e.target.value as PlayingPosition)} className="v2-input !py-3 !text-base">
+                      {PLAYING_POSITIONS.map((pos) => <option key={pos} value={pos}>{t(POSITION_KEY[pos])}</option>)}
+                    </select>
+                  </div>
+                  <p className="text-sm text-slate-400">
+                    {t('v2.create.reusing', { name: profile.short_name || profile.full_name, level: profile.skill_level ? t(SKILL_LEVEL_KEY[profile.skill_level]) : t('v2.profile.notSet') })}{' '}
+                    <Link to="/profile#profile-section" className="text-vsb-400 hover:text-vsb-300">{t('v2.myVsb.edit')}</Link>
+                  </p>
 
                   {entitlement && !canGenerate ? (
                     <p className="border-l-2 border-amber-400 pl-3 text-amber-200">{t('v2.create.noneLeft')}</p>
                   ) : (
-                    <div className="flex flex-wrap gap-3">
-                      <button onClick={() => setConfirming(true)} disabled={!entitlement} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
-                        {t('v2.create.generate')} <ArrowRight className="h-4 w-4" aria-hidden />
-                      </button>
-                      <button onClick={() => setStep('crop')} className="v2-btn-secondary"><RotateCcw className="h-4 w-4" aria-hidden /> {t('v2.create.recrop')}</button>
-                    </div>
+                    <>
+                      {isFirst && <p className="border-t border-ink-600 pt-4 text-slate-300">{t('v2.create.firstFree')}</p>}
+                      <div className="flex flex-wrap gap-3">
+                        <button onClick={() => setConfirming(true)} disabled={!entitlement} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
+                          {t('v2.create.generate')} <ArrowRight className="h-4 w-4" aria-hidden />
+                        </button>
+                        <button onClick={() => setStep('crop')} className="v2-btn-secondary"><RotateCcw className="h-4 w-4" aria-hidden /> {t('v2.create.recrop')}</button>
+                      </div>
+                    </>
                   )}
                 </div>
               </div>
@@ -233,10 +249,16 @@ export default function CreatePlayerPage() {
             )}
 
             {step === 'done' && (
-              <div className="space-y-5" role="status">
-                <p className="font-display text-3xl font-extrabold uppercase text-chalk">{t('v2.create.doneTitle')}</p>
-                <p className="text-slate-300">{t('v2.create.doneBody')}</p>
-                <button onClick={() => navigate('/profile')} className="v2-btn-primary font-display uppercase tracking-wider">{t('v2.create.toMyVsb')} <ArrowRight className="h-4 w-4" aria-hidden /></button>
+              <div role="status">
+                <p className="vsb-display text-5xl text-chalk sm:text-6xl">{t('v2.create.readyTitle')}</p>
+                {avatar?.image && (
+                  <img src={avatar.image} alt={t('v2.create.readyAlt', { name: profile.short_name || profile.full_name })}
+                    className="mt-6 h-[26rem] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:h-[32rem]" />
+                )}
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <button onClick={() => navigate('/profile')} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">{t('v2.create.toMyVsb')} <ArrowRight className="h-4 w-4" aria-hidden /></button>
+                  <button onClick={() => navigate('/profile#card')} className="v2-btn-secondary">{t('v2.create.viewCard')}</button>
+                </div>
               </div>
             )}
 
@@ -254,12 +276,12 @@ export default function CreatePlayerPage() {
         </div>
 
         {/* Live card preview */}
-        <aside className="mx-auto w-full max-w-[20rem]">
+        <aside className="mx-auto w-full max-w-[24rem]">
+          {step === 'done' && <p className="vsb-meta mb-3">{t('v2.create.yourCard')}</p>}
           <PlayerCard
             name={profile.short_name || profile.full_name}
-            position={profile.playing_position}
+            position={position}
             skill={profile.skill_level}
-            gender={profile.gender}
             stats={null}
             artSrc={avatar?.image}
           />

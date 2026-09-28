@@ -53,10 +53,16 @@ Two experiences, one design system:
 - **Behaviour changes wait for launch.** V1 on `main` shares this database.
   Anything that changes what V1 users experience lives in
   `supabase/launch/` (see its README) instead of `migrations/`.
+- **Player card composition** follows the approved V2 concept: the generated
+  character dominates the top and fades into the identity panel; position
+  abbreviation + VSB mark top-left (never a rating: VSB has none); name, then
+  position | level; games / attended / attendance from real data. No gender on
+  the card. Sized in card-width units (cqw) so phone cards scale, not shrink.
 - **Avatar generation** runs in the `generate-avatar` edge function, which
   owns the entitlement (1 free + admin grants, admins unlimited by DB role,
   idempotent, failed attempts don't count) and deletes source photos. Never
-  decide entitlement in the client. `VSB_PLAYER_V3` is an image EDIT
+  decide entitlement in the client. `VSB_PLAYER_V4` (V3 + no jersey number: VSB has no real numbers, so none is
+  ever invented) is an image EDIT
   (`/v1/images/edits`, `input_fidelity: high`, default model
   `gpt-image-1.5` with a recorded fallback to `gpt-image-1`): image 1 is the
   lossless production Player #10 on the 1024x1536 output canvas

@@ -20,8 +20,9 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 // A failed attempt is marked 'failed', which does not count against the
 // player's free generation. Earlier results are kept, never auto-deleted.
 //
-// Only the character is generated. Name, position, stats, logo and card
-// frame are drawn live by the app (PlayerCard).
+// Only the character is generated, in a clean VSB kit with no jersey number
+// (VSB has no real player numbers; none is ever invented). Name, position,
+// stats, logo and card frame are drawn live by the app (PlayerCard).
 //
 // Secrets: OPENAI_API_KEY (required). Optional: OPENAI_IMAGE_MODEL
 // (default gpt-image-1.5), OPENAI_IMAGE_QUALITY (default high).
@@ -34,20 +35,12 @@ const corsHeaders = {
 
 // Bump all three together when the style master or prompt changes.
 const STYLE_VERSION = 3;
-const PROMPT_VERSION = "VSB_PLAYER_V3";
+const PROMPT_VERSION = "VSB_PLAYER_V4"; // V4: no jersey number
 // SHA-256 of public/brand/avatar-style-v3.png (production Player #10, lossless).
 const STYLE_SHA256 = "d2c7fd2dcb2686acce39a04f9be6719137b47a9fe5dd90e14f9fd95ab5c44b66";
 const DEFAULT_MODEL = "gpt-image-1.5";
 const FALLBACK_MODEL = "gpt-image-1";
 const THUMB_SIZE = 256;
-
-// Stable per player (never changes between generations), 1-99, never 10 so
-// nobody is drawn as the master character's number. Replace with a real
-// jersey-number field when the app collects one.
-function jerseyNumber(userId: string): number {
-  const n = (parseInt(userId.replace(/-/g, "").slice(0, 8), 16) % 98) + 1;
-  return n >= 10 ? n + 1 : n;
-}
 
 function headwearRule(gender: string | null): string {
   if (gender === "Male") {
@@ -57,7 +50,7 @@ function headwearRule(gender: string | null): string {
   return `HEAD: ${hijab} Never draw a cap, hat or hood.`;
 }
 
-function buildPrompt(gender: string | null, number: number): string {
+function buildPrompt(gender: string | null): string {
   const genderLine = gender === "Male" ? "The player's profile says male." : gender === "Female" ? "The player's profile says female." : "";
   return [
     "Edit IMAGE 1. IMAGE 1 is the approved VSB production character (Player #10). IMAGE 2 is a photo of a real person.",
@@ -74,7 +67,7 @@ function buildPrompt(gender: string | null, number: number): string {
 
     `UNIFORM, exactly IMAGE 1's kit: short-sleeve deep-ink V-neck volleyball jersey with the same electric-blue geometric shoulder and side panels,`,
     `matching black volleyball shorts with blue side panels, black knee pads, black athletic socks and white volleyball shoes.`,
-    `Change the jersey number from 10 to ${number}: white, large, same font, size and position as IMAGE 1. Keep IMAGE 1's small emblems; add no other text.`,
+    "Remove the jersey number: the jersey front is plain, with no number, no letters and no text. Keep only IMAGE 1's small emblems.",
     "Never a hoodie, sweatshirt, tracksuit, jacket, long-sleeve top over the jersey, casual clothes or another sport's kit.",
 
     "POSE AND FRAMING: keep IMAGE 1's pose, camera angle and framing (full body, volleyball held at the hip, other hand on the hip), adjusting only as the new body needs.",
@@ -228,7 +221,7 @@ Deno.serve(async (req: Request) => {
     // Explicit profile data only (never inferred from the photo).
     const { data: prof } = await admin.from("profiles").select("gender").eq("id", user.id).maybeSingle();
     const gender = prof?.gender ?? null;
-    const prompt = buildPrompt(gender, jerseyNumber(user.id));
+    const prompt = buildPrompt(gender);
 
     const { data: photo, error: dlError } = await admin.storage.from("player-sources").download(sourcePath);
     if (dlError || !photo) return await fail(`download: ${dlError?.message}`, "We couldn't read your photo. Please upload it again.", 400);

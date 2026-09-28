@@ -91,11 +91,11 @@ export default function V2PreviewPage() {
 
       <section className="vsb-section grid items-start gap-10 border-t border-ink-600 md:grid-cols-2">
         <div className="w-[19rem]">
-          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" gender="Male" stats={{ played: 24, attended: 22, attendancePct: 92 }} artSrc={vsbAssets.players[0].full.src} />
-          <div className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" gender="Male" stats={{ played: 1, attended: 0, attendancePct: null }} /></div>
+          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" stats={{ played: 24, attended: 22, attendancePct: 92 }} artSrc={vsbAssets.players[0].full.src} />
+          <div className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" stats={{ played: 1, attended: 0, attendancePct: null }} /></div>
           {/* generated art (transparent margins): V3 accepted, V2 wider figure */}
           {GENERATED_SAMPLES.map((src) => (
-            <div key={src} className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" gender="Male" stats={{ played: 1, attended: 0, attendancePct: null }} artSrc={src} /></div>
+            <div key={src} className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" stats={{ played: 1, attended: 0, attendancePct: null }} artSrc={src} /></div>
           ))}
         </div>
         <div className="space-y-6">

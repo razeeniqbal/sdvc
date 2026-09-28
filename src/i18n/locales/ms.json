@@ -536,7 +536,8 @@
       "ariaLabel": "Kad pemain VSB untuk {{name}}",
       "games": "Permainan",
       "attended": "Hadir",
-      "attendance": "Kehadiran"
+      "attendance": "Kehadiran",
+      "flexible": "Fleksibel"
     },
     "profile": {
       "title": "Pemain VSB Saya",
@@ -665,7 +666,14 @@
         "BAD_STYLE": "Ada sesuatu yang lapuk. Muat semula halaman dan cuba lagi.",
         "UPLOAD_FAILED": "Foto tidak dapat dimuat naik. Semak sambungan dan cuba lagi.",
         "NETWORK": "Masalah sambungan. Penjanaan percuma anda tidak digunakan, jadi anda boleh cuba lagi."
-      }
+      },
+      "stepPosition": "Posisi",
+      "reusing": "Kad anda menggunakan {{name}} · {{level}} daripada profil anda.",
+      "firstFree": "Penjanaan pemain pertama anda adalah percuma.",
+      "readyTitle": "Pemain VSB anda sudah siap.",
+      "readyAlt": "{{name}} sebagai pemain VSB",
+      "viewCard": "Lihat kad pemain",
+      "yourCard": "Kad pemain anda"
     },
     "community": {
       "meta": "Warga VSB",
