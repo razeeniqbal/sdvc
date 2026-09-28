@@ -43,6 +43,7 @@ const OrganizerPaymentPage = lazy(() => import('@/pages/admin/OrganizerPaymentPa
 // Dev-only design review route; the import is dead-code-eliminated in production builds.
 const V2PreviewPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/V2PreviewPage')) : null;
 const AvatarComparePage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/AvatarComparePage')) : null;
+const PlayerPreviewPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/PlayerPreviewPage')) : null;
 
 // VSB Play: public + player screens share the consumer chrome (nav, footer,
 // mobile tab bar). VSB Admin gets its own full-height console (AdminShell).
@@ -124,6 +125,7 @@ function App() {
 
               {V2PreviewPage && <Route path="/__v2-preview" element={<V2PreviewPage />} />}
               {AvatarComparePage && <Route path="/__avatar-compare" element={<AvatarComparePage />} />}
+              {PlayerPreviewPage && <Route path="/__player-preview/:page" element={<PlayerPreviewPage />} />}
             </Route>
 
             {/* ===== VSB Admin ===== */}

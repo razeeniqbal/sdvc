@@ -91,7 +91,7 @@ export default function AdminDashboardPage() {
       <AdminPageHeader
         meta="Operations / Overview"
         title={<>{greeting()}{profile?.short_name ? `, ${profile.short_name}` : ''}.</>}
-        subtitle="Here's what's happening at VSB."
+        subtitle={new Date().toLocaleDateString('en-MY', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
         actions={<Link to="/admin/sessions/new" className="v2-btn-primary font-display uppercase tracking-wider"><Plus className="h-4 w-4" aria-hidden /> Create session</Link>}
       />
 

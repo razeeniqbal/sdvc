@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { QrCode, Upload, CheckCircle2, ZoomIn, X } from 'lucide-react';
+import { Upload, CheckCircle2, ZoomIn, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { bookingDisplayName, formatCurrency, formatDateTime } from '@/lib/format';
@@ -77,89 +77,70 @@ export function ReceiptUpload({ booking, session, profile, qrUrl: clubQrUrl, gro
   }
 
   return (
-    <div className="bg-vsb-900/40 border border-vsb-700 rounded-xl p-4">
+    <div className="border-y border-ink-600">
       {session.price > 0 && qrUrl && (
-        <div className="flex flex-col items-center mb-4 pb-4 border-b border-vsb-700">
-          <button
-            type="button"
-            onClick={() => setShowQrLightbox(true)}
-            className="relative group rounded-lg overflow-hidden border border-vsb-700"
-          >
-            <img src={qrUrl} alt="Payment QR code" className="w-40 h-40 object-contain bg-white p-2" />
-            <span className="absolute inset-0 flex items-center justify-center bg-black/0 group-hover:bg-black/30 transition-colors">
-              <ZoomIn className="h-6 w-6 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+        <div className="flex flex-col gap-5 border-b border-ink-700 py-5 sm:flex-row sm:items-start">
+          <button type="button" onClick={() => setShowQrLightbox(true)} aria-label={t('receipt.tapToEnlarge')}
+            className="group relative flex-shrink-0 self-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400">
+            <img src={qrUrl} alt={t('receipt.qrAlt')} className="h-44 w-44 bg-white object-contain p-2" />
+            <span className="absolute inset-0 flex items-center justify-center bg-black/0 transition-colors group-hover:bg-black/30">
+              <ZoomIn className="h-6 w-6 text-white opacity-0 transition-opacity group-hover:opacity-100" aria-hidden />
             </span>
           </button>
-          <p className="flex items-center gap-1.5 text-sm text-vsb-200 font-medium mt-2">
-            <QrCode className="h-4 w-4" />
-            {t('receipt.scanToPay')}
-          </p>
-          <button type="button" onClick={() => setShowQrLightbox(true)} className="text-xs text-vsb-400 hover:underline mt-0.5">
-            {t('receipt.tapToEnlarge')}
-          </button>
-          {organizer && (
-            <div className="mt-3 text-center text-sm">
-              <p className="text-slate-300">{t('v2.organizer.payTo', { name: organizer.name })}</p>
-              {(organizer.bankName || organizer.accountNumber) && (
-                <p className="mt-0.5 font-mono text-xs text-slate-400">
-                  {[organizer.bankName, organizer.accountName, organizer.accountNumber].filter(Boolean).join(' · ')}
-                </p>
-              )}
-            </div>
-          )}
+          <div className="min-w-0">
+            <p className="font-display text-xl font-bold uppercase tracking-wide text-chalk"><span className="mr-2 text-vsb-500">01</span>{t('receipt.scanToPay')}</p>
+            <p className="mt-1 font-display text-3xl font-extrabold text-chalk">{formatCurrency(totalAmount)}</p>
+            {organizer && (
+              <div className="mt-2 text-sm">
+                <p className="text-slate-300">{t('v2.organizer.payTo', { name: organizer.name })}</p>
+                {(organizer.bankName || organizer.accountNumber) && (
+                  <p className="mt-0.5 font-mono text-xs text-slate-400">
+                    {[organizer.bankName, organizer.accountName, organizer.accountNumber].filter(Boolean).join(' · ')}
+                  </p>
+                )}
+              </div>
+            )}
+            <button type="button" onClick={() => setShowQrLightbox(true)} className="mt-2 text-sm font-semibold text-vsb-400 hover:text-vsb-300">
+              {t('receipt.tapToEnlarge')}
+            </button>
+          </div>
         </div>
       )}
 
-      <p className="font-semibold text-chalk text-sm mb-1">{t('receipt.title')}</p>
-      <p className="text-xs text-vsb-300 mb-3">{t('receipt.subtitle')}</p>
+      <div className="py-5">
+        <p className="font-display text-xl font-bold uppercase tracking-wide text-chalk">
+          {session.price > 0 && qrUrl && <span className="mr-2 text-vsb-500">02</span>}{t('receipt.title')}
+        </p>
+        <p className="mb-4 mt-1 text-sm text-slate-400">{t('receipt.subtitle')}</p>
 
-      <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} />
+        <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handleFileChange} disabled={uploading} aria-label={t('receipt.uploadButton')} />
 
-      {receiptPath && !uploading ? (
-        <div className="space-y-2">
-          <p className="flex items-center gap-1.5 text-sm text-green-400 font-medium">
-            <CheckCircle2 className="h-4 w-4" />
-            {uploadedAt ? t('receipt.uploadedAt', { date: formatDateTime(uploadedAt) }) : t('receipt.uploaded')}
-          </p>
-          <button
-            type="button"
-            onClick={() => fileInputRef.current?.click()}
-            className="text-xs font-semibold text-vsb-300 hover:underline"
-          >
-            {t('receipt.changeReceipt')}
+        {receiptPath && !uploading ? (
+          <div className="space-y-2">
+            <p className="flex items-center gap-1.5 text-sm font-medium text-green-400" role="status">
+              <CheckCircle2 className="h-4 w-4" aria-hidden />
+              {uploadedAt ? t('receipt.uploadedAt', { date: formatDateTime(uploadedAt) }) : t('receipt.uploaded')}
+            </p>
+            <button type="button" onClick={() => fileInputRef.current?.click()} className="text-sm font-semibold text-vsb-400 hover:text-vsb-300">
+              {t('receipt.changeReceipt')}
+            </button>
+          </div>
+        ) : (
+          <button type="button" onClick={() => fileInputRef.current?.click()} disabled={uploading} className="v2-btn-primary">
+            {uploading ? <Spinner className="h-4 w-4" /> : <Upload className="h-4 w-4" aria-hidden />}
+            {uploading ? t('receipt.uploading') : t('receipt.uploadButton')}
           </button>
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => fileInputRef.current?.click()}
-          disabled={uploading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-vsb-600 hover:bg-vsb-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
-        >
-          {uploading ? <Spinner className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
-          {uploading ? t('receipt.uploading') : t('receipt.uploadButton')}
-        </button>
-      )}
+        )}
+      </div>
 
       {/* QR lightbox */}
       {showQrLightbox && qrUrl && (
-        <div
-          className="fixed inset-0 bg-black/80 flex items-center justify-center z-50 px-4"
-          onClick={() => setShowQrLightbox(false)}
-        >
-          <button
-            type="button"
-            onClick={() => setShowQrLightbox(false)}
-            className="absolute top-4 right-4 text-white/80 hover:text-white"
-          >
-            <X className="h-7 w-7" />
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 px-4" onClick={() => setShowQrLightbox(false)}
+          onKeyDown={(e) => { if (e.key === 'Escape') setShowQrLightbox(false); }} role="dialog" aria-modal="true" aria-label={t('receipt.qrAlt')}>
+          <button type="button" autoFocus onClick={() => setShowQrLightbox(false)} aria-label={t('common.close')} className="absolute right-4 top-4 text-white/80 hover:text-white">
+            <X className="h-7 w-7" aria-hidden />
           </button>
-          <img
-            src={qrUrl}
-            alt="Payment QR code"
-            className="w-full max-w-xs sm:max-w-sm bg-white rounded-2xl p-4 object-contain"
-            onClick={(e) => e.stopPropagation()}
-          />
+          <img src={qrUrl} alt={t('receipt.qrAlt')} className="w-full max-w-xs bg-white object-contain p-4 sm:max-w-sm" onClick={(e) => e.stopPropagation()} />
         </div>
       )}
     </div>

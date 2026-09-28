@@ -47,6 +47,19 @@
     content: ''; @apply absolute inset-x-0 -bottom-px h-0.5 bg-vsb-500;
   }
 
+  /* Environmental language: section index ("01 / PEOPLE", "VSB / SESSION")
+     and one very low-contrast word behind a composition. Both are quiet by
+     design; never put them on every section. */
+  .vsb-index { @apply font-display text-sm font-bold uppercase tracking-[0.3em] text-muted; }
+  .vsb-index b { @apply font-extrabold text-vsb-500; }
+  .vsb-watermark {
+    @apply pointer-events-none absolute select-none whitespace-nowrap font-display font-extrabold uppercase leading-none text-chalk;
+    opacity: 0.035; font-size: clamp(7rem, 18vw, 20rem); letter-spacing: -0.02em;
+  }
+
+  /* Loading placeholders shaped like the real content (no spinners on pages). */
+  .vsb-skel { @apply rounded-sm bg-ink-700; animation: vsb-skel 1.4s ease-in-out infinite; }
+
   /* Drill-down link beside a section heading ("VIEW ALL GAMES →", "EDIT →"). */
   .hub-link { @apply inline-flex flex-shrink-0 items-center gap-1.5 font-display text-base font-bold uppercase tracking-wider text-vsb-400 hover:text-vsb-300; }
 
@@ -80,8 +93,13 @@
 }
 .animate-pop { animation: vsb-pop 0.25s ease-out; }
 
+@keyframes vsb-skel {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-slide-up, .animate-pop { animation: none; }
+  .animate-slide-up, .animate-pop, .vsb-skel { animation: none; }
   html { scroll-behavior: auto; }
   * { transition-duration: 0.01ms !important; }
 }

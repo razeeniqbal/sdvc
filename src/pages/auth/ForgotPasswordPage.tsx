@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
-import { VsbLogo } from '@/components/VsbLogo';
+import { AuthLayout } from '@/components/layout/AuthLayout';
 import type { ClubSettings } from '@/types/database';
 import { MessageCircle } from 'lucide-react';
 
@@ -38,17 +38,7 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <VsbLogo variant="lockup" className="h-12 mx-auto mb-6" />
-          <h1 className="v2-heading text-3xl">{t('auth.forgotPassword.title')}</h1>
-          <p className="text-slate-400 text-sm mt-1">
-            {requested ? t('auth.forgotPassword.subtitleStep2') : t('auth.forgotPassword.subtitleStep1')}
-          </p>
-        </div>
-
-        <div className="v2-surface p-6 sm:p-8">
+    <AuthLayout title={<>{t('auth.forgotPassword.title')}</>} subtitle={<>{requested ? t('auth.forgotPassword.subtitleStep2') : t('auth.forgotPassword.subtitleStep1')}</>}>
           {!requested ? (
             <form onSubmit={handleRequestLink} className="space-y-3">
               <input
@@ -70,18 +60,16 @@ export default function ForgotPasswordPage() {
               href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('auth.forgotPassword.whatsappMessage', { clubName, phone }))}
               target="_blank"
               rel="noopener noreferrer"
-              className="w-full flex items-center justify-center gap-2 py-3 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-lg transition-colors"
+              className="flex w-full items-center justify-center gap-2 rounded-md bg-green-600 py-3 font-semibold text-white transition-colors hover:bg-green-700"
             >
               <MessageCircle className="h-5 w-5" />
               {t('auth.forgotPassword.askAdmin')}
             </a>
           )}
 
-          <p className="text-center text-sm text-slate-400 mt-5">
+          <p className="mt-6 border-t border-ink-600 pt-5 text-sm text-slate-400">
             <Link to="/login" className="text-vsb-400 font-medium hover:underline">{t('auth.forgotPassword.backToLogin')}</Link>
           </p>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 }

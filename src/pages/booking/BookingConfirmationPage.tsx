@@ -1,23 +1,25 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { CheckCircle2, Clock as ClockPending, Calendar, Clock, MapPin, Ticket, ArrowRight, CalendarPlus, MessageCircle } from 'lucide-react';
+import { CalendarPlus, MessageCircle } from 'lucide-react';
 import { useMyAvatar } from '@/lib/avatars';
 import { HoldCountdown } from '@/components/vsb/HoldCountdown';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { bookingDisplayName, formatCurrency, formatDate, formatTime } from '@/lib/format';
+import { bookingDisplayName, dateParts, formatCurrency, formatDateLocale, formatTime } from '@/lib/format';
 import { fetchClubSettings } from '@/lib/settings';
 import { StatusBadge, GenderBadge } from '@/components/StatusBadge';
 import type { Booking, Session, Payment, ClubSettings } from '@/types/database';
-import { Spinner } from '@/components/LoadingScreen';
+import { TicketSkeleton } from '@/components/vsb/Skeletons';
 import { ReceiptUpload } from '@/components/ReceiptUpload';
 import { BookingSteps } from '@/components/BookingSteps';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { vsbAssets } from '@/lib/vsbAssets';
 
+// CONFIRMATION: you're on court. Celebratory but plain: the state in words,
+// the game, the player's own VSB player, then reference, payment and actions.
 export default function BookingConfirmationPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { bookingId } = useParams<{ bookingId: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
@@ -68,63 +70,65 @@ export default function BookingConfirmationPage() {
   }
 
   if (loading || !booking || !session) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-vsb-500" />
-      </div>
-    );
+    return <TicketSkeleton />;
   }
 
   const isConfirmed = booking.booking_status === 'Confirmed';
   const verifying = !isConfirmed && !!booking.receipt_path;
   const allBookings = groupBookings.length > 0 ? groupBookings : [booking];
   const totalAmount = allBookings.reduce((sum, b) => sum + (b.payment_status !== 'Paid' ? session.price : Number(b.total_amount)), 0);
-  // celebrate: confirmed, or the spot was just locked · waiting: receipt being verified
-  const art = verifying ? vsbAssets.states.waiting : vsbAssets.states.celebrate;
   const displayName = profile?.short_name || profile?.full_name || '';
+  const d = dateParts(session.session_date, i18n.language);
+  // The player's own generated VSB player when they have one; otherwise the
+  // state art (celebrate once confirmed or locked, waiting while verifying).
+  const state = verifying ? vsbAssets.states.waiting : vsbAssets.states.celebrate;
+  const figure = myAvatar?.image
+    ? { src: myAvatar.image, width: 1024, height: 1536, alt: t('v2.booking.yourPlayerAlt', { name: displayName }) }
+    : { ...state.full, alt: '' };
 
   return (
     <div className="bg-ink text-chalk">
-      {/* ===== Success: you're on court (state always in words, not just art) ===== */}
-      <section className="relative overflow-hidden border-b border-ink-600">
+      {/* ===== You're on court (state always in words, not just art) ===== */}
+      <section aria-labelledby="confirm-title" className="relative overflow-hidden border-b border-ink-600">
         <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-15" />
         <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" aria-hidden />
         <div className="vsb-gutter relative grid items-end gap-6 pt-8 md:grid-cols-[minmax(0,1fr)_auto] md:pt-10">
           <div className="pb-10 md:pb-14">
             <BookingSteps current={isConfirmed ? 3 : 2} />
-            <p className={`mt-8 inline-flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wider ${isConfirmed ? 'text-green-400' : 'text-amber-300'}`}>
-              {isConfirmed ? <CheckCircle2 className="h-5 w-5" aria-hidden /> : <ClockPending className="h-5 w-5" aria-hidden />}
+            <p className={`mt-8 font-display text-lg font-bold uppercase tracking-wider ${isConfirmed ? 'text-green-400' : 'text-amber-300'}`}>
               {isConfirmed ? t('bookingConfirmation.bookingConfirmed') : verifying ? t('bookingConfirmation.pendingVerification') : t('v2.booking.payToConfirm')}
             </p>
-            <h1 className="vsb-display mt-2 text-5xl sm:text-6xl lg:text-7xl">
+            <h1 id="confirm-title" className="vsb-display mt-2 text-6xl sm:text-7xl lg:text-8xl">
               {isConfirmed ? t('v2.booking.onCourt') : t('bookingConfirmation.slotLocked')}
             </h1>
 
-            <div className="mt-6 flex items-center gap-3">
-              <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} size="md" />
-              <p className="font-semibold text-chalk">
-                {displayName}
-                {allBookings.length > 1 && <span className="text-slate-400"> {t('v2.booking.plusFriends', { count: allBookings.length - 1 })}</span>}
+            <div className="mt-8 flex flex-wrap items-end gap-x-8 gap-y-4 border-t border-ink-600 pt-6">
+              <p className="font-display uppercase leading-none" aria-hidden>
+                <span className="block text-sm font-bold tracking-[0.25em] text-vsb-300">{d.weekday}</span>
+                <span className="block text-7xl font-extrabold text-chalk">{String(d.day).padStart(2, '0')}</span>
+                <span className="block text-sm font-bold tracking-[0.25em] text-chalk">{d.month}</span>
               </p>
+              <div className="min-w-0 pb-1">
+                <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-4xl">{session.title}</p>
+                <p className="mt-2 text-lg text-slate-200">
+                  {formatDateLocale(session.session_date, i18n.language, 'medium')} · {t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })}
+                </p>
+                <p className="text-slate-300">{[session.venue_name, session.court_number].filter(Boolean).join(' · ')}</p>
+                <p className="mt-2 font-semibold text-chalk">
+                  {displayName}
+                  {allBookings.length > 1 && <span className="text-slate-400"> {t('v2.booking.plusFriends', { count: allBookings.length - 1 })}</span>}
+                </p>
+              </div>
             </div>
-
-            <p className="mt-6 font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-4xl">{session.title}</p>
-            <p className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-lg text-slate-200">
-              <span className="inline-flex items-center gap-2"><Calendar className="h-4 w-4 text-vsb-400" aria-hidden />{formatDate(session.session_date)}</span>
-              <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-vsb-400" aria-hidden />{t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })}</span>
-            </p>
-            <p className="mt-1 inline-flex items-center gap-2 text-slate-300">
-              <MapPin className="h-4 w-4 text-vsb-400" aria-hidden />{[session.venue_name, session.court_number].filter(Boolean).join(' · ')}
-            </p>
           </div>
-          <img src={art.full.src} alt="" width={art.full.width} height={art.full.height} decoding="async"
-            className="hidden h-[22rem] w-auto self-end md:block lg:h-[26rem]" />
+          <img src={figure.src} alt={figure.alt} width={figure.width} height={figure.height} decoding="async"
+            className="hidden h-[22rem] w-auto self-end object-contain md:block lg:h-[28rem]" />
         </div>
       </section>
 
-      {/* ===== Reference, payment, actions ===== */}
-      <div className="vsb-gutter grid gap-12 py-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16 lg:py-14">
-        <div className="space-y-8">
+      {/* ===== Reference + payment | actions ===== */}
+      <div className="vsb-gutter grid gap-12 py-10 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-16 lg:py-14">
+        <div className="min-w-0 space-y-8">
           <dl className="grid grid-cols-2 gap-6 border-b border-ink-600 pb-6">
             <div>
               <dt className="vsb-meta mb-1">{t('bookingConfirmation.bookingReference')}</dt>
@@ -156,7 +160,7 @@ export default function BookingConfirmationPage() {
 
           {allBookings.length > 1 && (
             <div>
-              <h2 className="vsb-meta mb-3">{t('bookingConfirmation.playerInformation')} ({allBookings.length})</h2>
+              <h2 className="vsb-meta mb-3">{t('v2.booking.players')} ({allBookings.length})</h2>
               <ul className="divide-y divide-ink-700 border-y border-ink-600">
                 {allBookings.map((b) => (
                   <li key={b.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
@@ -173,28 +177,21 @@ export default function BookingConfirmationPage() {
           )}
         </div>
 
-        <div className="space-y-4">
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Link to={`/bookings/${booking.id}`} className="v2-btn-primary !py-3 font-display uppercase tracking-wider">
-              <Ticket className="h-5 w-5" aria-hidden />
-              {t('v2.booking.viewBooking')}
-            </Link>
-            <button onClick={handleAddToCalendar} className="v2-btn-secondary !py-3">
-              <CalendarPlus className="h-5 w-5" aria-hidden />
-              {t('bookingConfirmation.addToCalendar')}
-            </button>
-            <Link to={`/sessions/${session.id}`} className="v2-btn-secondary !py-3">{t('v2.booking.viewSession')}</Link>
-            <Link to="/bookings" className="v2-btn-secondary !py-3">{t('bookingConfirmation.viewMyBookings')}</Link>
+        <div className="space-y-5">
+          <div className="grid grid-cols-2 gap-3">
+            <Link to={`/bookings/${booking.id}`} className="v2-btn-primary !py-3.5 font-display uppercase tracking-wider">{t('v2.booking.viewGame')}</Link>
+            <Link to="/bookings" className="v2-btn-secondary !py-3.5 font-display uppercase tracking-wider">{t('v2.nav.myGames')}</Link>
           </div>
-          <Link to="/sessions" className="inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300">
-            {t('bookingConfirmation.bookAnotherSession')} <ArrowRight className="h-4 w-4" aria-hidden />
-          </Link>
-          {settings?.whatsapp_group_link && (
-            <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-green-400 hover:underline">
-              <MessageCircle className="h-4 w-4" aria-hidden />
-              {t('bookingConfirmation.joinWhatsappGroup')}
-            </a>
-          )}
+          <div className="flex flex-col items-start gap-3 border-t border-ink-600 pt-5">
+            <button onClick={handleAddToCalendar} className="inline-flex items-center gap-2 text-sm font-semibold text-slate-200 hover:text-white">
+              <CalendarPlus className="h-4 w-4" aria-hidden /> {t('bookingConfirmation.addToCalendar')}
+            </button>
+            {settings?.whatsapp_group_link && (
+              <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-sm font-semibold text-green-400 hover:text-green-300">
+                <MessageCircle className="h-4 w-4" aria-hidden /> {t('bookingConfirmation.joinWhatsappGroup')}
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>

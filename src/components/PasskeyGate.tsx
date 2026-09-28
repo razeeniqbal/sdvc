@@ -33,32 +33,27 @@ export function PasskeyGate({ sessionId, onUnlocked }: PasskeyGateProps) {
   }
 
   return (
-    <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-4">
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Lock className="h-5 w-5 text-amber-400 flex-shrink-0" />
-          <p className="font-semibold text-amber-200 text-sm">{t('passkey.title')}</p>
-        </div>
-        <p className="text-xs text-amber-300">{t('passkey.subtitle')}</p>
-        <div className="flex gap-2">
-          <input
-            className="flex-1 rounded-lg border border-amber-500/50 px-3 py-2 text-sm text-chalk focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none"
-            value={value}
-            onChange={(e) => { setValue(e.target.value); setError(false); }}
-            placeholder={t('passkey.placeholder')}
-            autoComplete="off"
-          />
-          <button
-            type="submit"
-            disabled={checking || !value.trim()}
-            className="px-4 py-2 bg-amber-600 hover:bg-amber-700 text-white font-semibold rounded-lg text-sm transition-colors disabled:opacity-60 flex items-center gap-2 flex-shrink-0"
-          >
-            {checking && <Spinner className="h-4 w-4" />}
-            {t('passkey.unlock')}
-          </button>
-        </div>
-        {error && <p className="text-xs text-red-400">{t('passkey.error')}</p>}
-      </form>
-    </div>
+    <form onSubmit={handleSubmit} className="border-l-2 border-amber-400 pl-4">
+      <p className="flex items-center gap-2 font-semibold text-amber-200">
+        <Lock className="h-4 w-4 flex-shrink-0 text-amber-400" aria-hidden /> {t('passkey.title')}
+      </p>
+      <p className="mt-1 text-sm text-amber-300">{t('passkey.subtitle')}</p>
+      <div className="mt-3 flex gap-2">
+        <input
+          className="v2-input flex-1 !py-2.5 !text-base"
+          value={value}
+          onChange={(e) => { setValue(e.target.value); setError(false); }}
+          placeholder={t('passkey.placeholder')}
+          aria-label={t('passkey.placeholder')}
+          aria-invalid={error || undefined}
+          autoComplete="off"
+        />
+        <button type="submit" disabled={checking || !value.trim()} className="v2-btn-primary flex-shrink-0">
+          {checking && <Spinner className="h-4 w-4" />}
+          {t('passkey.unlock')}
+        </button>
+      </div>
+      {error && <p className="mt-2 text-sm text-red-400" role="alert">{t('passkey.error')}</p>}
+    </form>
   );
 }

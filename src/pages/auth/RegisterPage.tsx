@@ -4,7 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
-import { VsbLogo } from '@/components/VsbLogo';
+import { AuthLayout } from '@/components/layout/AuthLayout';
 
 const CLUB_NAME = 'Volleyball Sdn Bhd';
 
@@ -61,18 +61,10 @@ export default function RegisterPage() {
 
   const inputClass = 'v2-input !py-3 !text-base';
   const labelClass = 'block text-sm font-medium text-slate-300 mb-1.5';
-  const errorClass = 'text-red-600 text-xs mt-1';
+  const errorClass = 'text-red-400 text-xs mt-1';
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <VsbLogo variant="lockup" className="h-12 mx-auto mb-6" />
-          <h1 className="v2-heading text-3xl">{t('auth.register.title', { clubName: CLUB_NAME })}</h1>
-          <p className="text-slate-400 text-sm mt-1">{t('auth.register.subtitle')}</p>
-        </div>
-
-        <div className="v2-surface p-6 sm:p-8">
+    <AuthLayout title={<>{t('auth.register.title', { clubName: CLUB_NAME })}</>} subtitle={<>{t('auth.register.subtitle')}</>}>
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label htmlFor="reg-name" className={labelClass}>{t('auth.register.nameLabel')}</label>
@@ -101,11 +93,9 @@ export default function RegisterPage() {
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-400 mt-5">
+          <p className="mt-6 border-t border-ink-600 pt-5 text-sm text-slate-400">
             {t('auth.register.alreadyPlaying')} <Link to="/login" className="text-vsb-400 font-medium hover:underline">{t('auth.register.logIn')}</Link>
           </p>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 }

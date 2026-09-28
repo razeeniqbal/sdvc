@@ -7,7 +7,6 @@ import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { fetchSessionExtras, fetchSessionsWithCounts, getSessionStatus, type SessionExtras, type SessionWithCount } from '@/lib/sessions';
 import { POSITION_ABBR, PLAYING_POSITIONS, SKILL_LEVELS, SKILL_LEVEL_KEY } from '@/lib/volleyball';
 import type { ClubSettings } from '@/types/database';
-import { Spinner } from '@/components/LoadingScreen';
 import { SessionCard } from '@/components/SessionCard';
 import { PlayerCard } from '@/components/PlayerCard';
 import { CourtLines } from '@/components/vsb/CourtLines';
@@ -71,7 +70,7 @@ export default function LandingPage() {
           below that the copy stacks above the art. Eager + high priority — it's
           the first thing on screen. No text is baked into the artwork. */}
       <section className="relative overflow-hidden border-b border-ink-600">
-        <div className="relative lg:flex lg:min-h-[min(calc(100svh-8.5rem),46vw)] lg:items-center">
+        <div className="relative lg:flex lg:min-h-[max(34rem,calc(100svh-8.25rem))] lg:items-center">
           <div className="vsb-gutter relative z-10 -mb-[58vw] pt-10 md:-mb-[6vw] md:pt-14 lg:mb-0 lg:w-[50%] lg:py-10 xl:py-16">
             <p className="vsb-meta mb-5 !text-vsb-400">{t('v2.landing.eyebrow')}</p>
             <h1 className="vsb-display text-[clamp(3rem,12vw,4.5rem)] md:text-[clamp(4rem,8vw,5.5rem)] lg:text-[clamp(3.5rem,5.5vw,7rem)]">
@@ -116,7 +115,7 @@ export default function LandingPage() {
         <div className="vsb-gutter relative grid grid-cols-2 border-t border-ink-600 bg-ink sm:grid-cols-4">
           {pillars.map((p, i) => (
             <p key={p} className={`py-4 font-display text-base font-bold uppercase tracking-[0.3em] text-chalk sm:py-5 ${i % 2 === 1 ? 'border-l border-ink-600 pl-6' : ''} ${i === 2 ? 'sm:border-l sm:border-ink-600 sm:pl-6' : ''}`}>
-              <span className="mr-3 text-vsb-500">0{i + 1}</span>{p}
+              <span className="text-vsb-500">0{i + 1}</span><span className="mx-2 text-muted" aria-hidden>/</span>{p}
             </p>
           ))}
         </div>
@@ -134,16 +133,26 @@ export default function LandingPage() {
             </Link>
           )}
         />
-        <div className="mt-10">
+        <div className="mt-8">
           {loading ? (
-            <div className="flex justify-center py-16"><Spinner className="h-8 w-8 text-vsb-500" /></div>
+            <div role="status" className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
+              <span className="sr-only">{t('common.loading')}</span>
+              {[0, 1, 2, 3].map((i) => <div key={i} className="vsb-skel h-[25rem] border border-ink-600" aria-hidden />)}
+            </div>
           ) : featured.length === 0 ? (
-            <div className="border-y border-ink-600 py-14">
-              <p className="font-display text-3xl font-bold uppercase text-chalk">{t('v2.landing.noSessionsTitle')}</p>
-              <p className="mt-2 max-w-lg text-slate-400">{t('landing.noOpenSessions')}</p>
+            <div className="flex flex-wrap items-end justify-between gap-4 border-y border-ink-600 py-8">
+              <div>
+                <p className="font-display text-3xl font-bold uppercase text-chalk">{t('v2.landing.noSessionsTitle')}</p>
+                <p className="mt-2 max-w-lg text-slate-400">{t('v2.sessions.newGamesWhere')}</p>
+              </div>
+              {settings?.whatsapp_group_link && (
+                <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-semibold text-green-400 hover:text-green-300">
+                  <MessageCircle className="h-5 w-5" aria-hidden /> {t('landing.joinWhatsappGroup')}
+                </a>
+              )}
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-4">
               {featured.map((s) => (
                 <SessionCard key={s.id} session={s} to={profile ? `/sessions/${s.id}` : '/register'}
                   roster={extras[s.id]?.roster} isPrivate={extras[s.id]?.isPrivate} />
@@ -152,50 +161,6 @@ export default function LandingPage() {
           )}
         </div>
       </FullWidthSection>
-
-      {/* ===== HOW VSB WORKS ===== */}
-      <FullWidthSection id="how-it-works" divider labelledBy="how-heading" className="scroll-mt-16">
-        <SectionHeader id="how-heading" meta={t('v2.landing.howMeta')} title={t('v2.landing.howVsbWorks')} />
-        <ol className="mt-12 grid gap-10 md:grid-cols-3 md:gap-0">
-          {steps.map((step, i) => (
-            <li key={i} className={`border-t border-ink-500 pt-6 md:pr-10 ${i > 0 ? 'md:border-l md:pl-10' : ''}`}>
-              <span className="font-display text-7xl font-extrabold leading-none text-vsb-500 lg:text-8xl">{String(i + 1).padStart(2, '0')}</span>
-              <h3 className="mt-5 font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk">{step.title}</h3>
-              <p className="mt-3 max-w-sm text-slate-400">{step.desc}</p>
-            </li>
-          ))}
-        </ol>
-      </FullWidthSection>
-
-      {/* ===== PLAYER IDENTITY ===== */}
-      <section aria-labelledby="identity-heading" className="relative overflow-hidden border-t border-ink-600 bg-ink-850">
-        <CourtLines opacity={0.05} />
-        <div className="vsb-gutter relative grid items-center gap-12 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-24">
-          <div className="relative flex items-end justify-center gap-4 sm:gap-8">
-            <img src={vsbAssets.players[5].full.src} alt="" width={vsbAssets.players[5].full.width} height={vsbAssets.players[5].full.height} loading="lazy" decoding="async"
-              className="hidden h-[26rem] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:block lg:h-[32rem]" />
-            <div className="w-[17rem] sm:w-[19rem]">
-              <PlayerCard name={t('v2.landing.cardName')} position={null} skill={null}
-                games={null} artSrc={vsbAssets.players[0].sm.src} subtitle={t('v2.landing.cardSub')} />
-            </div>
-          </div>
-          <div>
-            <p className="vsb-meta mb-4 !text-vsb-400">{t('v2.landing.identityMeta')}</p>
-            <h2 id="identity-heading" className="vsb-display text-5xl sm:text-6xl lg:text-7xl">
-              {t('v2.landing.identityLine1')}<br /><span className="text-vsb-500">{t('v2.landing.identityLine2')}</span>
-            </h2>
-            <p className="mt-6 max-w-lg text-lg text-slate-300">{t('v2.landing.identityBody')}</p>
-            <ul className="mt-6 max-w-lg space-y-2 text-slate-400">
-              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint1')}</li>
-              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint2')}</li>
-              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint3')}</li>
-            </ul>
-            <Link to={profile ? '/profile/player' : '/register'} className="v2-btn-primary mt-9 !px-8 !py-4 font-display text-lg uppercase tracking-wider">
-              {t('v2.landing.createPlayer')} <ArrowRight className="h-5 w-5" aria-hidden />
-            </Link>
-          </div>
-        </div>
-      </section>
 
       {/* ===== COMMUNITY ===== */}
       <section aria-labelledby="community-heading" className="relative overflow-hidden border-t border-ink-600">
@@ -234,16 +199,60 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== UTILITY: rules, FAQ, contact ===== */}
-      <FullWidthSection divider labelledBy="faq-heading" className="bg-ink-850">
-        <div className="grid gap-14 lg:grid-cols-[1fr_1.3fr]">
+      {/* ===== PLAYER IDENTITY ===== */}
+      <section aria-labelledby="identity-heading" className="relative overflow-hidden border-t border-ink-600 bg-ink-850">
+        <CourtLines opacity={0.05} />
+        <div className="vsb-gutter relative grid items-center gap-12 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-24">
+          <div className="relative flex items-end justify-center gap-4 sm:gap-8">
+            <img src={vsbAssets.players[5].full.src} alt="" width={vsbAssets.players[5].full.width} height={vsbAssets.players[5].full.height} loading="lazy" decoding="async"
+              className="hidden h-[26rem] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:block lg:h-[32rem]" />
+            <div className="w-[17rem] sm:w-[19rem]">
+              <PlayerCard name={t('v2.landing.cardName')} position={null} skill={null}
+                games={null} artSrc={vsbAssets.players[0].sm.src} subtitle={t('v2.landing.cardSub')} />
+            </div>
+          </div>
           <div>
-            <p className="vsb-meta mb-3">{t('v2.landing.goodToKnow')}</p>
-            <h2 className="vsb-display text-4xl sm:text-5xl">{t('landing.sessionRulesTitle')}</h2>
-            <ul className="mt-6 space-y-3 text-slate-300">
-              {rules.map((rule) => <li key={rule} className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{rule}</li>)}
+            <p className="vsb-meta mb-4 !text-vsb-400">{t('v2.landing.identityMeta')}</p>
+            <h2 id="identity-heading" className="vsb-display text-5xl sm:text-6xl lg:text-7xl">
+              {t('v2.landing.identityLine1')}<br /><span className="text-vsb-500">{t('v2.landing.identityLine2')}</span>
+            </h2>
+            <p className="mt-6 max-w-lg text-lg text-slate-300">{t('v2.landing.identityBody')}</p>
+            <ul className="mt-6 max-w-lg space-y-2 text-slate-400">
+              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint1')}</li>
+              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint2')}</li>
+              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint3')}</li>
             </ul>
-            <div className="mt-10 space-y-3">
+            <Link to={profile ? '/profile/player' : '/register'} className="v2-btn-primary mt-9 !px-8 !py-4 font-display text-lg uppercase tracking-wider">
+              {t('v2.landing.createPlayer')} <ArrowRight className="h-5 w-5" aria-hidden />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ===== GOOD TO KNOW: how it works, rules, FAQ, contact ===== */}
+      <FullWidthSection divider labelledBy="faq-heading" className="bg-ink-850">
+        <p className="vsb-meta mb-3">{t('v2.landing.goodToKnow')}</p>
+        <div className="grid gap-14 lg:grid-cols-2 xl:grid-cols-[1fr_1fr_1.25fr]">
+          <div>
+            <h2 className="vsb-display text-4xl sm:text-5xl">{t('v2.landing.howVsbWorks')}</h2>
+            <ol className="mt-6 divide-y divide-ink-600 border-y border-ink-600">
+              {steps.map((step, i) => (
+                <li key={step.title} className="flex gap-4 py-4">
+                  <span className="font-display text-2xl font-extrabold leading-none text-vsb-500">{String(i + 1).padStart(2, '0')}</span>
+                  <div>
+                    <h3 className="font-display text-xl font-bold uppercase tracking-wide text-chalk">{step.title}</h3>
+                    <p className="mt-1 text-sm text-slate-400">{step.desc}</p>
+                  </div>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <div>
+            <h2 className="vsb-display text-4xl sm:text-5xl">{t('landing.sessionRulesTitle')}</h2>
+            <ul className="mt-6 divide-y divide-ink-600 border-y border-ink-600 text-slate-300">
+              {rules.map((rule) => <li key={rule} className="py-3">{rule}</li>)}
+            </ul>
+            <div className="mt-8 space-y-3">
               <a href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('landing.contactWhatsappMessage', { clubName }))} target="_blank" rel="noopener noreferrer"
                 className="flex items-center gap-3 text-slate-200 hover:text-white">
                 <Phone className="h-5 w-5 text-green-400" aria-hidden />
@@ -257,7 +266,7 @@ export default function LandingPage() {
               )}
             </div>
           </div>
-          <div>
+          <div className="lg:col-span-2 xl:col-span-1">
             <h2 id="faq-heading" className="vsb-display text-4xl sm:text-5xl">{t('landing.faqTitle')}</h2>
             <div className="mt-6 divide-y divide-ink-600 border-y border-ink-600">
               {faqs.map((faq, i) => (
@@ -275,12 +284,10 @@ export default function LandingPage() {
       </FullWidthSection>
 
       {/* ===== FINAL CTA ===== */}
-      <section className="vsb-gutter relative overflow-hidden border-t border-ink-600 py-16 lg:py-24">
-        <CourtLines opacity={0.05} />
+      <section aria-labelledby="final-heading" className="vsb-gutter relative overflow-hidden border-t border-ink-600 py-16 lg:py-24">
+        <span className="vsb-watermark -bottom-[0.18em] right-0" aria-hidden>{t('v2.landing.watermark')}</span>
         <div className="relative flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
-          <h2 className="vsb-display text-5xl sm:text-6xl lg:text-7xl">
-            {t('v2.landing.heroLine1')}<br />{t('v2.landing.heroLine2')}<br /><span className="text-vsb-500">{t('v2.landing.heroLine3')}</span>
-          </h2>
+          <h2 id="final-heading" className="vsb-display max-w-4xl text-5xl sm:text-6xl lg:text-7xl">{t('v2.landing.finalTitle')}</h2>
           <Link to={findGameTo} className="v2-btn-primary !px-8 !py-4 font-display text-lg uppercase tracking-wider">
             {t('v2.landing.findGame')} <ArrowRight className="h-5 w-5" aria-hidden />
           </Link>

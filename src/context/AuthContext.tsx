@@ -82,6 +82,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// DEV-ONLY design review: renders player pages for a sample profile without
+// signing anyone in (no session, so every query runs as a signed-out viewer).
+// Only imported by src/pages/dev, which production builds drop.
+export function PreviewAuthProvider({ profile, children }: { profile: Profile; children: ReactNode }) {
+  const value: AuthContextValue = {
+    session: null, profile, loading: false, isAdmin: false, isOrganizer: false, isStaff: false,
+    refreshProfile: async () => {}, signOut: async () => {},
+  };
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+}
+
 export function useAuth() {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error('useAuth must be used within AuthProvider');

@@ -94,6 +94,30 @@ Two experiences, one design system:
   not a centred `max-w-* mx-auto` page container. Readable widths go on text
   blocks inside sections. Cards only for real objects (session, ticket, player
   card); otherwise thin `border-ink-600` rules and typography.
+- **One dominant idea per route**, not one template: Home = the community
+  (hero fills the first viewport, then real sessions, community, identity,
+  good to know); Sessions = fixtures grouped This week / Next week / Later;
+  Session details = this game (court | facts, price, action) then a
+  full-width Who's Playing; My VSB = identity, then next on court | your
+  game, recent games, and settings in one quieter band; My Games = one
+  timeline (upcoming, then history by year and month; no tabs); Booking
+  details = a game ticket (game | perforated stub with holder, reference,
+  status); Checkout = your game | your slot; Confirmation = "You're on
+  court." with the player's own generated player; Auth = `AuthLayout`
+  (brand art | form, form only on phones).
+- **Environmental language** (index.css): `.vsb-index` ("01 / PEOPLE") and
+  `.vsb-watermark` (one very faint word behind a composition). Watermarks
+  are rare: Home's closing CTA and the My VSB identity (the player's
+  position) only. Never decorate empty space; fix the composition instead.
+- **Loading states** use the skeletons in `components/vsb/Skeletons.tsx`
+  shaped like the real content (fixture, list, roster, ticket, session,
+  identity). No full-page spinners on player routes; spinners only inside
+  buttons or for in-progress generation.
+- **Dev review routes** (DEV only, never in production bundles):
+  `/__v2-preview` (components + session details with sample data),
+  `/__player-preview/myvsb|games|community|sessions` (real pages for a sample profile
+  via `PreviewAuthProvider`, signed out, nothing written),
+  `/__avatar-compare`, `/__admin-preview`.
 - **Type scale.** 16px root everywhere. Display type uses `.vsb-display` /
   `.vsb-meta` (player) and `.adm-title` / `.adm-label` / `.adm-num` (admin).
 - **Primitives** (src/index.css): `.v2-surface`, `.v2-btn-primary`,

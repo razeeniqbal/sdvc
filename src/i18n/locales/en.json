@@ -9,7 +9,8 @@
     "genderMale": "Male",
     "genderFemale": "Female",
     "genderSelectPlaceholder": "Select gender",
-    "errorGenderRequired": "Please select a gender"
+    "errorGenderRequired": "Please select a gender",
+    "close": "Close"
   },
   "receipt": {
     "scanToPay": "Scan to pay via DuitNow",
@@ -21,7 +22,8 @@
     "uploaded": "Receipt uploaded. Thanks! The admin has been notified.",
     "uploadedAt": "Uploaded {{date}}",
     "changeReceipt": "Upload a different receipt",
-    "error": "Failed to upload receipt. Please try again."
+    "error": "Failed to upload receipt. Please try again.",
+    "qrAlt": "Payment QR code"
   },
   "sessionStatus": {
     "available": "Available",
@@ -389,7 +391,7 @@
       "seeHowItWorks": "See How It Works",
       "upcomingSessions": "Upcoming Sessions",
       "howVsbWorks": "How VSB Works",
-      "finalTitle": "Your next game is waiting",
+      "finalTitle": "Your next game is waiting.",
       "heroSub1": "Book volleyball sessions.",
       "heroSub2": "Meet real players.",
       "heroSub3": "Become part of VSB.",
@@ -416,7 +418,7 @@
       "identityBody": "Every member gets a VSB player card that grows with every game. It's built from your real sessions, not made-up ratings.",
       "identityPoint1": "Your position, level and games played, always up to date",
       "identityPoint2": "The same identity on your profile, session rosters and bookings",
-      "identityPoint3": "Personal VSB chibi artwork is on the way",
+      "identityPoint3": "Your own VSB player, made from one photo, in the pose you choose",
       "createPlayer": "Create your player",
       "cardName": "Your name",
       "communityMeta": "The community",
@@ -426,7 +428,8 @@
       "everyPosition": "Every position",
       "everyLevel": "Every level",
       "goodToKnow": "Good to know",
-      "cardSub": "Position · Level"
+      "cardSub": "Position · Level",
+      "watermark": "Play"
     },
     "session": {
       "public": "Public",
@@ -447,7 +450,7 @@
       "allSkillLevels": "All skill levels",
       "sessionType": "Session type",
       "clearFilters": "Clear filters",
-      "meta": "Sessions / VSB",
+      "meta": "Sessions / {{year}}",
       "titleLine1": "Find your",
       "titleLine2": "next game.",
       "upcomingCount_one": "upcoming session",
@@ -460,7 +463,15 @@
       "showing_one": "Showing {{count}} session",
       "showing_other": "Showing {{count}} sessions",
       "thatsAll": "That's every game for now",
-      "newGamesWhere": "New games are posted here and announced in the VSB WhatsApp group."
+      "newGamesWhere": "New games are posted here and announced in the VSB WhatsApp group.",
+      "openCount_one": "open game",
+      "openCount_other": "open games",
+      "noneTitle": "No games open right now.",
+      "bucket": {
+        "thisWeek": "This week",
+        "nextWeek": "Next week",
+        "later": "Later"
+      }
     },
     "whosPlaying": {
       "title": "Who's Playing",
@@ -505,7 +516,7 @@
     },
     "booking": {
       "stepBook": "Book",
-      "stepPayment": "Payment",
+      "stepPayment": "Pay",
       "stepConfirm": "Confirm",
       "stepDone": "done",
       "progressLabel": "Booking progress",
@@ -513,7 +524,6 @@
       "companionN": "Player {{n}}",
       "pricePerPlayer": "Price per player",
       "onCourt": "You're on court.",
-      "viewBooking": "View Booking",
       "viewSession": "View Session",
       "addFriend": "+ Bring a friend",
       "companionLimit_one": "You can bring {{count}} friend per booking.",
@@ -524,7 +534,11 @@
       "holdDesc": "Pay and upload your receipt before then, or your place is released to the waiting list. Uploading a receipt stops the clock.",
       "payToConfirm": "Pay to confirm your spot",
       "plusFriends_one": "+ {{count}} friend",
-      "plusFriends_other": "+ {{count}} friends"
+      "plusFriends_other": "+ {{count}} friends",
+      "thisTicket": "This ticket",
+      "paymentStatus": "Payment",
+      "viewGame": "View game",
+      "yourPlayerAlt": "{{name}}'s VSB player"
     },
     "card": {
       "played": "Played",
@@ -576,32 +590,30 @@
       "completeNow": "Complete now",
       "nextOnCourt": "Next on court",
       "allGames": "My games",
-      "noUpcoming": "No games booked yet",
+      "noUpcoming": "No game booked yet.",
       "moreUpcoming_one": "+{{count}} more game booked",
       "moreUpcoming_other": "+{{count}} more games booked",
       "recent": "Recent games",
       "viewAllGames": "View all games",
-      "noRecent": "No past games yet.",
       "edit": "Edit",
       "manage": "Manage",
       "account": "Account & safety",
       "emergencyContact": "Emergency contact",
       "password": "Password",
       "viewGame": "View game",
-      "welcomeTitle": "Welcome to VSB",
-      "welcomeBody": "Find a game, book your spot and meet the people you play with.",
       "vsbMember": "VSB member · {{date}}",
       "statGames": "Games",
       "statVenues": "Venues",
-      "statUpcoming": "Upcoming"
+      "statUpcoming": "Upcoming",
+      "nextWaiting": "Your next game is waiting.",
+      "storyStarts": "Your VSB story starts with game one.",
+      "noPosition": "Position not set",
+      "settings": "Settings"
     },
     "games": {
       "meta": "My VSB / Games",
       "title": "My games",
-      "viewLabel": "Show games",
       "upcoming": "Upcoming",
-      "past": "Past",
-      "later": "Also booked",
       "search": "Search session or reference",
       "showCancelled": "Show cancelled",
       "payHint": "Awaiting payment ({{amount}}). Open the game to pay and upload your receipt.",
@@ -611,7 +623,10 @@
         "played": "Played",
         "cancelled": "Cancelled",
         "notPlayed": "Not played"
-      }
+      },
+      "history": "History",
+      "noMatch": "No games match that search.",
+      "friendBooked": "Booked by a friend"
     },
     "create": {
       "meta": "My VSB / Player",
@@ -679,9 +694,8 @@
       "stepPose": "Pose"
     },
     "community": {
-      "meta": "The people of VSB",
-      "title": "Community",
-      "intro": "Everyone who plays with VSB. Find teammates by position and level, and see who's heading to a game.",
+      "meta": "The VSB community",
+      "intro": "Everyone who plays with VSB, by position. Find teammates and see who's heading to a game.",
       "statMembers": "Members",
       "statPlayingSoon": "Playing soon",
       "listHeading": "Members",
@@ -698,7 +712,7 @@
       "games_other": "{{count}} games",
       "since": "since {{date}}",
       "next": "Next: {{title}} · {{date}}",
-      "none": "No players match those filters.",
+      "none": "No players match these filters.",
       "error": "Couldn’t load the community. Try again in a moment.",
       "privacy": "Community shows only your name, player art, position, level and games. Contact details are never shown.",
       "privacyLink": "Change your visibility",
@@ -706,7 +720,18 @@
       "visibilityBody": "Show me on the Community page, so other members can see my name, player art, position, level and games played.",
       "visibleOn": "You’re visible in Community.",
       "visibleOff": "You’re hidden from Community.",
-      "toggleError": "Couldn’t update your visibility. Try again."
+      "toggleError": "Couldn’t update your visibility. Try again.",
+      "titleLine1": "People who keep",
+      "titleLine2": "the court moving.",
+      "group": {
+        "S": "Setters",
+        "OH": "Outside hitters",
+        "OPP": "Opposites",
+        "MB": "Middle blockers",
+        "L": "Liberos",
+        "FLEX": "Flex",
+        "none": "Position not set"
+      }
     },
     "status": {
       "booking": {
@@ -777,7 +802,6 @@
       "saved": "Your Game saved.",
       "saveError": "Couldn't save Your Game. Try again.",
       "empty": "Tell other players how you like to play: your style, the kind of game you enjoy, and why you play. It takes a few seconds.",
-      "identity": "Player identity",
       "regenerateUsed": "Your free player generation has been used.",
       "q": {
         "vibe": "How do you like to play?",
@@ -830,6 +854,11 @@
       "ready": "Ready",
       "relaxed": "Relaxed",
       "confident": "Confident"
+    },
+    "checkout": {
+      "title": "Secure my slot",
+      "yourGame": "Your game",
+      "yourSlot": "Your slot"
     }
   }
 }

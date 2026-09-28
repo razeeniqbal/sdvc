@@ -11,7 +11,7 @@ import { useMyAvatar } from '@/lib/avatars';
 // shell: no consumer navbar, footer or player tab bar. The waiting list is
 // deliberately NOT here; it lives inside a session.
 
-interface Item { to: string; label: string; icon: LucideIcon; end?: boolean; soon?: boolean }
+interface Item { to: string; label: string; icon: LucideIcon; end?: boolean }
 
 const GROUPS: { heading?: string; items: Item[] }[] = [
   { items: [{ to: '/admin', label: 'Overview', icon: LayoutGrid, end: true }] },
@@ -50,17 +50,6 @@ function NavItems({ onNavigate }: { onNavigate?: () => void }) {
           <ul className="space-y-0.5">
             {g.items.map((item) => {
               const Icon = item.icon;
-              if (item.soon) {
-                return (
-                  <li key={item.to}>
-                    <span className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold text-ink-500" aria-disabled="true">
-                      <Icon className="h-4 w-4" aria-hidden />
-                      {item.label}
-                      <span className="ml-auto text-[10px] font-bold uppercase tracking-wider text-muted">Next</span>
-                    </span>
-                  </li>
-                );
-              }
               return (
                 <li key={item.to}>
                   <NavLink

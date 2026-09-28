@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
-import { VsbLogo } from '@/components/VsbLogo';
+import { AuthLayout } from '@/components/layout/AuthLayout';
 import { AlertCircle } from 'lucide-react';
 
 export default function ResetPasswordPage() {
@@ -51,14 +51,7 @@ export default function ResetPasswordPage() {
   const inputClass = 'v2-input !py-3 !text-base';
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <VsbLogo variant="lockup" className="h-12 mx-auto mb-6" />
-          <h1 className="v2-heading text-3xl">{t('auth.forgotPassword.title')}</h1>
-        </div>
-
-        <div className="v2-surface p-6 sm:p-8">
+    <AuthLayout title={<>{t('auth.forgotPassword.title')}</>}>
           {checking ? (
             <div className="flex justify-center py-4"><Spinner className="h-6 w-6 text-vsb-500" /></div>
           ) : !valid ? (
@@ -92,11 +85,9 @@ export default function ResetPasswordPage() {
             </form>
           )}
 
-          <p className="text-center text-sm text-slate-400 mt-5">
+          <p className="mt-6 border-t border-ink-600 pt-5 text-sm text-slate-400">
             <Link to="/login" className="text-vsb-400 font-medium hover:underline">{t('auth.forgotPassword.backToLogin')}</Link>
           </p>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 }

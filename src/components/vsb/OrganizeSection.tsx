@@ -11,7 +11,7 @@ import { Spinner } from '@/components/LoadingScreen';
 
 // My VSB: apply to organize games, see where the application stands, or (once
 // approved) jump into the organizer console. Hidden for admins.
-export function OrganizeSection() {
+export function OrganizeSection({ bare = false }: { bare?: boolean }) {
   const { t, i18n } = useTranslation();
   const { profile, isAdmin, isOrganizer } = useAuth();
   const { show } = useToast();
@@ -47,7 +47,7 @@ export function OrganizeSection() {
   const lang = i18n.language;
 
   return (
-    <section id="organize" aria-labelledby="organize-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">
+    <section id="organize" aria-labelledby="organize-heading" className={`scroll-mt-16 border-t border-ink-600 ${bare ? 'py-10' : 'vsb-gutter py-12'}`}>
       <h2 id="organize-heading" className="vsb-display mb-6 text-3xl sm:text-4xl">{t('v2.organizer.title')}</h2>
 
       {isOrganizer ? (

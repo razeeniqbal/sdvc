@@ -1,11 +1,11 @@
 import { useEffect, useState, type FormEvent } from 'react';
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ShieldCheck, Clock, UserPlus, X } from 'lucide-react';
+import { ArrowLeft, UserPlus, X } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { formatCurrency, formatDate, formatTime } from '@/lib/format';
+import { formatCurrency, formatDateLocale, formatTime } from '@/lib/format';
 import { notifyGroup } from '@/lib/notifications';
 import { friendlyProfileError } from '@/lib/auth';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
@@ -16,6 +16,8 @@ import { MAX_COMPANIONS } from '@/lib/bookingRules';
 import { BookingSteps } from '@/components/BookingSteps';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { MemberPicker } from '@/components/vsb/MemberPicker';
+import { TicketSkeleton } from '@/components/vsb/Skeletons';
+import { useMyAvatar } from '@/lib/avatars';
 
 // A friend is either a registered VSB member (memberId) or a typed-in guest.
 interface Companion {
@@ -27,12 +29,16 @@ interface Companion {
   gender: string;
 }
 
+// CHECKOUT: secure my slot. Your game (what, when, who) on the left; your
+// slot (price, policy, lock) on the right. Booking logic is unchanged: this
+// only locks the place; paying happens on the confirmation page.
 export default function CheckoutPage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { sessionId } = useParams<{ sessionId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
   const { profile, refreshProfile } = useAuth();
+  const myAvatar = useMyAvatar(profile?.id);
   const { show } = useToast();
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
@@ -217,21 +223,16 @@ export default function CheckoutPage() {
   }
 
   if (loading || !session) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-vsb-500" />
-      </div>
-    );
+    return <TicketSkeleton />;
   }
 
   if (needsPasskey && !unlocked) {
     return (
-      <div className="max-w-md mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-4">
-          <ArrowLeft className="h-4 w-4" />
-          {t('checkout.backToSession')}
+      <div className="vsb-gutter py-10">
+        <Link to={`/sessions/${session.id}`} className="mb-8 inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted hover:text-chalk">
+          <ArrowLeft className="h-4 w-4" aria-hidden /> {t('checkout.backToSession')}
         </Link>
-        <PasskeyGate sessionId={session.id} onUnlocked={() => setUnlocked(true)} />
+        <div className="max-w-md"><PasskeyGate sessionId={session.id} onUnlocked={() => setUnlocked(true)} /></div>
       </div>
     );
   }
@@ -239,63 +240,78 @@ export default function CheckoutPage() {
   const inputClass = 'v2-input !py-2.5 !text-base';
   const labelClass = 'block text-sm font-medium text-slate-200 mb-1.5';
   const totalPlayers = 1 + companions.length;
+  const removeBtn = (i: number) => (
+    <button type="button" onClick={() => removeCompanion(i)} title={t('checkout.removeCompanion')} aria-label={t('checkout.removeCompanion')}
+      className="mt-2 flex-shrink-0 p-1.5 text-slate-400 transition-colors hover:text-red-400">
+      <X className="h-4 w-4" aria-hidden />
+    </button>
+  );
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-4">
-        <ArrowLeft className="h-4 w-4" />
-        {t('checkout.backToSession')}
-      </Link>
-
-      <div className="mb-6 space-y-4">
-        <BookingSteps current={1} />
-        <h1 className="v2-heading text-3xl sm:text-4xl">{t('checkout.title')}</h1>
+    <div className="bg-ink text-chalk">
+      <div className="vsb-gutter border-b border-ink-600 py-3">
+        <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted hover:text-chalk">
+          <ArrowLeft className="h-4 w-4" aria-hidden /> {t('checkout.backToSession')}
+        </Link>
       </div>
 
-      {/* A single <form> acts as the grid container so `order` can resequence the three
-          sections independently of the DOM: on mobile that puts the summary between the
-          fields and the policy/button (so players see what they're booking and how much
-          before hitting a paywall-looking button); on desktop the same order values fall
-          into place as fields+policy stacked on the left and summary spanning the right. */}
-      <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6">
-        {/* Player details (order 1) */}
-        <div className="lg:col-span-2 order-1 v2-surface p-6">
-          <div className="mb-4 flex items-center gap-3">
-            <PlayerAvatar name={form.short_name || profile?.full_name || '?'} size="md" />
-            <h2 className="v2-heading text-xl">{t('checkout.playerDetails')}</h2>
-          </div>
-          <div className="grid sm:grid-cols-2 gap-4">
-            <div>
-              <label htmlFor="co-name" className={labelClass}>{t('checkout.displayName')}</label>
-              <input id="co-name" className={inputClass} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} required />
-            </div>
-            <div>
-              <label htmlFor="co-phone" className={labelClass}>{t('checkout.phoneNumber')}</label>
-              <input id="co-phone" className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
-            </div>
-          </div>
+      <header className="vsb-gutter border-b border-ink-600 py-8 lg:py-10">
+        <BookingSteps current={1} />
+        <h1 className="vsb-display mt-6 text-5xl lg:text-6xl">{t('v2.checkout.title')}</h1>
+      </header>
 
-          <div className="grid sm:grid-cols-2 gap-4 mt-4">
-            <div>
-              <label htmlFor="co-gender" className={labelClass}>{t('common.genderLabel')}</label>
-              <select id="co-gender" className={inputClass} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} required>
-                <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
-                <option value="Male">{t('common.genderMale')}</option>
-                <option value="Female">{t('common.genderFemale')}</option>
-              </select>
-            </div>
-          </div>
+      {/* Your game (left) | your slot (right). On phones the slot, policy and
+          submit come last, after the player has seen what they're booking. */}
+      <form onSubmit={handleSubmit} className="grid lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className="vsb-gutter space-y-10 py-10 lg:py-12">
+          {/* The game */}
+          <section aria-labelledby="co-game">
+            <h2 id="co-game" className="vsb-meta mb-3">{t('v2.checkout.yourGame')}</h2>
+            <p className="font-display text-4xl font-extrabold uppercase leading-none tracking-wide text-chalk">{session.title}</p>
+            <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-ink-600 pt-5 sm:grid-cols-4">
+              <Fact label={t('sessionDetails.dateLabel')} value={formatDateLocale(session.session_date, i18n.language, 'medium')} />
+              <Fact label={t('sessionDetails.timeLabel')} value={t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })} />
+              <Fact label={t('sessionDetails.venueLabel')} value={session.venue_name} />
+              <Fact label={t('sessionDetails.courtLabel')} value={session.court_number || t('common.notSpecified')} />
+            </dl>
+          </section>
 
-          {/* Companions */}
-          <div className="border-t border-ink-600 pt-4 mt-4">
-            <h3 className="font-semibold text-chalk text-sm">{t('checkout.companionsTitle')}</h3>
-            <p className="text-xs text-slate-400 mb-3">{t('checkout.companionsSubtitle')}</p>
+          {/* You */}
+          <section aria-labelledby="co-player" className="border-t border-ink-600 pt-8">
+            <div className="mb-5 flex items-center gap-3">
+              <PlayerAvatar name={form.short_name || profile?.full_name || '?'} src={myAvatar?.thumb} size="md" />
+              <h2 id="co-player" className="vsb-display text-3xl">{t('checkout.playerDetails')}</h2>
+            </div>
+            <div className="grid gap-4 sm:grid-cols-3">
+              <div>
+                <label htmlFor="co-name" className={labelClass}>{t('checkout.displayName')}</label>
+                <input id="co-name" className={inputClass} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} required />
+              </div>
+              <div>
+                <label htmlFor="co-phone" className={labelClass}>{t('checkout.phoneNumber')}</label>
+                <input id="co-phone" className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
+              </div>
+              <div>
+                <label htmlFor="co-gender" className={labelClass}>{t('common.genderLabel')}</label>
+                <select id="co-gender" className={inputClass} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} required>
+                  <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
+                  <option value="Male">{t('common.genderMale')}</option>
+                  <option value="Female">{t('common.genderFemale')}</option>
+                </select>
+              </div>
+            </div>
+          </section>
+
+          {/* Friends */}
+          <section aria-labelledby="co-friends" className="border-t border-ink-600 pt-8">
+            <h2 id="co-friends" className="vsb-display text-3xl">{t('checkout.companionsTitle')}</h2>
+            <p className="mb-4 mt-1 text-sm text-slate-400">{t('checkout.companionsSubtitle')}</p>
             <div className="space-y-3">
               {companions.map((c, i) => c.kind === 'member' ? (
                 <div key={i} className="flex items-start gap-2">
                   <div className="flex-1">
                     {c.memberId ? (
-                      <div className="flex items-center gap-3 border border-ink-600 bg-ink-850 px-3 py-2">
+                      <div className="flex items-center gap-3 border-y border-ink-600 py-2">
                         <PlayerAvatar name={c.name} src={c.avatarUrl} size="sm" />
                         <span className="min-w-0 flex-1">
                           <span className="block truncate font-semibold text-chalk">{c.name}</span>
@@ -311,165 +327,99 @@ export default function CheckoutPage() {
                       />
                     )}
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeCompanion(i)}
-                    title={t('checkout.removeCompanion')}
-                    aria-label={t('checkout.removeCompanion')}
-                    className="mt-2.5 p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors flex-shrink-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                  {removeBtn(i)}
                 </div>
               ) : (
                 <div key={i} className="flex items-start gap-2">
-                  <div className="grid sm:grid-cols-3 gap-2 flex-1">
-                    <input
-                      className={inputClass}
-                      placeholder={t('checkout.companionNamePlaceholder')}
-                      aria-label={`${t('checkout.companionName')} ${i + 1}`}
-                      value={c.name}
-                      onChange={(e) => updateCompanion(i, 'name', e.target.value)}
-                    />
-                    <input
-                      className={inputClass}
-                      placeholder={t('checkout.companionPhone')}
-                      aria-label={`${t('checkout.companionPhone')} ${i + 1}`}
-                      value={c.phone}
-                      onChange={(e) => updateCompanion(i, 'phone', e.target.value)}
-                    />
-                    <select
-                      className={inputClass}
-                      value={c.gender}
-                      aria-label={`${t('common.genderLabel')} ${i + 1}`}
-                      onChange={(e) => updateCompanion(i, 'gender', e.target.value)}
-                      required
-                    >
+                  <div className="grid flex-1 gap-2 sm:grid-cols-3">
+                    <input className={inputClass} placeholder={t('checkout.companionNamePlaceholder')} aria-label={`${t('checkout.companionName')} ${i + 1}`}
+                      value={c.name} onChange={(e) => updateCompanion(i, 'name', e.target.value)} />
+                    <input className={inputClass} placeholder={t('checkout.companionPhone')} aria-label={`${t('checkout.companionPhone')} ${i + 1}`}
+                      value={c.phone} onChange={(e) => updateCompanion(i, 'phone', e.target.value)} />
+                    <select className={inputClass} value={c.gender} aria-label={`${t('common.genderLabel')} ${i + 1}`} onChange={(e) => updateCompanion(i, 'gender', e.target.value)} required>
                       <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
                       <option value="Male">{t('common.genderMale')}</option>
                       <option value="Female">{t('common.genderFemale')}</option>
                     </select>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => removeCompanion(i)}
-                    title={t('checkout.removeCompanion')}
-                    aria-label={t('checkout.removeCompanion')}
-                    className="mt-2.5 p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors flex-shrink-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
+                  {removeBtn(i)}
                 </div>
               ))}
             </div>
             {companions.length < MAX_COMPANIONS ? (
-              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+              <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2">
                 <button type="button" onClick={() => addCompanion('member')} className="inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300">
-                  <UserPlus className="h-4 w-4" aria-hidden />
-                  {t('v2.friend.addMember')}
+                  <UserPlus className="h-4 w-4" aria-hidden /> {t('v2.friend.addMember')}
                 </button>
                 <button type="button" onClick={() => addCompanion('guest')} className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-white">
-                  <UserPlus className="h-4 w-4" aria-hidden />
-                  {t('v2.friend.addGuest')}
+                  <UserPlus className="h-4 w-4" aria-hidden /> {t('v2.friend.addGuest')}
                 </button>
               </div>
             ) : (
               <p className="mt-3 text-xs text-muted">{t('v2.booking.companionLimit', { count: MAX_COMPANIONS })}</p>
             )}
-          </div>
+          </section>
         </div>
 
-        {/* Summary (order 2 on mobile; spans both rows on the right on desktop) */}
-        <div className="order-2 lg:row-span-2">
-          <div className="v2-surface p-6 lg:sticky lg:top-20">
-            <h2 className="v2-heading text-xl mb-4">{t('checkout.bookingSummary')}</h2>
-            <div className="space-y-3 text-sm">
-              <div>
-                <p className="text-slate-400">{t('checkout.sessionLabel')}</p>
-                <p className="font-semibold text-chalk">{session.title}</p>
-              </div>
-              <div>
-                <p className="text-slate-400">{t('checkout.dateTimeLabel')}</p>
-                <p className="font-medium text-chalk">{formatDate(session.session_date)}</p>
-                <p className="text-slate-300">{formatTime(session.start_time)} - {formatTime(session.end_time)}</p>
-              </div>
-              <div>
-                <p className="text-slate-400">{t('checkout.venueLabel')}</p>
-                <p className="font-medium text-chalk">{session.venue_name}</p>
-              </div>
-              <div className="pt-3 border-t border-ink-600">
-                <p className="text-slate-400 mb-2">{t('v2.booking.players')}</p>
-                <ul className="space-y-1.5">
-                  <li className="flex items-center gap-2">
-                    <PlayerAvatar name={form.short_name || '?'} size="xs" />
-                    <span className="font-medium text-chalk truncate">{form.short_name || profile?.full_name}</span>
-                  </li>
-                  {companions.map((c, i) => (
-                    <li key={i} className="flex items-center gap-2">
-                      <PlayerAvatar name={c.name || '?'} src={c.avatarUrl} guest={c.kind === 'guest'} size="xs" />
-                      <span className="truncate text-slate-300">{c.name.trim() || t('v2.booking.companionN', { n: i + 1 })}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-slate-400">{t('checkout.totalPlayers')}</span>
-                <span className="font-semibold text-chalk">{totalPlayers}</span>
-              </div>
+        {/* Your slot */}
+        <aside aria-labelledby="co-slot" className="border-t border-ink-600 bg-ink-850 lg:border-l lg:border-t-0">
+          <div className="vsb-gutter space-y-6 py-10 lg:sticky lg:top-16 lg:!px-10 lg:py-12">
+            <h2 id="co-slot" className="vsb-display text-3xl">{t('v2.checkout.yourSlot')}</h2>
+            <ul className="divide-y divide-ink-700 border-y border-ink-600">
+              <li className="flex items-center gap-3 py-2.5">
+                <PlayerAvatar name={form.short_name || '?'} src={myAvatar?.thumb} size="xs" />
+                <span className="truncate font-semibold text-chalk">{form.short_name || profile?.full_name}</span>
+              </li>
+              {companions.map((c, i) => (
+                <li key={i} className="flex items-center gap-3 py-2.5">
+                  <PlayerAvatar name={c.name || '?'} src={c.avatarUrl} guest={c.kind === 'guest'} size="xs" />
+                  <span className="truncate text-slate-300">{c.name.trim() || t('v2.booking.companionN', { n: i + 1 })}</span>
+                </li>
+              ))}
+            </ul>
+            <dl className="space-y-2 text-sm">
+              <div className="flex justify-between"><dt className="text-slate-400">{t('checkout.totalPlayers')}</dt><dd className="font-semibold text-chalk">{totalPlayers}</dd></div>
+              <div className="flex justify-between"><dt className="text-slate-400">{t('v2.booking.pricePerPlayer')}</dt><dd className="text-chalk">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</dd></div>
               {session.price > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-slate-400">{t('v2.booking.pricePerPlayer')}</span>
-                  <span className="text-chalk">{formatCurrency(session.price)}</span>
+                <div className="flex items-baseline justify-between border-t border-ink-600 pt-3">
+                  <dt className="font-semibold text-chalk">{t('bookingConfirmation.amountDue')}</dt>
+                  <dd className="font-display text-4xl font-extrabold text-chalk">{formatCurrency(session.price * totalPlayers)}</dd>
                 </div>
               )}
-              {session.price > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-slate-400">{t('bookingConfirmation.amountDue')}</span>
-                  <span className="font-display text-2xl font-bold text-chalk">{formatCurrency(session.price * totalPlayers)}</span>
-                </div>
-              )}
+            </dl>
+
+            {/* Cancellation policy */}
+            <div className="border-l-2 border-amber-400 pl-4">
+              <p className="font-semibold text-amber-200">{t('checkout.policyTitle')}</p>
+              <ul className="mt-2 space-y-1 text-sm text-amber-300/90">
+                <li>{t('checkout.policyRule1')}</li>
+                <li>{t('checkout.policyRule2')}</li>
+                <li>{t('checkout.policyRule3')}</li>
+                <li>{t('checkout.policyRule4')}</li>
+              </ul>
+              <label className="mt-3 flex cursor-pointer items-start gap-2">
+                <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 accent-[#168BFF]" />
+                <span className="text-sm text-amber-100">{t('checkout.agreeLabel')}</span>
+              </label>
             </div>
-            <div className="mt-4 flex items-center gap-2 text-xs text-slate-400 bg-ink-850 rounded-lg p-3">
-              <Clock className="h-4 w-4 text-vsb-400 flex-shrink-0" />
-              {t('checkout.lockedNotice')}
-            </div>
+
+            <button type="submit" disabled={submitting || !agreed} className="v2-btn-primary w-full !py-4 font-display text-lg uppercase tracking-wider">
+              {submitting && <Spinner className="h-5 w-5" />}
+              {submitting ? t('checkout.lockingSlot') : totalPlayers > 1 ? t('checkout.lockSlotsButton', { count: totalPlayers }) : t('checkout.lockMySlot')}
+            </button>
+            <p className="text-xs text-slate-400">{t('checkout.noPaymentYetNote')}</p>
           </div>
-        </div>
-
-        {/* Policy + submit (order 3) */}
-        <div className="lg:col-span-2 order-3 v2-surface p-6 space-y-4">
-          {/* Cancellation policy */}
-          <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-4">
-            <div className="flex items-start gap-2 mb-3">
-              <ShieldCheck className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
-              <div>
-                <p className="font-semibold text-amber-200 text-sm mb-1">{t('checkout.policyTitle')}</p>
-                <ul className="text-xs text-amber-300 space-y-1">
-                  <li>• {t('checkout.policyRule1')}</li>
-                  <li>• {t('checkout.policyRule2')}</li>
-                  <li>• {t('checkout.policyRule3')}</li>
-                  <li>• {t('checkout.policyRule4')}</li>
-                </ul>
-              </div>
-            </div>
-            <label className="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-ink-500 accent-[#168BFF] bg-ink-850" />
-              <span className="text-sm text-amber-200">{t('checkout.agreeLabel')}</span>
-            </label>
-          </div>
-
-          <p className="text-xs text-slate-400 text-center">{t('checkout.noPaymentYetNote')}</p>
-
-          <button
-            type="submit"
-            disabled={submitting || !agreed}
-            className="v2-btn-primary w-full !py-3.5 text-lg"
-          >
-            {submitting && <Spinner className="h-5 w-5" />}
-            {submitting ? t('checkout.lockingSlot') : totalPlayers > 1 ? t('checkout.lockSlotsButton', { count: totalPlayers }) : t('checkout.lockMySlot')}
-          </button>
-        </div>
+        </aside>
       </form>
+    </div>
+  );
+}
+
+function Fact({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="min-w-0">
+      <dt className="vsb-meta mb-1">{label}</dt>
+      <dd className="font-display text-lg font-bold uppercase leading-tight tracking-wide text-chalk">{value}</dd>
     </div>
   );
 }

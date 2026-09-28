@@ -6,7 +6,7 @@ import { fetchCourtRoster, type CourtPlayer, type SessionWithCount } from '@/lib
 import { fetchClubSettings } from '@/lib/settings';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
-import { Spinner } from '@/components/LoadingScreen';
+import { SessionSkeleton } from '@/components/vsb/Skeletons';
 import { SessionDetailsView } from '@/components/vsb/SessionDetailsView';
 import type { ClubSettings, WaitingListEntry } from '@/types/database';
 
@@ -91,11 +91,7 @@ export default function SessionDetailsPage() {
   }
 
   if (loading || !session) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-vsb-500" />
-      </div>
-    );
+    return <SessionSkeleton />;
   }
 
   return (

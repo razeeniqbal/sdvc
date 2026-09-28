@@ -9,7 +9,8 @@
     "genderMale": "Lelaki",
     "genderFemale": "Perempuan",
     "genderSelectPlaceholder": "Pilih jantina",
-    "errorGenderRequired": "Sila pilih jantina"
+    "errorGenderRequired": "Sila pilih jantina",
+    "close": "Tutup"
   },
   "receipt": {
     "scanToPay": "Imbas untuk bayar melalui DuitNow",
@@ -21,7 +22,8 @@
     "uploaded": "Resit dimuat naik. Terima kasih! Admin telah dimaklumkan.",
     "uploadedAt": "Dimuat naik {{date}}",
     "changeReceipt": "Muat naik resit lain",
-    "error": "Gagal memuat naik resit. Sila cuba lagi."
+    "error": "Gagal memuat naik resit. Sila cuba lagi.",
+    "qrAlt": "Kod QR pembayaran"
   },
   "sessionStatus": {
     "available": "Tersedia",
@@ -389,7 +391,7 @@
       "seeHowItWorks": "Cara Ia Berfungsi",
       "upcomingSessions": "Sesi Akan Datang",
       "howVsbWorks": "Cara VSB Berfungsi",
-      "finalTitle": "Permainan seterusnya menanti anda",
+      "finalTitle": "Permainan seterusnya menanti anda.",
       "heroSub1": "Tempah sesi bola tampar.",
       "heroSub2": "Kenali pemain sebenar.",
       "heroSub3": "Jadi sebahagian daripada VSB.",
@@ -416,7 +418,7 @@
       "identityBody": "Setiap ahli mendapat kad pemain VSB yang berkembang dengan setiap permainan. Ia dibina daripada sesi sebenar anda, bukan penarafan rekaan.",
       "identityPoint1": "Posisi, tahap dan jumlah permainan anda, sentiasa terkini",
       "identityPoint2": "Identiti yang sama di profil, senarai pemain sesi dan tempahan",
-      "identityPoint3": "Seni chibi VSB peribadi akan datang",
+      "identityPoint3": "Pemain VSB anda sendiri, dibuat daripada satu foto, dalam gaya pilihan anda",
       "createPlayer": "Cipta pemain anda",
       "cardName": "Nama anda",
       "communityMeta": "Komuniti",
@@ -426,7 +428,8 @@
       "everyPosition": "Semua posisi",
       "everyLevel": "Semua tahap",
       "goodToKnow": "Perlu tahu",
-      "cardSub": "Posisi · Tahap"
+      "cardSub": "Posisi · Tahap",
+      "watermark": "Main"
     },
     "session": {
       "public": "Awam",
@@ -447,7 +450,7 @@
       "allSkillLevels": "Semua tahap",
       "sessionType": "Jenis sesi",
       "clearFilters": "Kosongkan penapis",
-      "meta": "Sesi / VSB",
+      "meta": "Sesi / {{year}}",
       "titleLine1": "Cari permainan",
       "titleLine2": "seterusnya.",
       "upcomingCount_one": "sesi akan datang",
@@ -460,7 +463,15 @@
       "showing_one": "Menunjukkan {{count}} sesi",
       "showing_other": "Menunjukkan {{count}} sesi",
       "thatsAll": "Itu sahaja permainan buat masa ini",
-      "newGamesWhere": "Permainan baharu disiarkan di sini dan diumumkan dalam kumpulan WhatsApp VSB."
+      "newGamesWhere": "Permainan baharu disiarkan di sini dan diumumkan dalam kumpulan WhatsApp VSB.",
+      "openCount_one": "permainan dibuka",
+      "openCount_other": "permainan dibuka",
+      "noneTitle": "Tiada permainan dibuka sekarang.",
+      "bucket": {
+        "thisWeek": "Minggu ini",
+        "nextWeek": "Minggu depan",
+        "later": "Akan datang"
+      }
     },
     "whosPlaying": {
       "title": "Siapa Bermain",
@@ -505,7 +516,7 @@
     },
     "booking": {
       "stepBook": "Tempah",
-      "stepPayment": "Bayaran",
+      "stepPayment": "Bayar",
       "stepConfirm": "Sahkan",
       "stepDone": "selesai",
       "progressLabel": "Kemajuan tempahan",
@@ -513,7 +524,6 @@
       "companionN": "Pemain {{n}}",
       "pricePerPlayer": "Harga seorang",
       "onCourt": "Jumpa di gelanggang.",
-      "viewBooking": "Lihat Tempahan",
       "viewSession": "Lihat Sesi",
       "addFriend": "+ Bawa seorang kawan",
       "companionLimit_one": "Anda boleh bawa {{count}} kawan bagi setiap tempahan.",
@@ -524,7 +534,11 @@
       "holdDesc": "Bayar dan muat naik resit sebelum masa itu, atau slot anda akan dilepaskan kepada senarai menunggu. Muat naik resit akan menghentikan kiraan masa.",
       "payToConfirm": "Bayar untuk sahkan slot anda",
       "plusFriends_one": "+ {{count}} kawan",
-      "plusFriends_other": "+ {{count}} kawan"
+      "plusFriends_other": "+ {{count}} kawan",
+      "thisTicket": "Tiket ini",
+      "paymentStatus": "Bayaran",
+      "viewGame": "Lihat permainan",
+      "yourPlayerAlt": "Pemain VSB {{name}}"
     },
     "card": {
       "played": "Dimain",
@@ -576,32 +590,30 @@
       "completeNow": "Lengkapkan sekarang",
       "nextOnCourt": "Seterusnya di gelanggang",
       "allGames": "Permainan saya",
-      "noUpcoming": "Belum ada permainan ditempah",
+      "noUpcoming": "Belum ada permainan ditempah.",
       "moreUpcoming_one": "+{{count}} lagi permainan ditempah",
       "moreUpcoming_other": "+{{count}} lagi permainan ditempah",
       "recent": "Permainan terkini",
       "viewAllGames": "Lihat semua permainan",
-      "noRecent": "Belum ada permainan lepas.",
       "edit": "Sunting",
       "manage": "Urus",
       "account": "Akaun & keselamatan",
       "emergencyContact": "Kenalan kecemasan",
       "password": "Kata laluan",
       "viewGame": "Lihat permainan",
-      "welcomeTitle": "Selamat datang ke VSB",
-      "welcomeBody": "Cari permainan, tempah slot anda dan kenali pemain lain.",
       "vsbMember": "Ahli VSB · {{date}}",
       "statGames": "Permainan",
       "statVenues": "Tempat",
-      "statUpcoming": "Akan datang"
+      "statUpcoming": "Akan datang",
+      "nextWaiting": "Permainan seterusnya menanti anda.",
+      "storyStarts": "Kisah VSB anda bermula dengan permainan pertama.",
+      "noPosition": "Posisi belum ditetapkan",
+      "settings": "Tetapan"
     },
     "games": {
       "meta": "VSB Saya / Permainan",
       "title": "Permainan saya",
-      "viewLabel": "Tunjuk permainan",
       "upcoming": "Akan datang",
-      "past": "Lepas",
-      "later": "Turut ditempah",
       "search": "Cari sesi atau rujukan",
       "showCancelled": "Tunjuk yang dibatalkan",
       "payHint": "Menunggu bayaran ({{amount}}). Buka permainan untuk bayar dan muat naik resit.",
@@ -611,7 +623,10 @@
         "played": "Dimain",
         "cancelled": "Dibatalkan",
         "notPlayed": "Tidak bermain"
-      }
+      },
+      "history": "Sejarah",
+      "noMatch": "Tiada permainan sepadan dengan carian itu.",
+      "friendBooked": "Ditempah oleh rakan"
     },
     "create": {
       "meta": "VSB Saya / Pemain",
@@ -679,9 +694,8 @@
       "stepPose": "Gaya"
     },
     "community": {
-      "meta": "Warga VSB",
-      "title": "Komuniti",
-      "intro": "Semua yang bermain bersama VSB. Cari rakan sepasukan mengikut posisi dan tahap, dan lihat siapa yang akan bermain.",
+      "meta": "Komuniti VSB",
+      "intro": "Semua yang bermain dengan VSB, mengikut posisi. Cari rakan sepasukan dan lihat siapa yang akan bermain.",
       "statMembers": "Ahli",
       "statPlayingSoon": "Akan bermain",
       "listHeading": "Ahli",
@@ -698,7 +712,7 @@
       "games_other": "{{count}} permainan",
       "since": "sejak {{date}}",
       "next": "Seterusnya: {{title}} · {{date}}",
-      "none": "Tiada pemain sepadan dengan tapisan itu.",
+      "none": "Tiada pemain sepadan dengan penapis ini.",
       "error": "Tidak dapat memuatkan komuniti. Cuba sebentar lagi.",
       "privacy": "Komuniti hanya menunjukkan nama, gambar pemain, posisi, tahap dan jumlah permainan anda. Butiran hubungan tidak pernah ditunjukkan.",
       "privacyLink": "Tukar keterlihatan anda",
@@ -706,7 +720,18 @@
       "visibilityBody": "Tunjukkan saya di halaman Komuniti, supaya ahli lain boleh melihat nama, gambar pemain, posisi, tahap dan jumlah permainan saya.",
       "visibleOn": "Anda kelihatan dalam Komuniti.",
       "visibleOff": "Anda disembunyikan daripada Komuniti.",
-      "toggleError": "Tidak dapat mengemas kini keterlihatan. Cuba lagi."
+      "toggleError": "Tidak dapat mengemas kini keterlihatan. Cuba lagi.",
+      "titleLine1": "Mereka yang membuat",
+      "titleLine2": "gelanggang terus hidup.",
+      "group": {
+        "S": "Setter",
+        "OH": "Outside Hitter",
+        "OPP": "Opposite Hitter",
+        "MB": "Middle Blocker",
+        "L": "Libero",
+        "FLEX": "Fleksibel",
+        "none": "Posisi belum ditetapkan"
+      }
     },
     "status": {
       "booking": {
@@ -777,7 +802,6 @@
       "saved": "Gaya Permainan disimpan.",
       "saveError": "Tidak dapat menyimpan Gaya Permainan. Cuba lagi.",
       "empty": "Beritahu pemain lain cara anda suka bermain: gaya anda, jenis permainan yang anda gemari, dan sebab anda bermain. Hanya beberapa saat.",
-      "identity": "Identiti pemain",
       "regenerateUsed": "Penjanaan pemain percuma anda telah digunakan.",
       "q": {
         "vibe": "Bagaimana anda suka bermain?",
@@ -830,6 +854,11 @@
       "ready": "Sedia",
       "relaxed": "Santai",
       "confident": "Yakin"
+    },
+    "checkout": {
+      "title": "Kunci tempat saya",
+      "yourGame": "Permainan anda",
+      "yourSlot": "Tempat anda"
     }
   }
 }

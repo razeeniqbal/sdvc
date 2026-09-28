@@ -6,10 +6,11 @@ import { supabase } from '@/lib/supabase';
 import { friendlyProfileError } from '@/lib/auth';
 import { dateParts, formatTime } from '@/lib/format';
 import { byDateAsc, fetchMyGames, gameState, isUpcoming, playerActivity, type MyGame } from '@/lib/myGames';
-import { PLAYING_POSITIONS, POSITION_KEY, SKILL_LEVELS, SKILL_LEVEL_KEY } from '@/lib/volleyball';
+import { PLAYING_POSITIONS, POSITION_ABBR, POSITION_KEY, SKILL_LEVELS, SKILL_LEVEL_KEY } from '@/lib/volleyball';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
+import { ListSkeleton } from '@/components/vsb/Skeletons';
 import { PlayerCard } from '@/components/PlayerCard';
 import { GameStateLabel } from '@/components/vsb/GameStateLabel';
 import { fetchMyEntitlement, useMyAvatar, type Entitlement } from '@/lib/avatars';
@@ -21,8 +22,9 @@ import { YourGameForm } from '@/components/vsb/YourGameForm';
 import { experienceKey, hasYourGame, playstyleKey, reasonKey, saveYourGame, vibeKey, yourGameOf, type YourGame } from '@/lib/yourGame';
 
 // MY VSB: the player's hub. Identity first:
-//   card (collectible) + profile facts + REAL activity → next game → recent
-//   games → YOUR GAME (self-described) → volleyball profile → account.
+//   card + profile facts + REAL activity → next on court | your game (self-
+//   described) → recent games → settings (profile, visibility, organize,
+//   account) in one quieter band.
 // Three kinds of data, never mixed up: profile facts, what the player says
 // about their game, and what they have actually done in VSB. No ratings, no
 // attendance. Editing is inline rather than separate pages.
@@ -161,18 +163,32 @@ export default function ProfilePage() {
           <div className="mx-auto w-full max-w-[24rem] lg:mx-0 lg:max-w-none">
             <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level}
               games={activity ? activity.games : null} tags={cardTags} artSrc={avatar?.image} />
-            {!avatar && (
+            {!avatar ? (
               <Link to="/profile/player" className="v2-btn-primary mt-4 w-full font-display uppercase tracking-wider">
                 {t('v2.landing.createPlayer')} <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
+            ) : (
+              <p className="mt-4 text-center text-sm lg:text-left">
+                {canGenerate ? (
+                  <Link to="/profile/player" className="font-semibold text-slate-300 underline decoration-ink-500 underline-offset-4 hover:text-white">{t('v2.create.regenerate')}</Link>
+                ) : (
+                  <span className="text-muted">{t('v2.yourGame.regenerateUsed')}</span>
+                )}
+              </p>
             )}
           </div>
-          <div>
-            <p className="vsb-meta mb-3">{t('v2.myVsb.meta')}</p>
-            <h1 id="myvsb-name" className="vsb-display text-5xl sm:text-6xl lg:text-7xl">{displayName}</h1>
+          <div className="relative">
+            {/* the player's position, very quietly, behind the hub */}
+            <span className="vsb-watermark -top-[0.35em] right-0 hidden lg:block" aria-hidden>{profile.playing_position ? POSITION_ABBR[profile.playing_position] : 'VSB'}</span>
+            <p className="vsb-meta relative mb-3">{t('v2.myVsb.meta')}</p>
+            <h1 id="myvsb-name" className="vsb-display relative text-5xl sm:text-6xl lg:text-8xl xl:text-9xl">{displayName}</h1>
+            <p className="mt-3 font-display text-xl font-bold uppercase tracking-wider text-slate-200">
+              {[profile.playing_position ? t(POSITION_KEY[profile.playing_position]) : t('v2.myVsb.noPosition'),
+                profile.skill_level ? t(SKILL_LEVEL_KEY[profile.skill_level]) : null].filter(Boolean).join(' · ')}
+            </p>
             <p className="vsb-meta mt-2">{t('v2.myVsb.vsbMember', { date: memberSince.toUpperCase() })}</p>
 
-            <dl className="mt-8 grid max-w-xl grid-cols-3 gap-6 border-t border-ink-600 pt-6">
+            <dl className="relative mt-10 grid max-w-3xl grid-cols-3 gap-6 border-t border-ink-600 pt-6">
               <BigStat label={t('v2.myVsb.statGames')} value={activity?.games} />
               <BigStat label={t('v2.myVsb.statVenues')} value={activity?.venues} />
               <BigStat label={t('v2.myVsb.statUpcoming')} value={activity?.upcoming} />
@@ -192,98 +208,89 @@ export default function ProfilePage() {
         </div>
       </section>
 
-      <div className="vsb-gutter grid gap-12 py-12 lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] lg:gap-16 lg:py-16">
+      <div className={`vsb-gutter grid gap-12 py-12 lg:gap-16 lg:py-16 ${editingGame ? '' : 'lg:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)]'}`}>
         {/* ===== Next on court ===== */}
         <section aria-labelledby="next-heading">
           <HubHeading id="next-heading" action={<Link to="/bookings" className="hub-link">{t('v2.myVsb.allGames')} <ArrowRight className="h-4 w-4" aria-hidden /></Link>}>{t('v2.myVsb.nextOnCourt')}</HubHeading>
           {games === null ? (
-            <div className="py-8"><Spinner className="h-6 w-6 text-vsb-500" /></div>
+            <ListSkeleton rows={1} />
           ) : next ? (
             <NextGame game={next} lang={i18n.language} />
-          ) : games.length === 0 ? (
-            <div className="flex items-end gap-6 border-y border-ink-600 pt-6">
-              <img src={vsbAssets.states.welcome.sm.src} alt="" width={vsbAssets.states.welcome.sm.width} height={vsbAssets.states.welcome.sm.height}
-                loading="lazy" decoding="async" className="h-48 w-auto sm:h-56" />
-              <div className="pb-8">
-                <p className="font-display text-3xl font-extrabold uppercase leading-none text-chalk">{t('v2.myVsb.welcomeTitle')}</p>
-                <p className="mt-2 max-w-sm text-slate-300">{t('v2.myVsb.welcomeBody')}</p>
+          ) : (
+            <div className="flex items-end gap-6 border-y border-ink-600">
+              {games.length === 0 && (
+                <img src={vsbAssets.states.welcome.sm.src} alt="" width={vsbAssets.states.welcome.sm.width} height={vsbAssets.states.welcome.sm.height}
+                  loading="lazy" decoding="async" className="mt-6 h-44 w-auto sm:h-52" />
+              )}
+              <div className="py-8">
+                <p className="font-display text-3xl font-extrabold uppercase leading-none text-chalk">{t('v2.myVsb.noUpcoming')}</p>
+                <p className="mt-2 max-w-sm text-slate-300">{t('v2.myVsb.nextWaiting')}</p>
                 <Link to="/sessions" className="v2-btn-primary mt-5 !px-6 font-display uppercase tracking-wider">{t('v2.landing.findGame')} <ArrowRight className="h-4 w-4" aria-hidden /></Link>
               </div>
-            </div>
-          ) : (
-            <div className="border-y border-ink-600 py-8">
-              <p className="font-display text-2xl font-bold uppercase text-chalk">{t('v2.myVsb.noUpcoming')}</p>
-              <Link to="/sessions" className="mt-3 inline-flex items-center gap-1.5 font-semibold text-vsb-400 hover:text-vsb-300">{t('v2.landing.findGame')} <ArrowRight className="h-4 w-4" aria-hidden /></Link>
             </div>
           )}
           {upcoming.length > 1 && <p className="mt-3 text-sm text-muted">{t('v2.myVsb.moreUpcoming', { count: upcoming.length - 1 })}</p>}
         </section>
 
-        {/* ===== Recent activity ===== */}
-        <section aria-labelledby="recent-heading">
-          <HubHeading id="recent-heading" action={<Link to="/bookings?view=past" className="hub-link">{t('v2.myVsb.viewAllGames')} <ArrowRight className="h-4 w-4" aria-hidden /></Link>}>{t('v2.myVsb.recent')}</HubHeading>
-          {games === null ? null : recent.length === 0 ? (
-            <p className="py-6 text-slate-400">{t('v2.myVsb.noRecent')}</p>
+        {/* ===== Your Game (self-described, never a rating) ===== */}
+        <section id="your-game" aria-labelledby="yg-heading" className="scroll-mt-16">
+          <HubHeading id="yg-heading" action={!editingGame && <button onClick={() => { setGameDraft(yourGame); setEditingGame(true); }} className="hub-link">{hasYourGame(yourGame) ? t('v2.yourGame.edit') : t('v2.yourGame.start')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
+            {t('v2.yourGame.title')}
+          </HubHeading>
+          {editingGame ? (
+            <div className="max-w-4xl">
+              <p className="mb-6 text-slate-300">{t('v2.yourGame.intro')}</p>
+              <YourGameForm value={gameDraft} onChange={setGameDraft} idPrefix="myvsb" />
+              <div className="mt-6 flex flex-wrap gap-3">
+                <button type="button" onClick={handleSaveGame} disabled={savingGame} className="v2-btn-primary !px-6 font-display uppercase tracking-wider">
+                  {savingGame ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" aria-hidden />} {t('v2.yourGame.save')}
+                </button>
+                <button type="button" onClick={() => setEditingGame(false)} className="v2-btn-secondary">{t('v2.myVsb.cancel')}</button>
+              </div>
+            </div>
+          ) : hasYourGame(yourGame) ? (
+            <dl className="divide-y divide-ink-700 border-y border-ink-600">
+              {yourGame.playstyle && <GameRow label={t('v2.yourGame.label.playstyle')} value={t(playstyleKey(yourGame.playstyle))} />}
+              {yourGame.game_vibe && <GameRow label={t('v2.yourGame.label.vibe')} value={t(vibeKey(yourGame.game_vibe))} />}
+              {yourGame.experience_range && <GameRow label={t('v2.yourGame.label.experience')} value={t(experienceKey(yourGame.experience_range))} />}
+              {yourGame.play_reasons.length > 0 && <GameRow label={t('v2.yourGame.label.reasons')} value={yourGame.play_reasons.map((r) => t(reasonKey(r))).join(' · ')} />}
+            </dl>
           ) : (
-            <ol className="divide-y divide-ink-700 border-y border-ink-600">
-              {recent.map((g) => {
-                const d = dateParts(g.session.session_date, i18n.language);
-                return (
-                  <li key={g.id}>
-                    <Link to={`/bookings/${g.id}`} className="flex items-center gap-4 py-3 hover:bg-ink-850">
-                      <span className="w-14 text-center font-display leading-none"><span className="block text-2xl font-extrabold text-chalk">{d.day}</span><span className="text-[11px] font-bold tracking-wider text-muted">{d.month}</span></span>
-                      <span className="min-w-0 flex-1 truncate font-semibold text-chalk">{g.session.title}</span>
-                      <span className="hidden max-w-[40%] truncate text-sm text-muted sm:block">{g.session.venue_name}</span>
-                    </Link>
-                  </li>
-                );
-              })}
-            </ol>
+            <p className="border-y border-ink-600 py-8 text-slate-300">{t('v2.yourGame.empty')}</p>
           )}
         </section>
       </div>
 
-      {/* ===== Your Game (self-described) + player identity ===== */}
-      <section id="your-game" aria-labelledby="yg-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">
-        <HubHeading id="yg-heading" action={!editingGame && <button onClick={() => { setGameDraft(yourGame); setEditingGame(true); }} className="hub-link">{hasYourGame(yourGame) ? t('v2.yourGame.edit') : t('v2.yourGame.start')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
-          {t('v2.yourGame.title')}
-        </HubHeading>
-        {editingGame ? (
-          <div className="max-w-4xl">
-            <p className="mb-6 text-slate-300">{t('v2.yourGame.intro')}</p>
-            <YourGameForm value={gameDraft} onChange={setGameDraft} idPrefix="myvsb" />
-            <div className="mt-6 flex flex-wrap gap-3">
-              <button type="button" onClick={handleSaveGame} disabled={savingGame} className="v2-btn-primary !px-6 font-display uppercase tracking-wider">
-                {savingGame ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" aria-hidden />} {t('v2.yourGame.save')}
-              </button>
-              <button type="button" onClick={() => setEditingGame(false)} className="v2-btn-secondary">{t('v2.myVsb.cancel')}</button>
-            </div>
-          </div>
-        ) : hasYourGame(yourGame) ? (
-          <dl className="grid max-w-5xl grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
-            {yourGame.playstyle && <Fact label={t('v2.yourGame.label.playstyle')} value={t(playstyleKey(yourGame.playstyle))} />}
-            {yourGame.game_vibe && <Fact label={t('v2.yourGame.label.vibe')} value={t(vibeKey(yourGame.game_vibe))} />}
-            {yourGame.experience_range && <Fact label={t('v2.yourGame.label.experience')} value={t(experienceKey(yourGame.experience_range))} />}
-            {yourGame.play_reasons.length > 0 && <Fact label={t('v2.yourGame.label.reasons')} value={yourGame.play_reasons.map((r) => t(reasonKey(r))).join(' · ')} />}
-          </dl>
+      {/* ===== Recent games: real history ===== */}
+      <section aria-labelledby="recent-heading" className="vsb-gutter pb-14 lg:pb-20">
+        <HubHeading id="recent-heading" action={recent.length > 0 && <Link to="/bookings?view=past" className="hub-link">{t('v2.myVsb.viewAllGames')} <ArrowRight className="h-4 w-4" aria-hidden /></Link>}>{t('v2.myVsb.recent')}</HubHeading>
+        {games === null ? <ListSkeleton rows={3} /> : recent.length === 0 ? (
+          <p className="border-y border-ink-600 py-8 font-display text-2xl font-bold uppercase tracking-wide text-slate-300">{t('v2.myVsb.storyStarts')}</p>
         ) : (
-          <p className="max-w-2xl text-slate-300">{t('v2.yourGame.empty')}</p>
-        )}
-
-        {avatar && (
-          <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink-700 pt-5 text-sm">
-            <span className="vsb-meta">{t('v2.yourGame.identity')}</span>
-            {canGenerate ? (
-              <Link to="/profile/player" className="font-semibold text-slate-300 underline decoration-ink-500 underline-offset-4 hover:text-white">{t('v2.create.regenerate')}</Link>
-            ) : (
-              <span className="text-muted">{t('v2.yourGame.regenerateUsed')}</span>
-            )}
-          </div>
+          <ol className="divide-y divide-ink-700 border-y border-ink-600">
+            {recent.map((g) => {
+              const d = dateParts(g.session.session_date, i18n.language);
+              return (
+                <li key={g.id}>
+                  <Link to={`/bookings/${g.id}`} className="grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-4 py-4 hover:bg-ink-850 sm:grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,16rem)_8rem]">
+                    <span className="text-center font-display leading-none"><span className="block text-3xl font-extrabold text-chalk">{d.day}</span><span className="text-xs font-bold tracking-wider text-muted">{d.month}</span></span>
+                    <span className="min-w-0 truncate font-display text-xl font-bold uppercase tracking-wide text-chalk">{g.session.title}</span>
+                    <span className="hidden truncate text-sm text-muted sm:block">{g.session.venue_name}</span>
+                    <span className="justify-self-end"><GameStateLabel state={gameState(g)} /></span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ol>
         )}
       </section>
 
+      {/* ===== Settings: the quieter half of My VSB ===== */}
+      <div className="border-t border-ink-600 bg-ink-850">
+      <div className="vsb-gutter grid gap-x-16 lg:grid-cols-2">
+      <p className="vsb-meta pt-10 lg:col-span-2">{t('v2.myVsb.settings')}</p>
       {/* ===== Volleyball profile ===== */}
-      <section id="profile-section" aria-labelledby="vp-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">
+      <section id="profile-section" aria-labelledby="vp-heading" className="scroll-mt-16 border-t border-ink-600 py-10">
         <HubHeading id="vp-heading" action={!editingProfile && <button onClick={() => { setEditingProfile(true); setEditingAccount(false); }} className="hub-link">{t('v2.myVsb.edit')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
           {t('v2.profile.volleyballProfile')}
         </HubHeading>
@@ -326,7 +333,7 @@ export default function ProfilePage() {
             {saveBar}
           </form>
         ) : (
-          <dl className="grid max-w-5xl grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3 lg:grid-cols-5">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3">
             <Fact label={t('profile.displayNameLabel')} value={profile.short_name || profile.full_name} />
             <Fact label={t('profile.fullNameLabel')} value={profile.full_name} />
             <Fact label={t('v2.profile.position')} value={profile.playing_position ? t(POSITION_KEY[profile.playing_position]) : t('v2.profile.notSet')} />
@@ -337,9 +344,9 @@ export default function ProfilePage() {
       </section>
 
       {/* ===== Community visibility ===== */}
-      <section id="community" aria-labelledby="community-vis-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">
+      <section id="community" aria-labelledby="community-vis-heading" className="scroll-mt-16 border-t border-ink-600 py-10">
         <HubHeading id="community-vis-heading">{t('v2.community.visibilityTitle')}</HubHeading>
-        <div className="flex max-w-3xl items-start justify-between gap-6">
+        <div className="flex items-start justify-between gap-6">
           <p className="text-slate-300">{t('v2.community.visibilityBody')}</p>
           <button type="button" role="switch" aria-checked={profile.show_in_community} aria-labelledby="community-vis-heading"
             onClick={toggleCommunity} disabled={savingVisibility}
@@ -351,10 +358,10 @@ export default function ProfilePage() {
       </section>
 
       {/* ===== Organize games ===== */}
-      <OrganizeSection />
+      <OrganizeSection bare />
 
       {/* ===== Account & safety ===== */}
-      <section id="settings" aria-labelledby="acct-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">
+      <section id="settings" aria-labelledby="acct-heading" className="scroll-mt-16 border-t border-ink-600 py-10">
         <HubHeading id="acct-heading" action={!editingAccount && <button onClick={() => { setEditingAccount(true); setEditingProfile(false); }} className="hub-link">{t('v2.myVsb.manage')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
           {t('v2.myVsb.account')}
         </HubHeading>
@@ -396,13 +403,15 @@ export default function ProfilePage() {
             </form>
           </div>
         ) : (
-          <dl className="grid max-w-5xl grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-3">
+          <dl className="grid grid-cols-2 gap-x-6 gap-y-6">
             <Fact label={t('profile.phoneNumberLabel')} value={profile.phone_number || t('profile.noPhoneNumber')} />
             <Fact label={t('v2.myVsb.emergencyContact')} value={profile.emergency_contact_name ? `${profile.emergency_contact_name}${profile.emergency_contact_phone ? ` · ${profile.emergency_contact_phone}` : ''}` : t('v2.profile.notSet')} />
             <Fact label={t('v2.myVsb.password')} value="••••••••" />
           </dl>
         )}
       </section>
+      </div>
+      </div>
     </div>
   );
 }
@@ -416,11 +425,20 @@ function HubHeading({ id, children, action }: { id: string; children: ReactNode;
   );
 }
 
-function BigStat({ label, value }: { label: string; value: ReactNode }) {
+function GameRow({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid grid-cols-[8rem_minmax(0,1fr)] items-baseline gap-4 py-3 sm:grid-cols-[10rem_minmax(0,1fr)]">
+      <dt className="vsb-meta">{label}</dt>
+      <dd className="font-display text-xl font-bold uppercase tracking-wide text-chalk">{value}</dd>
+    </div>
+  );
+}
+
+function BigStat({ label, value }: { label: string; value: number | undefined }) {
   return (
     <div className="flex flex-col-reverse">
       <dt className="vsb-meta mt-1">{label}</dt>
-      <dd className="font-display text-5xl font-extrabold leading-none text-chalk">{value ?? '-'}</dd>
+      <dd className="font-display text-6xl font-extrabold leading-none text-chalk">{typeof value === 'number' ? String(value).padStart(2, '0') : '-'}</dd>
     </div>
   );
 }

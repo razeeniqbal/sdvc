@@ -5,7 +5,7 @@ import { supabase } from '@/lib/supabase';
 import { phoneToEmail } from '@/lib/auth';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
-import { VsbLogo } from '@/components/VsbLogo';
+import { AuthLayout } from '@/components/layout/AuthLayout';
 
 export default function LoginPage() {
   const { t } = useTranslation();
@@ -31,18 +31,16 @@ export default function LoginPage() {
   const inputClass = 'v2-input !py-3 !text-base';
 
   return (
-    <div className="min-h-screen bg-ink flex items-center justify-center px-4 py-8">
-      <div className="w-full max-w-sm">
-        <div className="text-center mb-8">
-          <VsbLogo variant="lockup" className="h-12 mx-auto mb-6" />
-          <h1 className="v2-heading text-3xl">{t('auth.login.title')}</h1>
-          <p className="text-slate-400 text-sm mt-1">{t('auth.login.subtitle')}</p>
-        </div>
-
-        <div className="v2-surface p-6 sm:p-8">
-          <form onSubmit={handleSubmit} className="space-y-3">
-            <input type="text" aria-label={t('auth.login.phoneLabel')} className={inputClass} placeholder={t('auth.login.phonePlaceholder')} value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
-            <input type="password" aria-label={t('auth.login.passwordLabel')} className={inputClass} placeholder={t('auth.login.passwordLabel')} value={password} onChange={(e) => setPassword(e.target.value)} />
+    <AuthLayout title={<>{t('auth.login.title')}</>} subtitle={<>{t('auth.login.subtitle')}</>}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="login-id" className="mb-1.5 block text-sm font-medium text-slate-300">{t('auth.login.phoneLabel')}</label>
+              <input id="login-id" type="text" autoComplete="username" className={inputClass} placeholder={t('auth.login.phonePlaceholder')} value={identifier} onChange={(e) => setIdentifier(e.target.value)} />
+            </div>
+            <div>
+              <label htmlFor="login-pw" className="mb-1.5 block text-sm font-medium text-slate-300">{t('auth.login.passwordLabel')}</label>
+              <input id="login-pw" type="password" autoComplete="current-password" className={inputClass} value={password} onChange={(e) => setPassword(e.target.value)} />
+            </div>
             <button type="submit" disabled={loading}
               className="v2-btn-primary w-full !py-3 mt-1">
               {loading && <Spinner className="h-5 w-5" />}
@@ -50,12 +48,10 @@ export default function LoginPage() {
             </button>
           </form>
 
-          <div className="flex flex-col items-center gap-2 mt-5">
+          <div className="mt-6 flex flex-col items-start gap-2 border-t border-ink-600 pt-5">
             <Link to="/forgot-password" className="text-sm text-vsb-400 font-medium hover:underline">{t('auth.login.forgotPassword')}</Link>
             <p className="text-sm text-slate-400">{t('auth.login.newHere')} <Link to="/register" className="text-vsb-400 font-medium hover:underline">{t('auth.login.signUp')}</Link></p>
           </div>
-        </div>
-      </div>
-    </div>
+    </AuthLayout>
   );
 }

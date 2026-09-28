@@ -8,23 +8,17 @@ export function BookingSteps({ current }: { current: 1 | 2 | 3 }) {
   const steps = [t('v2.booking.stepBook'), t('v2.booking.stepPayment'), t('v2.booking.stepConfirm')];
 
   return (
-    <ol className="flex items-center gap-2 sm:gap-3" aria-label={t('v2.booking.progressLabel')}>
+    <ol className="grid max-w-xl grid-cols-3 gap-3" aria-label={t('v2.booking.progressLabel')}>
       {steps.map((label, i) => {
         const n = i + 1;
         const done = n < current;
         const active = n === current;
         return (
-          <li key={label} className="flex flex-1 items-center gap-2 sm:flex-none" aria-current={active ? 'step' : undefined}>
-            <span className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full font-display text-sm font-bold ${
-              done ? 'bg-vsb-600 text-white' : active ? 'bg-chalk text-ink' : 'border border-ink-500 text-muted'
-            }`}>
-              {done ? <Check className="h-4 w-4" aria-hidden /> : n}
-            </span>
-            <span className={`font-display text-sm font-bold uppercase tracking-wide ${active ? 'text-chalk' : done ? 'text-vsb-300' : 'text-muted'}`}>
-              {label}
-              {done && <span className="sr-only"> ({t('v2.booking.stepDone')})</span>}
-            </span>
-            {n < steps.length && <span className="hidden h-px w-8 bg-ink-500 sm:block" aria-hidden />}
+          <li key={label} aria-current={active ? 'step' : undefined}
+            className={`border-t-2 pt-2 font-display text-sm font-bold uppercase tracking-[0.2em] ${active ? 'border-vsb-500 text-chalk' : done ? 'border-vsb-800 text-vsb-300' : 'border-ink-600 text-muted'}`}>
+            <span className="mr-2">{String(n).padStart(2, '0')}</span>{label}
+            {done && <Check className="ml-1.5 inline h-3.5 w-3.5 align-[-2px]" aria-hidden />}
+            {done && <span className="sr-only"> ({t('v2.booking.stepDone')})</span>}
           </li>
         );
       })}
