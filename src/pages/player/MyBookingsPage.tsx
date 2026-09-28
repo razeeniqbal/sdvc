@@ -76,7 +76,7 @@ export default function MyBookingsPage() {
             key={tb.key}
             onClick={() => setTab(tb.key)}
             className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
-              tab === tb.key ? 'bg-vsb-500 text-white' : 'bg-ink-800 text-slate-300 border border-ink-600 hover:bg-ink-700'
+              tab === tb.key ? 'bg-vsb-600 text-white' : 'bg-ink-800 text-slate-300 border border-ink-600 hover:bg-ink-700'
             }`}
           >
             {tb.label}
@@ -89,6 +89,7 @@ export default function MyBookingsPage() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
         <input
           placeholder={t('myBookings.searchPlaceholder')}
+          aria-label={t('myBookings.searchPlaceholder')}
           className="v2-input !py-2.5 !pl-10"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -102,7 +103,7 @@ export default function MyBookingsPage() {
           </div>
           <h3 className="font-display text-2xl font-bold uppercase text-chalk mb-1">{t('myBookings.noBookingsFound')}</h3>
           <p className="text-slate-400 text-sm mb-4">{t('myBookings.browseAndBook')}</p>
-          <Link to="/sessions" className="inline-flex items-center gap-2 px-5 py-2.5 bg-vsb-500 hover:bg-vsb-400 text-white font-semibold rounded-xl transition-colors">
+          <Link to="/sessions" className="inline-flex items-center gap-2 px-5 py-2.5 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-colors">
             {t('myBookings.browseSessions')}
           </Link>
         </div>

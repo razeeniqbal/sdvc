@@ -106,7 +106,7 @@ export function SessionCard({ session, to, roster, isPrivate }: SessionCardProps
             <span className="ml-1 text-xs text-muted">{t('v2.session.perPlayer')}</span>
           </p>
           <span className={`rounded-lg px-5 py-2 text-sm font-bold transition-colors ${
-            canBook ? 'bg-vsb-500 text-white group-hover:bg-vsb-400' : 'bg-ink-600 text-slate-300'
+            canBook ? 'bg-vsb-600 text-white group-hover:bg-vsb-700' : 'bg-ink-600 text-slate-300'
           }`}>
             {canBook ? t('v2.session.join') : status === 'Fully Booked' ? t('sessions.waitlist') : t('sessions.view')}
           </span>

@@ -8,8 +8,8 @@
 @layer components {
   .v2-surface { @apply bg-ink-800 border border-ink-600 rounded-2xl; }
   .v2-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-vsb-500 px-5 py-2.5 font-semibold text-white transition-colors
-      hover:bg-vsb-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-vsb-600 px-5 py-2.5 font-semibold text-white transition-colors
+      hover:bg-vsb-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink
       disabled:cursor-not-allowed disabled:bg-ink-600 disabled:text-muted;
   }
   .v2-btn-secondary {
@@ -31,18 +31,8 @@
 
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
 
-/* Scroll-reveal for landing page sections */
-@keyframes reveal {
-  from { transform: translateY(1.25rem); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-.reveal-hidden { opacity: 0; }
-.animate-reveal { animation: reveal 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-
 @media (prefers-reduced-motion: reduce) {
-  .reveal-hidden { opacity: 1; }
-  .animate-reveal { animation: none; }
+  .animate-slide-up { animation: none; }
   html { scroll-behavior: auto; }
 }
 

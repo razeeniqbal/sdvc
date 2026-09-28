@@ -74,9 +74,9 @@ export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; cap
         {filters.map((f) => (
           <button key={f.key} onClick={() => setFilter(f.key)} aria-pressed={filter === f.key}
             className={`rounded-full border px-3 py-1 text-sm font-semibold transition-colors ${
-              filter === f.key ? 'border-vsb-500 bg-vsb-500 text-white' : 'border-ink-500 text-slate-300 hover:border-vsb-400 hover:text-white'
+              filter === f.key ? 'border-vsb-600 bg-vsb-600 text-white' : 'border-ink-500 text-slate-300 hover:border-vsb-400 hover:text-white'
             }`}>
-            {f.label} <span className={filter === f.key ? 'text-vsb-100' : 'text-muted'}>({counts[f.key]})</span>
+            {f.label} <span className={filter === f.key ? 'text-white' : 'text-muted'}>({counts[f.key]})</span>
           </button>
         ))}
       </div>
@@ -108,10 +108,10 @@ export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; cap
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-chalk">{p.display_name}</p>
                 <p className="text-xs text-slate-400">
-                  {p.is_guest
-                    ? t('v2.whosPlaying.guest')
-                    : p.playing_position ? t(POSITION_KEY[p.playing_position]) : t('v2.whosPlaying.noPosition')}
-                  {p.gender && <> · {p.gender === 'Male' ? t('common.genderMale') : t('common.genderFemale')}</>}
+                  {[
+                    p.is_guest ? t('v2.whosPlaying.guest') : p.playing_position ? t(POSITION_KEY[p.playing_position]) : null,
+                    p.gender ? (p.gender === 'Male' ? t('common.genderMale') : t('common.genderFemale')) : t('v2.whosPlaying.filterUnspecified'),
+                  ].filter(Boolean).join(' · ')}
                 </p>
               </div>
               <StatusBadge status={p.booking_status as BookingStatus} />
@@ -157,7 +157,7 @@ function PlayerMarker({ player }: { player: CourtPlayer }) {
         {player.gender && (
           <span
             className={`absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold leading-none ring-2 ring-ink ${
-              player.gender === 'Male' ? 'bg-vsb-500 text-white' : 'bg-pink-400 text-ink'
+              player.gender === 'Male' ? 'bg-vsb-600 text-white' : 'bg-pink-400 text-ink'
             }`}
             aria-hidden
           >
@@ -167,7 +167,9 @@ function PlayerMarker({ player }: { player: CourtPlayer }) {
       </div>
       <div className="mt-0.5 w-full rounded bg-ink/85 px-1 py-px text-center leading-tight" aria-hidden>
         <p className="truncate text-[11px] font-bold text-chalk">{player.display_name}</p>
-        <p className="font-display text-[10px] font-bold tracking-wide text-vsb-300">{player.is_guest ? t('v2.whosPlaying.guestShort') : pos ?? '—'}</p>
+        {(player.is_guest || pos) && (
+          <p className="font-display text-[10px] font-bold tracking-wide text-vsb-300">{player.is_guest ? t('v2.whosPlaying.guestShort') : pos}</p>
+        )}
       </div>
     </div>
   );

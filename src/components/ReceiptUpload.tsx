@@ -121,7 +121,7 @@ export function ReceiptUpload({ booking, session, profile, qrUrl, groupBookings,
           type="button"
           onClick={() => fileInputRef.current?.click()}
           disabled={uploading}
-          className="inline-flex items-center gap-2 px-4 py-2 bg-vsb-500 hover:bg-vsb-400 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+          className="inline-flex items-center gap-2 px-4 py-2 bg-vsb-600 hover:bg-vsb-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
         >
           {uploading ? <Spinner className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
           {uploading ? t('receipt.uploading') : t('receipt.uploadButton')}

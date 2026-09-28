@@ -16,7 +16,7 @@ export function BookingSteps({ current }: { current: 1 | 2 | 3 }) {
         return (
           <li key={label} className="flex flex-1 items-center gap-2 sm:flex-none" aria-current={active ? 'step' : undefined}>
             <span className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full font-display text-sm font-bold ${
-              done ? 'bg-vsb-500 text-white' : active ? 'bg-chalk text-ink' : 'border border-ink-500 text-muted'
+              done ? 'bg-vsb-600 text-white' : active ? 'bg-chalk text-ink' : 'border border-ink-500 text-muted'
             }`}>
               {done ? <Check className="h-4 w-4" aria-hidden /> : n}
             </span>

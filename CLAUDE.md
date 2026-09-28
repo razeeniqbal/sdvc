@@ -4,18 +4,24 @@ This app (volleyball session booking — Tailwind + React) drifted into generic
 "AI slop" visual patterns during earlier iterations. These were deliberately
 cleaned up. Follow these rules on any new UI work so it doesn't drift back.
 
-## VSB V2 (in progress on `vsb-v2-revamp`)
+## VSB V2 (on `vsb-v2-revamp`)
 
 Player-facing screens are being moved onto the VSB V2 brand (dark, athletic,
 community-first). Source of truth: `VSB_V2_Revamp_PRD.md` (kept outside the repo).
-Screens not yet migrated still use the V1 light/navy styling below — that's
-expected mid-migration, don't "fix" them piecemeal.
+All player-facing screens are on V2 (dark). `/admin/*` intentionally keeps a
+light, data-dense layout with VSB Blue accents.
 
 - **Palette** (tailwind.config.js): `ink` (Deep Ink #0A0D12 background, plus
   800/700/600 raised surfaces), `vsb` (VSB Blue #168BFF — primary action,
   selected state), `chalk` (Court White #F4F1EA foreground), `ball`
   (Volleyball Orange #FF6B2C — restrained, special accent only), `muted`
-  (Slate #687280 secondary text).
+  (secondary text, #838D9C — brand Slate #687280 lifted to pass WCAG AA on ink;
+  brand value kept as `slate-brand` for non-text use). Filled buttons and
+  selected states use `vsb-600` so white text passes AA; `vsb-500` is for
+  accents, borders and text on ink.
+- **No schema changes for V2.** Work within the current Supabase schema/RLS
+  (e.g. roster comes from `session_player_list`; players can only read their
+  own profile).
 - **Primitives** (src/index.css): `.v2-surface`, `.v2-btn-primary`,
   `.v2-btn-secondary`, `.v2-chip`, `.v2-input`, `.v2-heading`. Headings use
   the condensed display face (`font-display`, Barlow Condensed), uppercase.
@@ -62,8 +68,8 @@ expected mid-migration, don't "fix" them piecemeal.
    `src/components/StatusBadge.tsx`, which is the source of truth for
    status colors — don't invent new status-color mappings elsewhere.
 
-7. **Solid backgrounds, not pastel gradient washes.** V2 pages are `bg-ink`;
-   V1 pages not yet migrated are `bg-slate-50` / `bg-white`.
+7. **Solid backgrounds, not pastel gradient washes.** Player pages are
+   `bg-ink`; admin pages are `bg-slate-50` / `bg-white`.
 
 ## When reviewing your own UI output
 

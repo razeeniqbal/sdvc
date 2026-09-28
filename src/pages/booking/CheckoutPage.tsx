@@ -256,19 +256,19 @@ export default function CheckoutPage() {
           </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
-              <label className={labelClass}>{t('checkout.displayName')}</label>
-              <input className={inputClass} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} required />
+              <label htmlFor="co-name" className={labelClass}>{t('checkout.displayName')}</label>
+              <input id="co-name" className={inputClass} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} required />
             </div>
             <div>
-              <label className={labelClass}>{t('checkout.phoneNumber')}</label>
-              <input className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
+              <label htmlFor="co-phone" className={labelClass}>{t('checkout.phoneNumber')}</label>
+              <input id="co-phone" className={inputClass} value={form.phone_number} onChange={(e) => setForm({ ...form, phone_number: e.target.value })} required />
             </div>
           </div>
 
           <div className="grid sm:grid-cols-2 gap-4 mt-4">
             <div>
-              <label className={labelClass}>{t('common.genderLabel')}</label>
-              <select className={inputClass} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} required>
+              <label htmlFor="co-gender" className={labelClass}>{t('common.genderLabel')}</label>
+              <select id="co-gender" className={inputClass} value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} required>
                 <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
                 <option value="Male">{t('common.genderMale')}</option>
                 <option value="Female">{t('common.genderFemale')}</option>
@@ -287,18 +287,21 @@ export default function CheckoutPage() {
                     <input
                       className={inputClass}
                       placeholder={t('checkout.companionNamePlaceholder')}
+                      aria-label={`${t('checkout.companionName')} ${i + 1}`}
                       value={c.name}
                       onChange={(e) => updateCompanion(i, 'name', e.target.value)}
                     />
                     <input
                       className={inputClass}
                       placeholder={t('checkout.companionPhone')}
+                      aria-label={`${t('checkout.companionPhone')} ${i + 1}`}
                       value={c.phone}
                       onChange={(e) => updateCompanion(i, 'phone', e.target.value)}
                     />
                     <select
                       className={inputClass}
                       value={c.gender}
+                      aria-label={`${t('common.genderLabel')} ${i + 1}`}
                       onChange={(e) => updateCompanion(i, 'gender', e.target.value)}
                       required
                     >
@@ -311,6 +314,7 @@ export default function CheckoutPage() {
                     type="button"
                     onClick={() => removeCompanion(i)}
                     title={t('checkout.removeCompanion')}
+                    aria-label={t('checkout.removeCompanion')}
                     className="mt-2.5 p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors flex-shrink-0"
                   >
                     <X className="h-4 w-4" />

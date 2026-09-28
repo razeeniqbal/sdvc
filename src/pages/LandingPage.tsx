@@ -59,7 +59,8 @@ export default function LandingPage() {
     <div className="bg-ink text-chalk">
       {/* Hero — copy is live text, never baked into the artwork (PRD §7). */}
       <section className="relative overflow-hidden border-b border-ink-600">
-        {/* Stacked above the copy below lg; beside it (right ~62%) from lg up, with
+        {/* Stacked above the copy below lg; beside it from lg up (starting at 38% or
+            just left of centre on wide screens, so it never sits under the headline), with
             a left-edge fade so the artwork meets the ink background softly. */}
         <picture>
           <source media="(min-width: 768px)" srcSet="/brand/hero-desktop.webp" width={1112} height={520} />
@@ -69,7 +70,7 @@ export default function LandingPage() {
             height={408}
             alt={t('v2.landing.heroAlt')}
             className="block w-full object-cover object-top aspect-[308/408] max-h-[52vh] md:aspect-[1112/520] md:max-h-none
-              lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-[62%] lg:aspect-auto lg:object-center
+              lg:absolute lg:inset-y-0 lg:right-0 lg:left-[max(38%,calc(50%-120px))] lg:h-full lg:w-auto lg:aspect-auto lg:object-center
               lg:[mask-image:linear-gradient(to_right,transparent,black_22%)]"
           />
         </picture>

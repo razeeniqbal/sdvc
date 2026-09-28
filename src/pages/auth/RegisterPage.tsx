@@ -75,23 +75,23 @@ export default function RegisterPage() {
         <div className="v2-surface p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
-              <label className={labelClass}>{t('auth.register.nameLabel')}</label>
-              <input className={inputClass} placeholder={t('auth.register.namePlaceholder')} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
+              <label htmlFor="reg-name" className={labelClass}>{t('auth.register.nameLabel')}</label>
+              <input id="reg-name" className={inputClass} placeholder={t('auth.register.namePlaceholder')} value={form.short_name} onChange={(e) => setForm({ ...form, short_name: e.target.value })} />
               {errors.short_name && <p className={errorClass}>{errors.short_name}</p>}
             </div>
             <div>
-              <label className={labelClass}>{t('auth.register.phoneLabel')}</label>
-              <input type="tel" className={inputClass} placeholder={t('auth.register.phonePlaceholder')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <label htmlFor="reg-phone" className={labelClass}>{t('auth.register.phoneLabel')}</label>
+              <input id="reg-phone" type="tel" className={inputClass} placeholder={t('auth.register.phonePlaceholder')} value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
               {errors.phone && <p className={errorClass}>{errors.phone}</p>}
             </div>
             <div>
-              <label className={labelClass}>{t('auth.register.passwordLabel')}</label>
-              <input type="password" className={inputClass} placeholder={t('auth.register.passwordPlaceholder')} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+              <label htmlFor="reg-password" className={labelClass}>{t('auth.register.passwordLabel')}</label>
+              <input id="reg-password" type="password" className={inputClass} placeholder={t('auth.register.passwordPlaceholder')} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
               {errors.password && <p className={errorClass}>{errors.password}</p>}
             </div>
             <div>
-              <label className={labelClass}>{t('auth.register.confirmPasswordLabel')}</label>
-              <input type="password" className={inputClass} value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} />
+              <label htmlFor="reg-confirm" className={labelClass}>{t('auth.register.confirmPasswordLabel')}</label>
+              <input id="reg-confirm" type="password" className={inputClass} value={form.confirmPassword} onChange={(e) => setForm({ ...form, confirmPassword: e.target.value })} />
               {errors.confirmPassword && <p className={errorClass}>{errors.confirmPassword}</p>}
             </div>
             <button type="submit" disabled={loading}

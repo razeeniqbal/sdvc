@@ -338,18 +338,21 @@ export default function BookingDetailsPage() {
                     <input
                       className="v2-input"
                       placeholder={t('checkout.companionNamePlaceholder')}
+                      aria-label={t('checkout.companionName')}
                       value={friendForm.name}
                       onChange={(e) => setFriendForm({ ...friendForm, name: e.target.value })}
                     />
                     <input
                       className="v2-input"
                       placeholder={t('checkout.companionPhone')}
+                      aria-label={t('checkout.companionPhone')}
                       value={friendForm.phone}
                       onChange={(e) => setFriendForm({ ...friendForm, phone: e.target.value })}
                     />
                     <select
                       className="v2-input"
                       value={friendForm.gender}
+                      aria-label={t('common.genderLabel')}
                       onChange={(e) => setFriendForm({ ...friendForm, gender: e.target.value })}
                       required
                     >
@@ -369,7 +372,7 @@ export default function BookingDetailsPage() {
                     <button
                       type="submit"
                       disabled={addingFriend}
-                      className="px-4 py-2 bg-vsb-500 hover:bg-vsb-400 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+                      className="px-4 py-2 bg-vsb-600 hover:bg-vsb-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
                     >
                       {addingFriend ? t('bookingDetails.addingFriend') : t('bookingDetails.saveFriend')}
                     </button>

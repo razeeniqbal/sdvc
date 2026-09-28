@@ -43,7 +43,7 @@ export const POSITION_KEY: Record<PlayingPosition, string> = {
 // rather than the green/amber/red status palette owned by StatusBadge.
 export const SKILL_LEVEL_STYLE: Record<SkillLevel, string> = {
   Beginner: 'bg-ink-600 text-chalk',
-  Intermediate: 'bg-vsb-500 text-white',
-  Advanced: 'bg-ball text-white',
+  Intermediate: 'bg-vsb-600 text-white',
+  Advanced: 'bg-ball text-ink',
   'Open Level': 'bg-chalk text-ink',
 };

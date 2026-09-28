@@ -7,16 +7,18 @@ import type { CourtPlayer, SessionWithCount } from '@/lib/sessions';
 
 // DEV-ONLY design review page (route registered only when import.meta.env.DEV).
 // Sample data lives here and nowhere else — never shown to real users.
+// Mirrors what session_player_list returns today: name, status, gender only
+// (no position / companion flag without a schema change).
 
 const roster: CourtPlayer[] = [
-  { display_name: 'Amir', booking_status: 'Confirmed', gender: 'Male', playing_position: 'Setter', is_guest: false },
-  { display_name: 'Aina', booking_status: 'Confirmed', gender: 'Female', playing_position: 'Outside Hitter', is_guest: false },
-  { display_name: 'Jason', booking_status: 'Confirmed', gender: 'Male', playing_position: 'Opposite Hitter', is_guest: false },
-  { display_name: 'Mei', booking_status: 'Pending Payment', gender: 'Female', playing_position: 'Libero', is_guest: false },
-  { display_name: 'Hafiz', booking_status: 'Confirmed', gender: null, playing_position: 'Middle Blocker', is_guest: false },
-  { display_name: 'Sarah', booking_status: 'Confirmed', gender: 'Female', playing_position: 'Flexible / Any Position', is_guest: false },
+  { display_name: 'Amir', booking_status: 'Confirmed', gender: 'Male', playing_position: null, is_guest: false },
+  { display_name: 'Aina', booking_status: 'Confirmed', gender: 'Female', playing_position: null, is_guest: false },
+  { display_name: 'Jason', booking_status: 'Confirmed', gender: 'Male', playing_position: null, is_guest: false },
+  { display_name: 'Mei', booking_status: 'Pending Payment', gender: 'Female', playing_position: null, is_guest: false },
+  { display_name: 'Hafiz', booking_status: 'Confirmed', gender: null, playing_position: null, is_guest: false },
+  { display_name: 'Sarah', booking_status: 'Confirmed', gender: 'Female', playing_position: null, is_guest: false },
   { display_name: 'Kumar', booking_status: 'Confirmed', gender: 'Male', playing_position: null, is_guest: false },
-  { display_name: 'Guest of Amir', booking_status: 'Pending Payment', gender: null, playing_position: null, is_guest: true },
+  { display_name: 'Nadia', booking_status: 'Pending Payment', gender: null, playing_position: null, is_guest: false },
 ];
 
 const base: Omit<SessionWithCount, 'id' | 'title' | 'skill_level' | 'confirmed_count' | 'maximum_capacity'> = {

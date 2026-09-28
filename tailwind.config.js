@@ -47,8 +47,11 @@ export default {
         chalk: '#F4F1EA',
         // Volleyball Orange — restrained special accent only.
         ball: '#FF6B2C',
-        // Slate — secondary information.
-        muted: '#687280',
+        // Slate — secondary information. Brand Slate is #687280, but that only
+        // reaches ~3.7:1 on ink surfaces; text needs WCAG AA 4.5:1, so the text
+        // token is lifted slightly. Use `slate-brand` for non-text accents.
+        muted: '#838D9C',
+        'slate-brand': '#687280',
       },
       fontFamily: {
         display: ['"Barlow Condensed"', 'Inter', 'system-ui', 'sans-serif'],

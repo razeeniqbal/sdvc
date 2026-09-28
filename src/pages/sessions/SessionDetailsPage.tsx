@@ -182,7 +182,7 @@ export default function SessionDetailsPage() {
                 onClick={() => setTab(key)}
                 onKeyDown={onTabKeyDown}
                 className={`rounded-lg px-2 py-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400 ${
-                  tab === key ? 'bg-vsb-500 text-white' : 'text-slate-400 hover:text-white'
+                  tab === key ? 'bg-vsb-600 text-white' : 'text-slate-400 hover:text-white'
                 }`}
               >
                 {tabLabel[key]}

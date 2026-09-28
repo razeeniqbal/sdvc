@@ -75,13 +75,11 @@ export interface CourtPlayer {
   is_guest: boolean;
 }
 
-// Prefers the V2 `session_player_roster` RPC (adds position + is_guest). Falls
-// back to the V1 `session_player_list` if that migration hasn't been applied
-// yet, so the redesigned page still works — just without positions, and with
-// companions indistinguishable from account holders.
+// Uses the existing `session_player_list` RPC — no schema changes for V2.
+// That RPC doesn't expose position or whether a row is a companion, and players
+// can't read other players' profiles under RLS, so both stay null/false here.
+// The UI treats them as optional and simply omits them.
 export async function fetchCourtRoster(sessionId: string): Promise<CourtPlayer[]> {
-  const { data, error } = await supabase.rpc('session_player_roster', { p_session_id: sessionId });
-  if (!error) return (data || []) as CourtPlayer[];
   const v1 = await fetchSessionRoster(sessionId);
   return v1.map((p) => ({ ...p, playing_position: null, is_guest: false }));
 }
