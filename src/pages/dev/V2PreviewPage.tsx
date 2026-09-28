@@ -22,6 +22,9 @@ const roster: CourtPlayer[] = NAMES.map((name, i) => ({
   is_guest: i === 5,
 }));
 
+const AVATARS = 'https://kygkaxrainpdwqporuvy.supabase.co/storage/v1/object/public/player-avatars/72e27023-a858-4983-9802-8a7af6c0d3e5';
+const GENERATED_SAMPLES = [`${AVATARS}/e196bdcb-0c55-4910-b562-326eb3684af8.png`, `${AVATARS}/f0ed8a48-703f-48c5-bc14-58a2aee30c75.png`];
+
 const base: Omit<SessionWithCount, 'id' | 'title' | 'skill_level' | 'confirmed_count' | 'maximum_capacity'> = {
   description: 'Friendly Friday games for players who can rally and want a steady pace.', session_date: '2026-10-02', start_time: '20:00:00', end_time: '22:00:00',
   venue_name: 'The Challenger Sports Centre', venue_address: 'Jalan Example 1, Kuala Lumpur', maps_link: 'https://maps.google.com', court_number: 'Court 3', cover_image_path: null,
@@ -90,6 +93,10 @@ export default function V2PreviewPage() {
         <div className="w-[19rem]">
           <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" gender="Male" stats={{ played: 24, attended: 22, attendancePct: 92 }} artSrc={vsbAssets.players[0].full.src} />
           <div className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" gender="Male" stats={{ played: 1, attended: 0, attendancePct: null }} /></div>
+          {/* generated art (transparent margins): V3 accepted, V2 wider figure */}
+          {GENERATED_SAMPLES.map((src) => (
+            <div key={src} className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" gender="Male" stats={{ played: 1, attended: 0, attendancePct: null }} artSrc={src} /></div>
+          ))}
         </div>
         <div className="space-y-6">
           <BookingSteps current={1} />

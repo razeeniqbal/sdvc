@@ -67,16 +67,21 @@ export function PlayerCard({ name, position, skill, gender, stats, artSrc, subti
           Volleyball Sdn Bhd
         </span>
 
-        {/* character */}
-        <div className="absolute inset-x-[8%] bottom-[31%] top-[9%] z-10 flex items-end justify-center">
-          {artSrc ? (
+        {/* character: the hero of the upper card. The art area starts under the
+            logo and runs down BEHIND the name plate (z-20), so the player reads
+            ~25% larger and the feet tuck behind the plate. Generated art keeps
+            its transparent margins, so the head lands just below the logo. */}
+        {artSrc ? (
+          <div className="absolute inset-x-[4%] bottom-[16%] top-[9%] z-10 flex items-end justify-center">
             <img src={artSrc} alt="" decoding="async" className="h-full w-auto max-w-full object-contain object-bottom drop-shadow-[0_10px_18px_rgba(0,0,0,0.55)]" />
-          ) : (
+          </div>
+        ) : (
+          <div className="absolute inset-x-[8%] bottom-[31%] top-[9%] z-10 flex items-end justify-center">
             <span className="mb-2 font-display text-[8rem] font-extrabold leading-none text-vsb-500/70" aria-hidden>
               {name.trim().charAt(0).toUpperCase() || '?'}
             </span>
-          )}
-        </div>
+          </div>
+        )}
 
         {/* name plate */}
         <div className="absolute inset-x-[6%] bottom-[25%] z-20 bg-vsb-500/70 p-px" style={{ clipPath: PLATE }}>
@@ -90,7 +95,7 @@ export function PlayerCard({ name, position, skill, gender, stats, artSrc, subti
         </div>
 
         {/* stats */}
-        <dl className="absolute inset-x-[10%] bottom-[11%] z-20 grid grid-cols-3 border border-ink-500 bg-ink/90 text-center">
+        <dl className="absolute inset-x-[10%] bottom-[11%] z-20 grid grid-cols-3 border border-ink-500 bg-ink text-center">
           {statItems.map(({ label, value, Icon }, i) => (
             <div key={label} className={`flex flex-col items-center py-1.5 ${i > 0 ? 'border-l border-ink-500' : ''}`}>
               <Icon className="h-3.5 w-3.5 text-vsb-400" aria-hidden />
