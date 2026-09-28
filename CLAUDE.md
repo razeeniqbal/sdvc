@@ -66,6 +66,12 @@ Two experiences, one design system:
   abbreviation + VSB mark top-left; name, then position | level; then
   "N GAMES" and at most two Your Game tags. No gender. Sized in card-width
   units (cqw) so phone cards scale, not shrink.
+- **Player pose** (`profiles.player_pose`: ball_hold | front_hold | shoulder |
+  ready | relaxed | confident) is presentation only, never derived from
+  position. Chosen in Create Player or, if skipped, a stable default from the
+  user id (never random), saved and kept for regenerations. Prompt text lives
+  in `supabase/functions/generate-avatar/pose.ts`; keep `POSES`/`defaultPose`
+  in sync with `src/lib/playerPose.ts` (`npm run test:pose` checks both).
 - **Avatar generation** runs in the `generate-avatar` edge function, which
   owns the entitlement (1 free + admin grants, admins unlimited by DB role,
   idempotent, failed attempts don't count) and deletes source photos. Never

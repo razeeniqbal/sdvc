@@ -10,6 +10,9 @@ import type { PlayingPosition } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 import { PlayerCard } from '@/components/PlayerCard';
 import { YourGameForm } from '@/components/vsb/YourGameForm';
+import { PoseIcon } from '@/components/vsb/PoseIcon';
+import { Check } from 'lucide-react';
+import { defaultPose, isPose, poseKey, POSES, savePose, type Pose } from '@/lib/playerPose';
 import { hasYourGame, playstyleKey, saveYourGame, vibeKey, yourGameOf, type YourGame } from '@/lib/yourGame';
 
 // CREATE YOUR VSB PLAYER: photo → crop → position → generate → "your player
@@ -18,7 +21,7 @@ import { hasYourGame, playstyleKey, saveYourGame, vibeKey, yourGameOf, type Your
 // touch the entitlement; only the explicit "Generate" confirmation calls the
 // server. The AI is infrastructure: the result is presented as the player.
 
-type Step = 'upload' | 'crop' | 'confirm' | 'game' | 'generating' | 'done' | 'error';
+type Step = 'upload' | 'crop' | 'confirm' | 'pose' | 'game' | 'generating' | 'done' | 'error';
 
 const FRAME = 288; // on-screen crop frame (px) — fits 320px phones with gutters
 const OUTPUT = 1024; // exported square photo (px)
@@ -42,6 +45,23 @@ export default function CreatePlayerPage() {
   const [needsGame] = useState(() => !hasYourGame(yourGameOf(profile)));
   const [gameDraft, setGameDraft] = useState<YourGame>(yourGameOf(profile));
   const [savingGame, setSavingGame] = useState(false);
+  // Pose: kept from the profile by default (regenerating never silently
+  // changes it); skipping assigns the stable default for this player.
+  const currentPose = isPose(profile?.player_pose) ? profile!.player_pose : null;
+  const [pose, setPose] = useState<Pose | null>(currentPose);
+  const [savingPose, setSavingPose] = useState(false);
+
+  async function continueFromPose(skip: boolean) {
+    if (!profile) return;
+    const chosen: Pose = skip || !pose ? currentPose ?? defaultPose(profile.id) : pose;
+    setSavingPose(true);
+    try {
+      if (chosen !== profile.player_pose) { await savePose(profile.id, chosen); await refreshProfile(); }
+      setPose(chosen);
+    } catch { /* the server applies the same default if saving fails */ }
+    setSavingPose(false);
+    if (needsGame) setStep('game'); else setConfirming(true);
+  }
 
   async function continueFromGame(save: boolean) {
     if (save && profile && hasYourGame(gameDraft)) {
@@ -146,9 +166,9 @@ export default function CreatePlayerPage() {
     }
   }
 
-  const steps = [t('v2.create.stepPhoto'), t('v2.create.stepCrop'), t('v2.create.stepPosition'), ...(needsGame ? [t('v2.create.stepYourGame')] : []), t('v2.create.stepGenerate')];
+  const steps = [t('v2.create.stepPhoto'), t('v2.create.stepCrop'), t('v2.create.stepPosition'), t('v2.create.stepPose'), ...(needsGame ? [t('v2.create.stepYourGame')] : []), t('v2.create.stepGenerate')];
   const genIndex = steps.length;
-  const stepIndex = { upload: 1, crop: 2, confirm: 3, game: 4, generating: genIndex, done: genIndex, error: genIndex }[step];
+  const stepIndex = { upload: 1, crop: 2, confirm: 3, pose: 4, game: 5, generating: genIndex, done: genIndex, error: genIndex }[step];
 
   return (
     <div className="bg-ink text-chalk">
@@ -242,8 +262,8 @@ export default function CreatePlayerPage() {
                     <>
                       {isFirst && <p className="border-t border-ink-600 pt-4 text-slate-300">{t('v2.create.firstFree')}</p>}
                       <div className="flex flex-wrap gap-3">
-                        <button onClick={() => (needsGame ? setStep('game') : setConfirming(true))} disabled={!entitlement} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
-                          {needsGame ? t('v2.create.continue') : t('v2.create.generate')} <ArrowRight className="h-4 w-4" aria-hidden />
+                        <button onClick={() => setStep('pose')} disabled={!entitlement} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
+                          {t('v2.create.continue')} <ArrowRight className="h-4 w-4" aria-hidden />
                         </button>
                         <button onClick={() => setStep('crop')} className="v2-btn-secondary"><RotateCcw className="h-4 w-4" aria-hidden /> {t('v2.create.recrop')}</button>
                       </div>
@@ -253,7 +273,35 @@ export default function CreatePlayerPage() {
               </div>
             )}
 
-            {/* 04 — Your Game (optional, only when never answered) */}
+            {/* 04 — Your pose (optional) */}
+            {step === 'pose' && (
+              <div className="max-w-3xl">
+                <p className="font-display text-3xl font-extrabold uppercase text-chalk">{t('v2.pose.title')}</p>
+                <p className="mt-2 text-slate-300">{t('v2.pose.intro')}</p>
+                <div role="radiogroup" aria-label={t('v2.pose.title')} className="mt-6 grid grid-cols-3 gap-3 sm:grid-cols-6">
+                  {POSES.map((p) => (
+                    <label key={p} className={`relative flex cursor-pointer flex-col items-center border px-2 pb-3 pt-2 transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-vsb-400 ${
+                      pose === p ? 'border-vsb-500 bg-vsb-600/20 text-chalk' : 'border-ink-500 text-slate-400 hover:border-slate-400 hover:text-chalk'}`}>
+                      <input type="radio" name="player-pose" value={p} checked={pose === p} onChange={() => setPose(p)} className="sr-only" />
+                      {pose === p && <Check className="absolute right-1.5 top-1.5 h-4 w-4 text-vsb-300" aria-hidden />}
+                      <PoseIcon pose={p} className="h-20 w-auto" />
+                      <span className="mt-2 font-display text-sm font-bold uppercase tracking-wider">{t(poseKey(p))}</span>
+                    </label>
+                  ))}
+                </div>
+                {avatar && currentPose && (
+                  <p className="mt-4 text-sm text-slate-400">{t('v2.pose.current', { pose: t(poseKey(currentPose)) })}</p>
+                )}
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <button onClick={() => continueFromPose(false)} disabled={savingPose || !pose} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
+                    {savingPose && <Spinner className="h-4 w-4" />} {needsGame ? t('v2.create.continue') : t('v2.create.generate')} <ArrowRight className="h-4 w-4" aria-hidden />
+                  </button>
+                  <button onClick={() => continueFromPose(true)} disabled={savingPose} className="v2-btn-secondary">{currentPose ? t('v2.pose.keep') : t('v2.pose.skip')}</button>
+                </div>
+              </div>
+            )}
+
+            {/* 05 — Your Game (optional, only when never answered) */}
             {step === 'game' && (
               <div className="max-w-3xl">
                 <p className="font-display text-3xl font-extrabold uppercase text-chalk">{t('v2.yourGame.title')}</p>
@@ -268,7 +316,7 @@ export default function CreatePlayerPage() {
               </div>
             )}
 
-            {/* 05 — generating */}
+            {/* 06 — generating */}
             {step === 'generating' && (
               <div className="flex items-start gap-4" role="status" aria-live="polite">
                 <Spinner className="h-8 w-8 text-vsb-500" />

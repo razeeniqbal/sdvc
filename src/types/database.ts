@@ -62,6 +62,8 @@ export interface Profile {
   playstyle: string | null;
   experience_range: string | null;
   play_reasons: string[];
+  /** Generated-character pose (lib/playerPose.ts); presentation only. */
+  player_pose: string | null;
   role: UserRole;
   created_at: string;
   updated_at: string;

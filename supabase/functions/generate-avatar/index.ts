@@ -1,5 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
+import { defaultPose, isPose, poseBlock, type Pose } from "./pose.ts";
 
 // generate-avatar: turns a player's photo into their permanent VSB player art.
 //
@@ -17,6 +18,8 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 //   4. store the 1024x1536 PNG master untouched + a 256px thumbnail in the
 //      public player-avatars bucket, point player_avatars at them
 //   5. ALWAYS delete the source photo (the club keeps no originals)
+// Pose (pose.ts): one of six calm identity poses from the profile, or a
+// stable default; only the pose instruction changes, style/kit/framing don't.
 // A failed attempt is marked 'failed', which does not count against the
 // player's free generation. Earlier results are kept, never auto-deleted.
 //
@@ -35,7 +38,7 @@ const corsHeaders = {
 
 // Bump all three together when the style master or prompt changes.
 const STYLE_VERSION = 3;
-const PROMPT_VERSION = "VSB_PLAYER_V4"; // V4: no jersey number
+const PROMPT_VERSION = "VSB_PLAYER_V5"; // V5: V4 + controlled pose (pose.ts)
 // SHA-256 of public/brand/avatar-style-v3.png (production Player #10, lossless).
 const STYLE_SHA256 = "d2c7fd2dcb2686acce39a04f9be6719137b47a9fe5dd90e14f9fd95ab5c44b66";
 const DEFAULT_MODEL = "gpt-image-1.5";
@@ -50,7 +53,7 @@ function headwearRule(gender: string | null): string {
   return `HEAD: ${hijab} Never draw a cap, hat or hood.`;
 }
 
-function buildPrompt(gender: string | null): string {
+function buildPrompt(gender: string | null, pose: Pose): string {
   const genderLine = gender === "Male" ? "The player's profile says male." : gender === "Female" ? "The player's profile says female." : "";
   return [
     "Edit IMAGE 1. IMAGE 1 is the approved VSB production character (Player #10). IMAGE 2 is a photo of a real person.",
@@ -70,7 +73,7 @@ function buildPrompt(gender: string | null): string {
     "Remove the jersey number: the jersey front is plain, with no number, no letters and no text. Keep only IMAGE 1's small emblems.",
     "Never a hoodie, sweatshirt, tracksuit, jacket, long-sleeve top over the jersey, casual clothes or another sport's kit.",
 
-    "POSE AND FRAMING: keep IMAGE 1's pose, camera angle and framing (full body, volleyball held at the hip, other hand on the hip), adjusting only as the new body needs.",
+    poseBlock(pose),
     "OUTPUT: only the character on a fully transparent background, the whole figure from the top of the head to the shoes, nothing cropped.",
     "No card, name, badge, statistics, logo, background, floor or shadow.",
     "AVOID: 3D render, Pixar, Funko, Mii, Bitmoji, mobile-game avatar, corporate mascot, flat vector avatar, realistic or semi-realistic human, small realistic eyes, children's cartoon, generic chibi-generator look.",
@@ -219,15 +222,22 @@ Deno.serve(async (req: Request) => {
 
   try {
     // Explicit profile data only (never inferred from the photo).
-    const { data: prof } = await admin.from("profiles").select("gender").eq("id", user.id).maybeSingle();
+    const { data: prof } = await admin.from("profiles").select("gender, player_pose").eq("id", user.id).maybeSingle();
     const gender = prof?.gender ?? null;
-    const prompt = buildPrompt(gender);
+    // Pose: the player's choice, or a stable default that is saved so the
+    // same pose is kept for later regenerations (never random per attempt).
+    const pose: Pose = isPose(prof?.player_pose) ? prof!.player_pose : defaultPose(user.id);
+    if (!isPose(prof?.player_pose)) {
+      await admin.from("profiles").update({ player_pose: pose }).eq("id", user.id);
+    }
+    await admin.from("player_avatar_generations").update({ pose }).eq("id", generationId);
+    const prompt = buildPrompt(gender, pose);
 
     const { data: photo, error: dlError } = await admin.storage.from("player-sources").download(sourcePath);
     if (dlError || !photo) return await fail(`download: ${dlError?.message}`, "We couldn't read your photo. Please upload it again.", 400);
 
     // 3. Edit the style master with the photo as identity reference.
-    trace("started", { generation_id: generationId, user_id: user.id, model: usedModel, input_fidelity: "high" });
+    trace("started", { generation_id: generationId, user_id: user.id, model: usedModel, input_fidelity: "high", pose });
     let result = await callEdit(apiKey, usedModel, true, prompt, styleBytes, photo);
 
     // Explicit, recorded fallbacks (never a silent switch to text-only):

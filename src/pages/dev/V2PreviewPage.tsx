@@ -7,6 +7,8 @@ import { SessionDetailsView } from '@/components/vsb/SessionDetailsView';
 import type { CourtPlayer, SessionWithCount } from '@/lib/sessions';
 import { vsbAssets } from '@/lib/vsbAssets';
 import { YourGameForm } from '@/components/vsb/YourGameForm';
+import { PoseIcon } from '@/components/vsb/PoseIcon';
+import { POSES } from '@/lib/playerPose';
 import { EMPTY_YOUR_GAME, type YourGame } from '@/lib/yourGame';
 
 // DEV-ONLY design review page (route registered only when import.meta.env.DEV).
@@ -102,6 +104,7 @@ export default function V2PreviewPage() {
           ))}
         </div>
         <div className="space-y-6">
+          <div className="grid grid-cols-6 gap-3 border border-ink-600 p-5 text-slate-300" id="pose-preview">{POSES.map((p) => <div key={p} className="flex flex-col items-center"><PoseIcon pose={p} className="h-20 w-auto" /><span className="mt-1 text-xs">{p}</span></div>)}</div>
           <div className="border border-ink-600 p-5" id="your-game-preview"><YourGameForm value={yourGame} onChange={setYourGame} idPrefix="preview" /></div>
           <BookingSteps current={1} />
           <BookingSteps current={2} />

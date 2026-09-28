@@ -678,7 +678,8 @@
       "viewCard": "View player card",
       "yourCard": "Your player card",
       "stepYourGame": "Your Game",
-      "continue": "Continue"
+      "continue": "Continue",
+      "stepPose": "Pose"
     },
     "community": {
       "meta": "The people of VSB",
@@ -819,6 +820,19 @@
         "social": "Social",
         "love_volleyball": "Just love volleyball"
       }
+    },
+    "pose": {
+      "title": "Your pose",
+      "intro": "Pick how your player stands. Same VSB style and kit, only the pose changes. You can skip this.",
+      "current": "Your current player uses {{pose}}. A different pose applies to this new generation only.",
+      "skip": "Skip, choose for me",
+      "keep": "Keep my current pose",
+      "ball_hold": "Hold",
+      "front_hold": "Front",
+      "shoulder": "Shoulder",
+      "ready": "Ready",
+      "relaxed": "Relaxed",
+      "confident": "Confident"
     }
   }
 }

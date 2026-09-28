@@ -678,7 +678,8 @@
       "viewCard": "Lihat kad pemain",
       "yourCard": "Kad pemain anda",
       "stepYourGame": "Gaya Permainan",
-      "continue": "Teruskan"
+      "continue": "Teruskan",
+      "stepPose": "Gaya"
     },
     "community": {
       "meta": "Warga VSB",
@@ -819,6 +820,19 @@
         "social": "Bersosial",
         "love_volleyball": "Minat bola tampar"
       }
+    },
+    "pose": {
+      "title": "Gaya berdiri",
+      "intro": "Pilih cara pemain anda berdiri. Gaya dan jersi VSB yang sama, hanya posnya berubah. Anda boleh langkau.",
+      "current": "Pemain anda sekarang menggunakan gaya {{pose}}. Gaya lain hanya untuk penjanaan baharu ini.",
+      "skip": "Langkau, pilihkan untuk saya",
+      "keep": "Kekalkan gaya sekarang",
+      "ball_hold": "Pegang",
+      "front_hold": "Depan",
+      "shoulder": "Bahu",
+      "ready": "Sedia",
+      "relaxed": "Santai",
+      "confident": "Yakin"
     }
   }
 }
