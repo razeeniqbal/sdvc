@@ -93,7 +93,7 @@
     "faqQ2": "Can I cancel my booking?",
     "faqA2": "You can cancel up to 24 hours before the session to free up your slot. However, all bookings are non-refundable.",
     "faqQ3": "What if a session is full?",
-    "faqA3": "Join the waiting list. When a place opens up, you're booked in automatically in queue order and notified — then pay and upload your receipt within the hold time (up to 12 hours).",
+    "faqA3": "Join the waiting list. When a place opens up, you're booked in automatically in queue order and we'll let you know. Then pay and upload your receipt within the hold time (up to 12 hours).",
     "faqQ4": "How do I contact the club?",
     "faqA4": "Message us on WhatsApp at {{whatsapp}} or join our WhatsApp group.",
     "readyToPlay": "Ready to Play?",
@@ -407,7 +407,7 @@
       "noSessionsTitle": "Court’s quiet right now",
       "howMeta": "How it works",
       "step1Title": "Find your game",
-      "step1Desc": "Browse upcoming sessions by date, level and venue — and see who’s already in before you join.",
+      "step1Desc": "Browse upcoming sessions by date, level and venue, and see who's already in before you join.",
       "step2Title": "Meet your people",
       "step2Desc": "Book yourself and bring friends. Every session shows the real players on court.",
       "step3Title": "Play together",
@@ -415,7 +415,7 @@
       "identityMeta": "VSB player identity",
       "identityLine1": "Your player.",
       "identityLine2": "Your VSB identity.",
-      "identityBody": "Every member gets a VSB player card that grows with every game — built from your real sessions, not made-up ratings.",
+      "identityBody": "Every member gets a VSB player card that grows with every game. It's built from your real sessions, not made-up ratings.",
       "identityPoint1": "Your position, level and games played, always up to date",
       "identityPoint2": "The same identity on your profile, session rosters and bookings",
       "identityPoint3": "Personal VSB chibi artwork is on the way",
@@ -441,7 +441,8 @@
       "beFirst": "Be the first to join",
       "playersJoined_one": "{{count}} player joined",
       "playersJoined_other": "{{count}} players joined",
-      "signInToSee": "Sign in to see who’s in"
+      "signInToSee": "Sign in to see who’s in",
+      "timeRange": "{{start}} to {{end}}"
     },
     "sessions": {
       "skillLevel": "Skill level",
@@ -459,7 +460,9 @@
       "quickWeek": "This week",
       "moreFilters": "Filters",
       "showing_one": "Showing {{count}} session",
-      "showing_other": "Showing {{count}} sessions"
+      "showing_other": "Showing {{count}} sessions",
+      "thatsAll": "That's every game for now",
+      "newGamesWhere": "New games are posted here and announced in the VSB WhatsApp group."
     },
     "whosPlaying": {
       "title": "Who's Playing",
@@ -475,7 +478,7 @@
       "guestShort": "GUEST",
       "noPosition": "Position not set",
       "nobody": "No players match this filter yet.",
-      "notRotation": "Shows who's joining — not the match rotation.",
+      "notRotation": "Shows who's joining, not the match rotation.",
       "meta": "The roster",
       "closePreview": "Close player preview",
       "tapHint": "Tap a player for details.",
@@ -598,7 +601,7 @@
       "later": "Also booked",
       "search": "Search session or reference",
       "showCancelled": "Show cancelled",
-      "payHint": "Awaiting payment ({{amount}}) — open the game to pay and upload your receipt.",
+      "payHint": "Awaiting payment ({{amount}}). Open the game to pay and upload your receipt.",
       "state": {
         "confirmed": "Confirmed",
         "awaitingPayment": "Awaiting payment",
@@ -617,7 +620,7 @@
       "stepCrop": "Crop",
       "stepConfirm": "Confirm",
       "stepGenerate": "Generate",
-      "uploadIntro": "Upload a photo of yourself. We turn it into your VSB chibi player — the same character on your card, session rosters and bookings.",
+      "uploadIntro": "Upload a photo of yourself. We turn it into your VSB chibi player: the same character on your card, session rosters and bookings.",
       "tip1": "Clear, front-facing, just you in the photo",
       "tip2": "Good light, face not covered (hijab and glasses are fine)",
       "tip3": "JPG, PNG or WebP",
@@ -644,7 +647,7 @@
       "replaces": "This will replace your current VSB player.",
       "generateNow": "Generate",
       "generating": "Creating your player…",
-      "generatingNote": "This usually takes 20–60 seconds. Please keep this page open.",
+      "generatingNote": "This usually takes 20 to 60 seconds. Please keep this page open.",
       "doneTitle": "You're in the VSB universe.",
       "doneBody": "Your VSB player is saved and now appears on your card, rosters and bookings.",
       "toMyVsb": "Go to My VSB",
@@ -660,13 +663,13 @@
         "IN_PROGRESS": "Your player is already being created. Give it a minute, then refresh.",
         "BAD_STYLE": "Something was out of date. Refresh the page and try again.",
         "UPLOAD_FAILED": "We couldn't upload your photo. Check your connection and try again.",
-        "NETWORK": "Connection problem. Your free generation was not used — try again."
+        "NETWORK": "Connection problem. Your free generation was not used, so you can try again."
       }
     },
     "community": {
       "meta": "The people of VSB",
       "title": "Community",
-      "intro": "Everyone who plays with VSB — find teammates by position and level, and see who’s heading to a game.",
+      "intro": "Everyone who plays with VSB. Find teammates by position and level, and see who's heading to a game.",
       "statMembers": "Members",
       "statPlayingSoon": "Playing soon",
       "listHeading": "Members",

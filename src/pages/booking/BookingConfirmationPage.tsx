@@ -101,7 +101,7 @@ export default function BookingConfirmationPage() {
             </h1>
 
             <div className="mt-6 flex items-center gap-3">
-              <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} seed={profile?.id} size="md" />
+              <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} size="md" />
               <p className="font-semibold text-chalk">
                 {displayName}
                 {allBookings.length > 1 && <span className="text-slate-400"> {t('v2.booking.plusFriends', { count: allBookings.length - 1 })}</span>}
@@ -111,7 +111,7 @@ export default function BookingConfirmationPage() {
             <p className="mt-6 font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-4xl">{session.title}</p>
             <p className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-lg text-slate-200">
               <span className="inline-flex items-center gap-2"><Calendar className="h-4 w-4 text-vsb-400" aria-hidden />{formatDate(session.session_date)}</span>
-              <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-vsb-400" aria-hidden />{formatTime(session.start_time)} – {formatTime(session.end_time)}</span>
+              <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-vsb-400" aria-hidden />{t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })}</span>
             </p>
             <p className="mt-1 inline-flex items-center gap-2 text-slate-300">
               <MapPin className="h-4 w-4 text-vsb-400" aria-hidden />{[session.venue_name, session.court_number].filter(Boolean).join(' · ')}
@@ -161,7 +161,7 @@ export default function BookingConfirmationPage() {
                 {allBookings.map((b) => (
                   <li key={b.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                     <span className="flex min-w-0 items-center gap-2 font-medium text-chalk">
-                      <PlayerAvatar name={bookingDisplayName(b, profile)} src={b.is_guest ? null : myAvatar?.thumb} seed={b.is_guest ? null : profile?.id} guest={b.is_guest} size="xs" />
+                      <PlayerAvatar name={bookingDisplayName(b, profile)} src={b.is_guest ? null : myAvatar?.thumb} guest={b.is_guest} size="xs" />
                       <span className="truncate">{bookingDisplayName(b, profile)}</span>
                       <GenderBadge gender={b.is_guest ? b.guest_gender : profile?.gender} />
                     </span>

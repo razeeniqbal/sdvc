@@ -96,7 +96,7 @@ export default function AdminSessionLayout() {
                 </div>
                 <p className="mt-2 text-sm text-slate-300">
                   <span className="sr-only">{d.toLocaleDateString('en-MY', { dateStyle: 'full' })} · </span>
-                  {formatTime(session.start_time)} – {formatTime(session.end_time)} · {[session.venue_name, session.court_number].filter(Boolean).join(' · ')}
+                  {formatTime(session.start_time)} to {formatTime(session.end_time)} · {[session.venue_name, session.court_number].filter(Boolean).join(' · ')}
                 </p>
               </div>
             </div>

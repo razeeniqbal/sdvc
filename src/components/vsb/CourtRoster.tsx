@@ -2,36 +2,55 @@ import { useTranslation } from 'react-i18next';
 import { Plus } from 'lucide-react';
 import type { CourtPlayer } from '@/lib/sessions';
 import { POSITION_ABBR, POSITION_KEY } from '@/lib/volleyball';
+import { vsbAssets } from '@/lib/vsbAssets';
+import { GENDER_BADGE, GENDER_RING, GENDER_SYMBOL } from '@/lib/gender';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 
-// A social picture of who's in — drawn on a clean UI court, never a claim
-// about rotation or teams. Coordinates are normalised (0–100 on each axis) so
-// the same layout works at any size. Only real players are drawn; open places
-// appear only for real remaining capacity; anyone beyond the 12 court spots
-// sits on the bench row underneath.
+// Who's Playing on the production VSB court. A social picture of who's in,
+// never a claim about rotation or teams. Players sit on the measured playing
+// area of the artwork (vsbAssets.roster), filling both sides of the net
+// from the front row back. Only real players are drawn; open places appear
+// only for real remaining capacity; anyone past the court limit sits on the
+// row underneath.
 
 type Orientation = 'horizontal' | 'vertical';
 interface Pt { x: number; y: number }
 
-// Six spots per side: front row (by the net) first, middle out, then back row.
-// Horizontal court: net at x = 50. Side A left, side B right.
-const H_A: Pt[] = [
-  { x: 40, y: 50 }, { x: 40, y: 22 }, { x: 40, y: 78 },
-  { x: 18, y: 50 }, { x: 18, y: 22 }, { x: 18, y: 78 },
-];
-const mirrorX = (p: Pt): Pt => ({ x: 100 - p.x, y: p.y });
-// Vertical court (phones): net at y = 50. Side A top, side B bottom.
-const toVertical = (p: Pt): Pt => ({ x: p.y, y: p.x });
-const mirrorY = (p: Pt): Pt => ({ x: p.x, y: 100 - p.y });
+const MAX_ON_COURT: Record<Orientation, number> = { horizontal: 24, vertical: 18 };
 
-// Alternate sides so a half-full game reads as two sides filling up.
-function spots(o: Orientation): Pt[] {
-  const a = o === 'horizontal' ? H_A : H_A.map(toVertical);
-  const b = o === 'horizontal' ? H_A.map(mirrorX) : H_A.map(toVertical).map(mirrorY);
-  return a.flatMap((p, i) => [p, b[i]]);
+// Middle row first, then the edges, so a few players look centred.
+const rowOrder = (n: number) => (n === 3 ? [1, 0, 2] : n === 4 ? [1, 2, 0, 3] : Array.from({ length: n }, (_, i) => i));
+
+// `total` spots, alternating side A / side B.
+function layout(o: Orientation, total: number): Pt[] {
+  const { court, net } = vsbAssets.roster[o];
+  const perSide = Math.ceil(total / 2);
+  const a: Pt[] = [];
+  const b: Pt[] = [];
+
+  if (o === 'horizontal') {
+    const rows = Math.min(3, Math.max(1, perSide));
+    const cols = Math.ceil(perSide / rows);
+    const ys = rowOrder(rows).map((r) => court.y0 + ((r + 0.5) * (court.y1 - court.y0)) / rows);
+    for (let c = 0; c < cols; c++) {
+      for (const y of ys) {
+        a.push({ x: net - ((c + 0.5) * (net - court.x0)) / cols, y });
+        b.push({ x: net + ((c + 0.5) * (court.x1 - net)) / cols, y });
+      }
+    }
+  } else {
+    const cols = Math.min(3, Math.max(1, perSide));
+    const rows = Math.ceil(perSide / cols);
+    const xs = rowOrder(cols).map((c) => court.x0 + ((c + 0.5) * (court.x1 - court.x0)) / cols);
+    for (let r = 0; r < rows; r++) {
+      for (const x of xs) {
+        a.push({ x, y: net - ((r + 0.5) * (net - court.y0)) / rows });
+        b.push({ x, y: net + ((r + 0.5) * (court.y1 - net)) / rows });
+      }
+    }
+  }
+  return a.slice(0, perSide).flatMap((p, i) => (b[i] ? [p, b[i]] : [p])).slice(0, total);
 }
-
-export const COURT_SPOTS = 12;
 
 export type RosterItem = { player: CourtPlayer; index: number };
 
@@ -47,27 +66,30 @@ interface CourtRosterProps {
 
 export function CourtRoster({ items, openCount, selected, onSelect, orientation, className = '' }: CourtRosterProps) {
   const { t } = useTranslation();
-  const pts = spots(orientation);
-  const onCourt = items.slice(0, COURT_SPOTS);
-  const bench = items.slice(COURT_SPOTS);
-  const openOnCourt = Math.min(openCount, COURT_SPOTS - onCourt.length);
+  const max = MAX_ON_COURT[orientation];
+  const onCourt = items.slice(0, max);
+  const bench = items.slice(max);
+  const openOnCourt = Math.min(openCount, max - onCourt.length);
   const openElsewhere = openCount - openOnCourt;
+  const pts = layout(orientation, onCourt.length + openOnCourt);
+  const { image } = vsbAssets.roster[orientation];
+  const compact = orientation === 'vertical';
 
   return (
     <div className={className}>
-      <div className={`relative w-full overflow-hidden border border-ink-600 ${orientation === 'horizontal' ? 'aspect-[2/1]' : 'aspect-[5/8]'}`}>
-        <UiCourt orientation={orientation} />
+      <div className="relative w-full overflow-hidden border border-ink-600" style={{ aspectRatio: `${image.width} / ${image.height}` }}>
+        <img src={image.src} alt="" width={image.width} height={image.height} loading="lazy" decoding="async" className="absolute inset-0 h-full w-full" />
         <ul className="absolute inset-0">
           {onCourt.map(({ player, index }, i) => (
             <li key={index} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${pts[i].x}%`, top: `${pts[i].y}%` }}>
-              <PlayerMarker player={player} pressed={selected === index} onClick={() => onSelect(index)} delay={i * 30} />
+              <PlayerMarker player={player} pressed={selected === index} onClick={() => onSelect(index)} delay={i * 30} compact={compact} />
             </li>
           ))}
           {Array.from({ length: openOnCourt }, (_, i) => {
             const p = pts[onCourt.length + i];
             return (
               <li key={`open-${i}`} className="absolute -translate-x-1/2 -translate-y-1/2" style={{ left: `${p.x}%`, top: `${p.y}%` }}>
-                <OpenMarker />
+                <OpenMarker compact={compact} />
               </li>
             );
           })}
@@ -80,7 +102,7 @@ export function CourtRoster({ items, openCount, selected, onSelect, orientation,
           {bench.map(({ player, index }) => (
             <button key={index} type="button" onClick={() => onSelect(index)} aria-pressed={selected === index}
               className={`flex items-center gap-2 py-1 pr-2 text-sm font-semibold text-chalk hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400 ${selected === index ? 'underline decoration-vsb-500 decoration-2 underline-offset-4' : ''}`}>
-              <PlayerAvatar name={player.display_name} src={player.avatar_url} seed={player.user_id} guest={player.is_guest} size="xs" />
+              <PlayerAvatar name={player.display_name} src={player.avatar_url} guest={player.is_guest} size="xs" className={player.gender ? GENDER_RING[player.gender] : ''} />
               {player.display_name}
             </button>
           ))}
@@ -93,47 +115,7 @@ export function CourtRoster({ items, openCount, selected, onSelect, orientation,
   );
 }
 
-// Flat court diagram: free zone, court, attack lines, net. Pure geometry.
-function UiCourt({ orientation }: { orientation: Orientation }) {
-  const h = orientation === 'horizontal';
-  const [W, H] = h ? [200, 100] : [100, 160];
-  // playing area (18 m × 9 m) inside a free zone
-  const court = h ? { x: 12, y: 8, w: 176, h: 84 } : { x: 8, y: 10, w: 84, h: 140 };
-  const attack = (h ? court.w : court.h) / 6; // 3 m of the 9 m half
-  const mid = h ? court.x + court.w / 2 : court.y + court.h / 2;
-  return (
-    <svg viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" className="absolute inset-0 h-full w-full" aria-hidden>
-      <rect width={W} height={H} fill="#0E1219" />
-      <rect x={court.x} y={court.y} width={court.w} height={court.h} fill="#0B2848" />
-      {/* front zones, a shade lighter */}
-      {h ? (
-        <rect x={mid - attack} y={court.y} width={attack * 2} height={court.h} fill="#0D3056" />
-      ) : (
-        <rect x={court.x} y={mid - attack} width={court.w} height={attack * 2} fill="#0D3056" />
-      )}
-      <g stroke="#F4F1EA" strokeOpacity="0.55" strokeWidth="0.6" fill="none" vectorEffect="non-scaling-stroke">
-        <rect x={court.x} y={court.y} width={court.w} height={court.h} />
-        {h ? (
-          <>
-            <line x1={mid - attack} y1={court.y} x2={mid - attack} y2={court.y + court.h} />
-            <line x1={mid + attack} y1={court.y} x2={mid + attack} y2={court.y + court.h} />
-          </>
-        ) : (
-          <>
-            <line x1={court.x} y1={mid - attack} x2={court.x + court.w} y2={mid - attack} />
-            <line x1={court.x} y1={mid + attack} x2={court.x + court.w} y2={mid + attack} />
-          </>
-        )}
-      </g>
-      {/* net */}
-      {h
-        ? <line x1={mid} y1={court.y - 4} x2={mid} y2={court.y + court.h + 4} stroke="#168BFF" strokeWidth="1.6" vectorEffect="non-scaling-stroke" />
-        : <line x1={court.x - 4} y1={mid} x2={court.x + court.w + 4} y2={mid} stroke="#168BFF" strokeWidth="1.6" vectorEffect="non-scaling-stroke" />}
-    </svg>
-  );
-}
-
-function PlayerMarker({ player, pressed, onClick, delay }: { player: CourtPlayer; pressed: boolean; onClick: () => void; delay: number }) {
+function PlayerMarker({ player, pressed, onClick, delay, compact }: { player: CourtPlayer; pressed: boolean; onClick: () => void; delay: number; compact: boolean }) {
   const { t } = useTranslation();
   const pos = !player.is_guest && player.playing_position ? POSITION_ABBR[player.playing_position] : null;
   const genderText = player.gender === 'Male' ? t('common.genderMale') : player.gender === 'Female' ? t('common.genderFemale') : null;
@@ -142,6 +124,7 @@ function PlayerMarker({ player, pressed, onClick, delay }: { player: CourtPlayer
     player.is_guest ? t('v2.whosPlaying.guest') : player.playing_position ? t(POSITION_KEY[player.playing_position]) : null,
     genderText,
   ].filter(Boolean).join(', ');
+  const tag = player.is_guest ? t('v2.whosPlaying.guestShort') : pos;
 
   return (
     <button
@@ -149,41 +132,34 @@ function PlayerMarker({ player, pressed, onClick, delay }: { player: CourtPlayer
       onClick={onClick}
       aria-pressed={pressed}
       aria-label={description}
-      className="animate-pop group flex w-[4.5rem] flex-col items-center focus-visible:outline-none sm:w-20 xl:w-24"
+      className={`animate-pop group flex flex-col items-center focus-visible:outline-none ${compact ? 'w-[4.5rem]' : 'w-24'}`}
       style={{ animationDelay: `${delay}ms` }}
     >
-      <span className={`relative rounded-full transition-transform group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-vsb-300 ${pressed ? 'ring-2 ring-vsb-400 ring-offset-2 ring-offset-ink' : ''}`}>
-        <PlayerAvatar name={player.display_name} src={player.avatar_url} seed={player.user_id} guest={player.is_guest} size="md"
-          className="!h-10 !w-10 !ring-ink/80 sm:!h-12 sm:!w-12 xl:!h-14 xl:!w-14" />
+      <span className={`relative rounded-full transition-transform group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-chalk ${pressed ? 'ring-2 ring-chalk ring-offset-2 ring-offset-ink' : ''}`}>
+        <PlayerAvatar name={player.display_name} src={player.avatar_url} guest={player.is_guest} size="md"
+          className={`shadow-lg shadow-black/50 ${compact ? '!h-9 !w-9' : '!h-11 !w-11 2xl:!h-12 2xl:!w-12'} ${player.gender ? GENDER_RING[player.gender] : '!ring-ink/80'}`} />
         {player.gender && (
-          <span
-            className={`absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold leading-none ring-2 ring-ink ${
-              player.gender === 'Male' ? 'bg-vsb-600 text-white' : 'bg-chalk text-ink'
-            }`}
-            aria-hidden
-          >
-            {player.gender === 'Male' ? '♂' : '♀'}
+          <span className={`absolute -right-1.5 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold leading-none ring-2 ring-ink ${GENDER_BADGE[player.gender]}`} aria-hidden>
+            {GENDER_SYMBOL[player.gender]}
           </span>
         )}
       </span>
-      <span className="mt-1 max-w-full bg-ink/85 px-1.5 py-0.5 text-center leading-tight" aria-hidden>
-        <span className="block truncate text-[11px] font-bold text-chalk sm:text-xs">{player.display_name}</span>
-        {(player.is_guest || pos) && (
-          <span className="block font-display text-[11px] font-bold tracking-wider text-vsb-300">{player.is_guest ? t('v2.whosPlaying.guestShort') : pos}</span>
-        )}
+      <span className={`mt-1 flex max-w-full items-baseline gap-1 bg-ink/90 px-1.5 py-0.5 leading-tight ${compact ? 'text-[10px]' : 'text-xs'}`} aria-hidden>
+        <span className="truncate font-bold text-chalk">{player.display_name}</span>
+        {tag && <span className="flex-shrink-0 font-display font-bold tracking-wider text-vsb-300">{tag}</span>}
       </span>
     </button>
   );
 }
 
-function OpenMarker() {
+function OpenMarker({ compact }: { compact: boolean }) {
   const { t } = useTranslation();
   return (
-    <div className="flex w-[4.5rem] flex-col items-center sm:w-20 xl:w-24" role="img" aria-label={t('v2.whosPlaying.openSlot')}>
-      <span className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-dashed border-chalk/40 text-chalk/70 sm:h-12 sm:w-12 xl:h-14 xl:w-14" aria-hidden>
+    <div className={`flex flex-col items-center ${compact ? 'w-[4.5rem]' : 'w-24'}`} role="img" aria-label={t('v2.whosPlaying.openSlot')}>
+      <span className={`flex items-center justify-center rounded-full border-2 border-dashed border-chalk/80 bg-ink/50 text-chalk ${compact ? 'h-9 w-9' : 'h-11 w-11 2xl:h-12 2xl:w-12'}`} aria-hidden>
         <Plus className="h-4 w-4" />
       </span>
-      <span className="mt-1 font-display text-[11px] font-bold uppercase tracking-wider text-chalk/60" aria-hidden>{t('v2.whosPlaying.open')}</span>
+      <span className="mt-1 bg-ink/80 px-1.5 font-display text-[10px] font-bold uppercase tracking-wider text-chalk" aria-hidden>{t('v2.whosPlaying.open')}</span>
     </div>
   );
 }

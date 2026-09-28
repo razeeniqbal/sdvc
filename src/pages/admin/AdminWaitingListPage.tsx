@@ -99,7 +99,7 @@ export default function AdminWaitingListPage() {
           <p className="adm-num mt-1 text-4xl">{waiting.length} <span className="text-lg font-bold tracking-wider text-muted">waiting</span></p>
         </div>
         <p className="text-sm text-slate-400">
-          {spotsLeft > 0 ? <><span className="font-semibold text-chalk">{spotsLeft} spot{spotsLeft === 1 ? '' : 's'}</span> open — booking a player uses one.</> : 'Session is currently full.'}
+          {spotsLeft > 0 ? <><span className="font-semibold text-chalk">{spotsLeft} spot{spotsLeft === 1 ? '' : 's'}</span> open. Booking a player uses one.</> : 'Session is currently full.'}
         </p>
       </div>
 
@@ -113,7 +113,7 @@ export default function AdminWaitingListPage() {
               <li key={entry.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-4">
                   <span className="adm-num w-10 text-3xl text-vsb-500">{String(i + 1).padStart(2, '0')}</span>
-                  <PlayerAvatar name={name} src={avatars.get(entry.user_id)} seed={entry.user_id} size="sm" />
+                  <PlayerAvatar name={name} src={avatars.get(entry.user_id)} size="sm" />
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-chalk">{name}</p>
                     <p className="text-xs text-muted">

@@ -152,9 +152,9 @@ export default function CreatePlayerPage() {
               <div className="max-w-xl space-y-5">
                 <p className="text-lg text-slate-300">{t('v2.create.uploadIntro')}</p>
                 <ul className="space-y-1.5 text-sm text-slate-400">
-                  <li>— {t('v2.create.tip1')}</li>
-                  <li>— {t('v2.create.tip2')}</li>
-                  <li>— {t('v2.create.tip3')}</li>
+                  <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.create.tip1')}</li>
+                  <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.create.tip2')}</li>
+                  <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.create.tip3')}</li>
                 </ul>
                 <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="sr-only" id="photo-input" onChange={(e) => onFile(e.target.files?.[0])} />
                 <label htmlFor="photo-input" className="v2-btn-primary cursor-pointer !px-6 !py-3 font-display uppercase tracking-wider">

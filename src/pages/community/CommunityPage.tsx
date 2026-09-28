@@ -89,7 +89,7 @@ export default function CommunityPage() {
               <button onClick={() => setPos('all')} aria-pressed={pos === 'all'} className="vsb-tab">{t('v2.community.allPositions')}</button>
               {PLAYING_POSITIONS.map((p) => (
                 <button key={p} onClick={() => setPos(p)} aria-pressed={pos === p} className="vsb-tab" title={t(POSITION_KEY[p])}>
-                  {POSITION_ABBR[p]}<span className="sr-only"> — {t(POSITION_KEY[p])}</span>
+                  {POSITION_ABBR[p]}<span className="sr-only">: {t(POSITION_KEY[p])}</span>
                 </button>
               ))}
             </div>
@@ -115,7 +115,7 @@ export default function CommunityPage() {
             <ul className="mt-4 grid grid-cols-1 border-l border-t border-ink-600 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
               {shown.map((p) => (
                 <li key={p.user_id} className={`flex gap-4 border-b border-r border-ink-600 p-5 ${p.is_me ? 'bg-vsb-900/30' : ''}`}>
-                  <PlayerAvatar name={p.display_name} src={p.avatar_url} seed={p.user_id} size="lg" />
+                  <PlayerAvatar name={p.display_name} src={p.avatar_url} size="lg" />
                   <div className="min-w-0 flex-1">
                     <p className="flex items-baseline gap-2">
                       <span className="truncate font-display text-2xl font-extrabold uppercase leading-none text-chalk">{p.display_name}</span>

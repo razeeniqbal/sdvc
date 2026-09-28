@@ -352,7 +352,7 @@ export default function AdminSettingsPage() {
                   {filteredUsers.map((u) => (
                     <li key={u.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                       <div className="flex min-w-0 flex-1 items-center gap-3">
-                        <PlayerAvatar name={u.short_name || u.full_name} seed={u.id} size="xs" />
+                        <PlayerAvatar name={u.short_name || u.full_name} size="xs" />
                         <div className="min-w-0">
                           <p className="flex items-center gap-2 truncate font-semibold text-chalk">
                             {u.short_name || u.full_name}

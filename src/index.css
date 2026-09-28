@@ -1,4 +1,7 @@
 @tailwind base;
+
+/* Dark UI: native controls (date/time pickers, selects, scrollbars) render dark too. */
+:root { color-scheme: dark; }
 @tailwind components;
 @tailwind utilities;
 

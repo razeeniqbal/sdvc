@@ -7,6 +7,7 @@ import { POSITION_KEY } from '@/lib/volleyball';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { StatusBadge } from '@/components/StatusBadge';
 import { CourtRoster } from '@/components/vsb/CourtRoster';
+import { GENDER_BADGE, GENDER_RING, GENDER_SYMBOL } from '@/lib/gender';
 
 // Who's Playing (PRD §9). A social roster drawn on the VSB court — NOT a claim
 // about the actual match rotation. Players and open slots are overlaid live;
@@ -67,6 +68,11 @@ export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; cap
       <div className="mt-5 flex flex-wrap gap-x-6 gap-y-1 border-b border-ink-600" role="group" aria-label={t('v2.whosPlaying.filterLabel')}>
         {filters.map((f) => (
           <button key={f.key} onClick={() => { setFilter(f.key); setSelected(null); }} aria-pressed={filter === f.key} className="vsb-tab">
+            {(f.key === 'male' || f.key === 'female') && (
+              <span className={`mr-1.5 inline-flex h-4 w-4 items-center justify-center rounded-full text-[10px] font-bold ${GENDER_BADGE[f.key === 'male' ? 'Male' : 'Female']}`} aria-hidden>
+                {GENDER_SYMBOL[f.key === 'male' ? 'Male' : 'Female']}
+              </span>
+            )}
             {f.label} <span className="text-muted">{counts[f.key]}</span>
           </button>
         ))}
@@ -81,7 +87,7 @@ export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; cap
           <div aria-live="polite">
             {sel && (
               <div className="animate-pop mt-4 flex items-center gap-4 border border-ink-600 bg-ink-800 p-4">
-                <PlayerAvatar name={sel.display_name} src={sel.avatar_url} seed={sel.user_id} guest={sel.is_guest} size="md" />
+                <PlayerAvatar name={sel.display_name} src={sel.avatar_url} guest={sel.is_guest} size="md" className={sel.gender ? GENDER_RING[sel.gender] : ''} />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-2xl font-extrabold uppercase leading-none text-chalk">{sel.display_name}</p>
                   <p className="mt-1 text-sm text-slate-300">
@@ -108,7 +114,7 @@ export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; cap
           {visible.map(({ player: p }, i) => (
             <li key={i} className="flex items-center gap-4 py-3">
               <span className="w-6 text-right font-display text-lg font-bold text-muted">{i + 1}</span>
-              <PlayerAvatar name={p.display_name} src={p.avatar_url} seed={p.user_id} guest={p.is_guest} size="sm" />
+              <PlayerAvatar name={p.display_name} src={p.avatar_url} guest={p.is_guest} size="sm" className={p.gender ? GENDER_RING[p.gender] : ''} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-chalk">{p.display_name}</p>
                 <p className="text-xs text-slate-400">

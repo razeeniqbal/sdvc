@@ -9,7 +9,8 @@ import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { useMyAvatar } from '@/lib/avatars';
 
 // VSB Play navigation. Primary areas only — routes are not navigation.
-//   SESSIONS  ·  COMMUNITY  ·  MY VSB (avatar menu)
+//   SESSIONS  ·  COMMUNITY  in the bar; MY VSB lives in the avatar menu
+// (and in the phone tab bar, where there is no room for a menu label).
 // My Games, profile, card and account all live under My VSB; the logo is Home.
 
 interface NavItem { to: string; label: string; icon: LucideIcon; end?: boolean }
@@ -59,7 +60,6 @@ export function Navbar() {
           <div className="hidden h-full items-center gap-10 md:flex">
             <NavLink to="/sessions" className={topLink}>{t('nav.sessions')}</NavLink>
             <NavLink to="/community" className={topLink}>{t('v2.nav.community')}</NavLink>
-            <NavLink to="/profile" className={({ isActive }) => topLink({ isActive: isActive || /^\/(bookings|confirmation)/.test(location.pathname) })}>{t('v2.nav.myVsb')}</NavLink>
           </div>
         )}
 
@@ -74,7 +74,7 @@ export function Navbar() {
                 aria-label={t('v2.nav.playerMenu', { name: displayName })}
                 className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400"
               >
-                <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} seed={profile.id} size="sm" />
+                <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} size="sm" />
                 <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-chalk lg:block">{displayName}</span>
                 <ChevronDown className={`hidden h-4 w-4 text-muted transition-transform sm:block ${menuOpen ? 'rotate-180' : ''}`} aria-hidden />
               </button>

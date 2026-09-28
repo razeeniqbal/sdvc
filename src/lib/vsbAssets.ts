@@ -13,22 +13,20 @@ export interface Img {
 
 const img = (path: string, width: number, height: number): Img => ({ src: `${BASE}/${path}`, width, height });
 
-// A character in three sizes: full figure (large placements), small figure
-// (cards, lineups) and a square head-and-shoulders crop (round avatars).
+// A character in two sizes: full figure (large placements) and small figure
+// (cards, lineups). Characters are illustration only; they never stand in
+// for a real member's avatar.
 export interface CharacterArt {
   full: Img;
   sm: Img;
-  face: Img;
 }
 
 const character = (folder: string, name: string, [w, h]: [number, number], [sw, sh]: [number, number]): CharacterArt => ({
   full: img(`${folder}/${name}.webp`, w, h),
   sm: img(`${folder}/${name}-sm.webp`, sw, sh),
-  face: img(`${folder}/${name}-face.webp`, 256, 256),
 });
 
-// State art is only ever shown as a figure.
-export type StateArt = Pick<CharacterArt, 'full' | 'sm'>;
+export type StateArt = CharacterArt;
 const state = (name: string, [w, h]: [number, number], [sw, sh]: [number, number]): StateArt => ({
   full: img(`states/${name}.webp`, w, h),
   sm: img(`states/${name}-sm.webp`, sw, sh),
@@ -56,12 +54,21 @@ export const vsbAssets = {
     desktop1280: img('hero/community-desktop-1280.webp', 1280, 587),
     mobile: img('hero/community-mobile.webp', 1086, 1448),
     mobile750: img('hero/community-mobile-750.webp', 750, 1000),
+    // arena sky + lights cropped from the mobile hero (no characters): player card backdrop
+    cardArena: img('hero/card-arena.webp', 726, 516),
   },
   court: {
     horizontal: img('court/court-horizontal.webp', 2128, 739),
     horizontal1024: img('court/court-horizontal-1024.webp', 1024, 356),
     vertical: img('court/court-vertical.webp', 1122, 1402),
     vertical640: img('court/court-vertical-640.webp', 640, 800),
+  },
+  // Who's Playing backgrounds: the production courts cropped closer, with the
+  // playing area measured from the artwork (percent of the image).
+  // Players are placed inside `court`; `net` is the net line.
+  roster: {
+    horizontal: { image: img('court/court-roster-horizontal.webp', 1528, 739), court: { x0: 7.85, x1: 92.15, y0: 19.2, y1: 77.8 }, net: 50 },
+    vertical: { image: img('court/court-roster-vertical.webp', 738, 1155), court: { x0: 12.9, x1: 87.1, y0: 6.7, y1: 93.1 }, net: 46.9 },
   },
   players: PLAYERS,
   // Character states — use purposefully, not decoratively:
@@ -81,15 +88,3 @@ export type CharacterState = keyof typeof vsbAssets.states;
 
 // `srcset` string for images with a smaller variant.
 export const srcSet = (...imgs: Img[]) => imgs.map((i) => `${i.src} ${i.width}w`).join(', ');
-
-// Stable fallback character for a player without a generated avatar. Same
-// input → same character on every screen and every visit (never random).
-// Seed with the user id wherever it's known.
-export function fallbackCharacter(seed: string): CharacterArt {
-  let h = 2166136261;
-  for (let i = 0; i < seed.length; i++) {
-    h ^= seed.charCodeAt(i);
-    h = Math.imul(h, 16777619);
-  }
-  return PLAYERS[(h >>> 0) % PLAYERS.length];
-}

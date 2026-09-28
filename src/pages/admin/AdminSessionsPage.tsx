@@ -207,7 +207,7 @@ export default function AdminSessionsPage() {
                     </td>
                     <td>
                       <Link to={`/admin/sessions/${s.id}`} onClick={(e) => e.stopPropagation()} className="font-semibold text-chalk hover:text-vsb-300">{s.title}</Link>
-                      <p className="text-xs text-muted">{formatTime(s.start_time)} – {formatTime(s.end_time)} · {s.price > 0 ? formatCurrency(s.price) : 'Price TBC'}</p>
+                      <p className="text-xs text-muted">{formatTime(s.start_time)} to {formatTime(s.end_time)} · {s.price > 0 ? formatCurrency(s.price) : 'Price TBC'}</p>
                     </td>
                     <td className="hidden lg:table-cell">
                       <p>{s.venue_name}</p>

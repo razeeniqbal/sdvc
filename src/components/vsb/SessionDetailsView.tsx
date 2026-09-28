@@ -1,4 +1,4 @@
-import { useRef, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Info, Lock, MapPin, MessageCircle } from 'lucide-react';
@@ -33,6 +33,16 @@ export interface SessionDetailsViewProps {
 export function SessionDetailsView({ session, players, settings, needsPasskey, unlocked, onUnlocked, onWaitlist, onBook, onJoinWaitlist }: SessionDetailsViewProps) {
   const { t, i18n } = useTranslation();
   const railRef = useRef<HTMLDivElement>(null);
+  // The phone booking bar only appears once the booking panel is off screen,
+  // so price + action are never shown twice at once.
+  const [railVisible, setRailVisible] = useState(true);
+  useEffect(() => {
+    const el = railRef.current;
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+    const io = new IntersectionObserver(([entry]) => setRailVisible(entry.isIntersecting), { threshold: 0.15 });
+    io.observe(el);
+    return () => io.disconnect();
+  }, []);
 
   const status = getSessionStatus(session, session.confirmed_count);
   const canBook = status === 'Available' || status === 'Almost Full';
@@ -41,7 +51,7 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
   const d = dateParts(session.session_date, i18n.language);
   const price = session.price > 0 ? formatCurrency(session.price) : 'TBC';
   const locked = needsPasskey && !unlocked;
-  const time = `${formatTime(session.start_time)} – ${formatTime(session.end_time)}`;
+  const time = t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) });
   const requiredItems = [t('sessionDetails.itemShoes'), t('sessionDetails.itemWaterBottle'), t('sessionDetails.itemAttire'), t('sessionDetails.itemTowel')];
   const rules = [t('sessionDetails.rule1'), t('sessionDetails.rule2'), t('sessionDetails.rule3'), t('sessionDetails.rule4')];
 
@@ -227,9 +237,9 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
         </div>
       </div>
 
-      {/* Mobile sticky booking bar — sits above the bottom tab bar */}
+      {/* Phone booking bar: sits above the bottom tab bar */}
       <div className="h-20 lg:hidden" aria-hidden />
-      <div className="fixed inset-x-0 bottom-[calc(4.1rem+env(safe-area-inset-bottom))] z-40 border-t border-ink-600 bg-ink/95 backdrop-blur-sm md:bottom-0 lg:hidden">
+      <div className={`fixed inset-x-0 bottom-[calc(4.1rem+env(safe-area-inset-bottom))] z-40 border-t border-ink-600 bg-ink/95 backdrop-blur-sm transition-transform duration-200 md:bottom-0 lg:hidden ${railVisible ? 'pointer-events-none translate-y-[200%]' : ''}`} aria-hidden={railVisible || undefined}>
         <div className="vsb-gutter flex items-center gap-4 py-3">
           <p className="leading-none">
             <span className="block font-display text-2xl font-extrabold text-chalk">{price}</span>

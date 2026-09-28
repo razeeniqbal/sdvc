@@ -22,7 +22,7 @@ export function VsbLogo({ variant = 'mark', className = '', sizes = '200px' }: {
       sizes={sizes}
       width={large.width}
       height={large.height}
-      alt="VSB — Volleyball Sdn Bhd"
+      alt="VSB Volleyball Sdn Bhd"
       className={`w-auto ${className}`}
     />
   );

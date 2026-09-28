@@ -1,14 +1,12 @@
 import { User } from 'lucide-react';
-import { fallbackCharacter } from '@/lib/vsbAssets';
 
 // The one avatar for every player spot in VSB Play and VSB Admin.
-// Priority:
-//   1. the player's generated VSB identity (`src`)
-//   2. a stable VSB character picked from their user id (`seed`) — same
-//      player, same character on every screen; never random
-//   3. initials (no id known), or a guest silhouette for companions
-// Tones are brand blues/ink only — never derived from gender or anything else
-// about the person.
+//   1. the player's generated VSB player (`src`)
+//   2. otherwise their initial, on a tone picked from the name
+//   3. a guest silhouette for companions without an account
+// VSB characters are never shown in place of a real person: a character on
+// someone's avatar should always mean they generated it.
+// Tones are brand blues/ink only; never derived from gender.
 const TONES = [
   'bg-vsb-600 text-white',
   'bg-vsb-800 text-vsb-100',
@@ -37,8 +35,6 @@ export type AvatarSize = keyof typeof SIZES;
 interface PlayerAvatarProps {
   name: string;
   src?: string | null;
-  /** Stable id (user id) for the fallback character. */
-  seed?: string | null;
   guest?: boolean;
   size?: AvatarSize;
   /** Set when the avatar stands alone; leave empty when the name is next to it. */
@@ -46,26 +42,22 @@ interface PlayerAvatarProps {
   className?: string;
 }
 
-export function PlayerAvatar({ name, src, seed, guest = false, size = 'sm', label, className = '' }: PlayerAvatarProps) {
+export function PlayerAvatar({ name, src, guest = false, size = 'sm', label, className = '' }: PlayerAvatarProps) {
   const base = `inline-flex flex-shrink-0 items-center justify-center overflow-hidden rounded-full ring-2 ring-ink font-display font-bold ${SIZES[size]} ${className}`;
-  const alt = label ?? '';
+  const a11y = label ? { role: 'img' as const, 'aria-label': label } : { 'aria-hidden': true as const };
 
   if (src) {
-    return <img src={src} alt={alt} loading="lazy" decoding="async" width={256} height={256} className={`${base} bg-ink-700 object-cover`} />;
+    return <img src={src} alt={label ?? ''} loading="lazy" decoding="async" width={256} height={256} className={`${base} bg-ink-700 object-cover`} />;
   }
   if (guest) {
     return (
-      <span className={`${base} bg-ink-700 text-muted`} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+      <span className={`${base} bg-ink-700 text-muted`} {...a11y}>
         <User className="h-1/2 w-1/2" />
       </span>
     );
   }
-  if (seed) {
-    const face = fallbackCharacter(seed).face;
-    return <img src={face.src} alt={alt} loading="lazy" decoding="async" width={face.width} height={face.height} className={`${base} bg-vsb-900 object-cover`} />;
-  }
   return (
-    <span className={`${base} ${toneFor(name)}`} role={label ? 'img' : undefined} aria-label={label} aria-hidden={label ? undefined : true}>
+    <span className={`${base} ${toneFor(name)}`} {...a11y}>
       {name.trim().charAt(0).toUpperCase() || '?'}
     </span>
   );

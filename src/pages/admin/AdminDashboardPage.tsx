@@ -75,7 +75,7 @@ export default function AdminDashboardPage() {
   }
   if (tbcWithPlayers.length) attention.push({ key: 'tbc', tone: 'attention', count: tbcWithPlayers.length, title: 'Price still TBC', detail: 'Sessions with players booked but no final price set.', to: `/admin/sessions/${tbcWithPlayers[0].id}/edit`, action: 'Set price' });
   if (unpaidNoReceipt.length) attention.push({ key: 'unpaid', tone: 'neutral', count: unpaidNoReceipt.length, title: 'Unpaid, no receipt yet', detail: 'Booked slots awaiting payment from the player.', to: '/admin/payments?queue=awaiting', action: 'View' });
-  almostFull.slice(0, 3).forEach((s) => attention.push({ key: `af-${s.id}`, tone: 'info', count: s.maximum_capacity - s.active_count, title: `Spots left · ${s.title}`, detail: 'Almost full — consider a Telegram blast or a second court.', to: `/admin/sessions/${s.id}`, action: 'Manage' }));
+  almostFull.slice(0, 3).forEach((s) => attention.push({ key: `af-${s.id}`, tone: 'info', count: s.maximum_capacity - s.active_count, title: `Spots left · ${s.title}`, detail: 'Almost full. Consider a Telegram blast or a second court.', to: `/admin/sessions/${s.id}`, action: 'Manage' }));
 
   // ---- Booking activity: last 14 days ----
   const days = Array.from({ length: 14 }, (_, i) => {
@@ -98,7 +98,7 @@ export default function AdminDashboardPage() {
       {/* Primary metrics */}
       <section aria-label="Key numbers" className="grid grid-cols-2 gap-x-6 gap-y-8 border-y border-ink-600 py-6 lg:grid-cols-4">
         <Stat label="Upcoming games" value={upcoming.length} hint={next ? `Next: ${shortDate(next.session_date).wk} ${shortDate(next.session_date).day} ${shortDate(next.session_date).mon}` : 'None scheduled'} />
-        <Stat label="Registered players" value={players ?? '—'} hint="Player accounts" />
+        <Stat label="Registered players" value={players ?? '-'} hint="Player accounts" />
         <Stat label="Awaiting payment" value={pending.length} tone={pending.length ? 'attention' : 'neutral'} hint={`${receiptsToVerify.length} with receipt uploaded`} />
         <Stat label="Revenue collected" value={formatCurrency(revenue).replace(/\.00$/, '')} tone="good" hint="All paid bookings" />
       </section>
@@ -108,7 +108,7 @@ export default function AdminDashboardPage() {
         <section aria-labelledby="attention-heading">
           <SectionTitle id="attention-heading" action={<span className="adm-label">{attention.length} item{attention.length === 1 ? '' : 's'}</span>}>Needs attention</SectionTitle>
           {attention.length === 0 ? (
-            <p className="py-6 text-slate-400">All clear — nothing needs action right now.</p>
+            <p className="py-6 text-slate-400">All clear. Nothing needs action right now.</p>
           ) : (
             <ul className="divide-y divide-ink-700">
               {attention.map((a) => (
@@ -154,7 +154,7 @@ export default function AdminDashboardPage() {
                       <OpsBadge tone={STATE_TONE[state]}>{state}</OpsBadge>
                     </div>
                     <p className="text-sm text-slate-300">
-                      {formatTime(next.start_time)} – {formatTime(next.end_time)} · {[next.venue_name, next.court_number].filter(Boolean).join(' · ')}
+                      {formatTime(next.start_time)} to {formatTime(next.end_time)} · {[next.venue_name, next.court_number].filter(Boolean).join(' · ')}
                     </p>
                     <CapacityIndicator confirmed={next.active_count} max={next.maximum_capacity} size="sm" />
                     <p className="text-xs text-muted">{next.confirmed_count} confirmed · {next.pending_count} awaiting payment · {waitingBySession.get(next.id) || 0} waiting</p>

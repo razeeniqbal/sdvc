@@ -14,7 +14,7 @@ import { PlayerCard } from '@/components/PlayerCard';
 import { GameStateLabel } from '@/components/vsb/GameStateLabel';
 import { fetchMyEntitlement, useMyAvatar, type Entitlement } from '@/lib/avatars';
 import type { PlayingPosition, SkillLevel } from '@/types/database';
-import { fallbackCharacter, vsbAssets } from '@/lib/vsbAssets';
+import { vsbAssets } from '@/lib/vsbAssets';
 import { setShowInCommunity } from '@/lib/community';
 
 // MY VSB — the player's hub. Hierarchy: identity → next game → recent games
@@ -131,7 +131,7 @@ export default function ProfilePage() {
       <section id="card" aria-labelledby="myvsb-name" className="vsb-gutter relative scroll-mt-16 overflow-hidden border-b border-ink-600 py-10 lg:py-16">
         <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:gap-16">
           <div className="mx-auto w-full max-w-[20rem] lg:mx-0">
-            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} gender={profile.gender} stats={stats} artSrc={avatar?.image ?? fallbackCharacter(profile.id).sm.src} />
+            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} gender={profile.gender} stats={stats} artSrc={avatar?.image} />
             {(!avatar || entitlement?.unlimited || (entitlement?.remaining ?? 0) > 0) && (
               <Link to="/profile/player" className={`mt-4 w-full font-display uppercase tracking-wider ${avatar ? 'v2-btn-secondary' : 'v2-btn-primary'}`}>
                 {avatar ? t('v2.create.regenerate') : t('v2.landing.createPlayer')} <ArrowRight className="h-4 w-4" aria-hidden />
@@ -149,7 +149,7 @@ export default function ProfilePage() {
             <dl className="mt-8 grid max-w-xl grid-cols-3 gap-6 border-t border-ink-600 pt-6">
               <BigStat label={t('v2.card.games')} value={stats?.played} />
               <BigStat label={t('v2.card.attended')} value={stats?.attended} />
-              <BigStat label={t('v2.card.attendance')} value={stats?.attendancePct != null ? `${stats.attendancePct}%` : '–'} />
+              <BigStat label={t('v2.card.attendance')} value={stats?.attendancePct != null ? `${stats.attendancePct}%` : '-'} />
             </dl>
             <p className="mt-3 max-w-xl text-xs text-muted">{t('v2.myVsb.statsNote')}</p>
 
@@ -353,7 +353,7 @@ function BigStat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div className="flex flex-col-reverse">
       <dt className="vsb-meta mt-1">{label}</dt>
-      <dd className="font-display text-5xl font-extrabold leading-none text-chalk">{value ?? '–'}</dd>
+      <dd className="font-display text-5xl font-extrabold leading-none text-chalk">{value ?? '-'}</dd>
     </div>
   );
 }

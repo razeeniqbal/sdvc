@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { SessionCard } from '@/components/SessionCard';
+import { SessionRow } from '@/components/vsb/SessionRow';
 import { PlayerCard } from '@/components/PlayerCard';
 import { BookingSteps } from '@/components/BookingSteps';
 import { SessionDetailsView } from '@/components/vsb/SessionDetailsView';
 import type { CourtPlayer, SessionWithCount } from '@/lib/sessions';
+import { vsbAssets } from '@/lib/vsbAssets';
 
 // DEV-ONLY design review page (route registered only when import.meta.env.DEV).
 // Sample data lives here and nowhere else — never shown to real users.
@@ -67,6 +69,14 @@ export default function V2PreviewPage() {
       />
 
       <section className="vsb-section border-t border-ink-600">
+        <p className="vsb-meta mb-6">Session rows (Sessions page)</p>
+        <div className="space-y-4">
+          <SessionRow session={sessions[0]} to="#" roster={roster.slice(0, 8)} isPrivate={false} />
+          <SessionRow session={sessions[2]} to="#" roster={roster} isPrivate />
+        </div>
+      </section>
+
+      <section className="vsb-section border-t border-ink-600">
         <p className="vsb-meta mb-6">Session cards</p>
         <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4">
           <SessionCard session={sessions[0]} to="#" roster={roster} isPrivate={false} />
@@ -78,7 +88,8 @@ export default function V2PreviewPage() {
 
       <section className="vsb-section grid items-start gap-10 border-t border-ink-600 md:grid-cols-2">
         <div className="w-[19rem]">
-          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" gender="Male" stats={{ played: 24, attended: 22, attendancePct: 92 }} />
+          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" gender="Male" stats={{ played: 24, attended: 22, attendancePct: 92 }} artSrc={vsbAssets.players[0].full.src} />
+          <div className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" gender="Male" stats={{ played: 1, attended: 0, attendancePct: null }} /></div>
         </div>
         <div className="space-y-6">
           <BookingSteps current={1} />

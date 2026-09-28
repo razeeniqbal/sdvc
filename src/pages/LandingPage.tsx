@@ -86,7 +86,7 @@ export default function LandingPage() {
               <Link to={findGameTo} className="v2-btn-primary !px-8 !py-4 font-display text-lg uppercase tracking-wider">
                 {t('v2.landing.findGame')} <ArrowRight className="h-5 w-5" aria-hidden />
               </Link>
-              <Link to={whosPlayingTo} className="v2-btn-secondary !bg-ink/60 !px-8 !py-4 font-display text-lg uppercase tracking-wider backdrop-blur-sm">
+              <Link to={whosPlayingTo} className="inline-flex items-center justify-center gap-2 py-2 font-display text-lg font-bold uppercase tracking-wider text-chalk underline decoration-vsb-500 decoration-2 underline-offset-8 hover:text-white sm:v2-btn-secondary sm:!bg-ink/60 sm:!px-8 sm:!py-4 sm:no-underline sm:backdrop-blur-sm">
                 {t('v2.landing.seeWhosPlaying')}
               </Link>
             </div>
@@ -186,9 +186,9 @@ export default function LandingPage() {
             </h2>
             <p className="mt-6 max-w-lg text-lg text-slate-300">{t('v2.landing.identityBody')}</p>
             <ul className="mt-6 max-w-lg space-y-2 text-slate-400">
-              <li className="flex gap-3"><span className="text-vsb-500" aria-hidden>—</span>{t('v2.landing.identityPoint1')}</li>
-              <li className="flex gap-3"><span className="text-vsb-500" aria-hidden>—</span>{t('v2.landing.identityPoint2')}</li>
-              <li className="flex gap-3"><span className="text-vsb-500" aria-hidden>—</span>{t('v2.landing.identityPoint3')}</li>
+              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint1')}</li>
+              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint2')}</li>
+              <li className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{t('v2.landing.identityPoint3')}</li>
             </ul>
             <Link to={profile ? '/profile/player' : '/register'} className="v2-btn-primary mt-9 !px-8 !py-4 font-display text-lg uppercase tracking-wider">
               {t('v2.landing.createPlayer')} <ArrowRight className="h-5 w-5" aria-hidden />
@@ -241,7 +241,7 @@ export default function LandingPage() {
             <p className="vsb-meta mb-3">{t('v2.landing.goodToKnow')}</p>
             <h2 className="vsb-display text-4xl sm:text-5xl">{t('landing.sessionRulesTitle')}</h2>
             <ul className="mt-6 space-y-3 text-slate-300">
-              {rules.map((rule) => <li key={rule} className="flex gap-3"><span className="text-vsb-500" aria-hidden>—</span>{rule}</li>)}
+              {rules.map((rule) => <li key={rule} className="flex gap-3"><span className="mt-2.5 h-0.5 w-3 flex-shrink-0 bg-vsb-500" aria-hidden />{rule}</li>)}
             </ul>
             <div className="mt-10 space-y-3">
               <a href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('landing.contactWhatsappMessage', { clubName }))} target="_blank" rel="noopener noreferrer"

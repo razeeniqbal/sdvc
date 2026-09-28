@@ -93,7 +93,7 @@
     "faqQ2": "Boleh saya batalkan tempahan saya?",
     "faqA2": "Anda boleh batalkan sehingga 24 jam sebelum sesi untuk membebaskan slot anda. Walau bagaimanapun, semua tempahan tidak boleh dikembalikan.",
     "faqQ3": "Bagaimana jika sesi penuh?",
-    "faqA3": "Sertai senarai menunggu. Jika ada slot kosong, anda akan dimasukkan secara automatik mengikut giliran dan dimaklumkan — kemudian bayar dan muat naik resit dalam tempoh tahanan (sehingga 12 jam).",
+    "faqA3": "Sertai senarai menunggu. Jika ada slot kosong, anda akan dimasukkan secara automatik mengikut giliran dan dimaklumkan. Kemudian bayar dan muat naik resit dalam tempoh tahanan (sehingga 12 jam).",
     "faqQ4": "Bagaimana saya boleh hubungi kelab?",
     "faqA4": "Mesej kami di WhatsApp di {{whatsapp}} atau sertai kumpulan WhatsApp kami.",
     "readyToPlay": "Sedia untuk Bermain?",
@@ -407,7 +407,7 @@
       "noSessionsTitle": "Gelanggang sunyi buat masa ini",
       "howMeta": "Cara ia berfungsi",
       "step1Title": "Cari permainan",
-      "step1Desc": "Lihat sesi akan datang mengikut tarikh, tahap dan tempat — dan siapa yang sudah menyertai sebelum anda masuk.",
+      "step1Desc": "Lihat sesi akan datang mengikut tarikh, tahap dan tempat, dan siapa yang sudah menyertai sebelum anda masuk.",
       "step2Title": "Kenali rakan",
       "step2Desc": "Tempah untuk diri sendiri dan bawa kawan. Setiap sesi menunjukkan pemain sebenar di gelanggang.",
       "step3Title": "Main bersama",
@@ -415,7 +415,7 @@
       "identityMeta": "Identiti pemain VSB",
       "identityLine1": "Pemain anda.",
       "identityLine2": "Identiti VSB anda.",
-      "identityBody": "Setiap ahli mendapat kad pemain VSB yang berkembang dengan setiap permainan — dibina daripada sesi sebenar anda, bukan penarafan rekaan.",
+      "identityBody": "Setiap ahli mendapat kad pemain VSB yang berkembang dengan setiap permainan. Ia dibina daripada sesi sebenar anda, bukan penarafan rekaan.",
       "identityPoint1": "Posisi, tahap dan jumlah permainan anda, sentiasa terkini",
       "identityPoint2": "Identiti yang sama di profil, senarai pemain sesi dan tempahan",
       "identityPoint3": "Seni chibi VSB peribadi akan datang",
@@ -441,7 +441,8 @@
       "beFirst": "Jadi yang pertama sertai",
       "playersJoined_one": "{{count}} pemain menyertai",
       "playersJoined_other": "{{count}} pemain menyertai",
-      "signInToSee": "Log masuk untuk lihat siapa bermain"
+      "signInToSee": "Log masuk untuk lihat siapa bermain",
+      "timeRange": "{{start}} hingga {{end}}"
     },
     "sessions": {
       "skillLevel": "Tahap kemahiran",
@@ -459,7 +460,9 @@
       "quickWeek": "Minggu ini",
       "moreFilters": "Penapis",
       "showing_one": "Menunjukkan {{count}} sesi",
-      "showing_other": "Menunjukkan {{count}} sesi"
+      "showing_other": "Menunjukkan {{count}} sesi",
+      "thatsAll": "Itu sahaja permainan buat masa ini",
+      "newGamesWhere": "Permainan baharu disiarkan di sini dan diumumkan dalam kumpulan WhatsApp VSB."
     },
     "whosPlaying": {
       "title": "Siapa Bermain",
@@ -475,7 +478,7 @@
       "guestShort": "TETAMU",
       "noPosition": "Posisi belum ditetapkan",
       "nobody": "Belum ada pemain yang sepadan dengan penapis ini.",
-      "notRotation": "Menunjukkan siapa yang menyertai — bukan susunan giliran perlawanan.",
+      "notRotation": "Menunjukkan siapa yang menyertai, bukan susunan giliran perlawanan.",
       "meta": "Senarai pemain",
       "closePreview": "Tutup pratonton pemain",
       "tapHint": "Ketik pemain untuk butiran.",
@@ -598,7 +601,7 @@
       "later": "Turut ditempah",
       "search": "Cari sesi atau rujukan",
       "showCancelled": "Tunjuk yang dibatalkan",
-      "payHint": "Menunggu bayaran ({{amount}}) — buka permainan untuk bayar dan muat naik resit.",
+      "payHint": "Menunggu bayaran ({{amount}}). Buka permainan untuk bayar dan muat naik resit.",
       "state": {
         "confirmed": "Disahkan",
         "awaitingPayment": "Menunggu bayaran",
@@ -617,7 +620,7 @@
       "stepCrop": "Potong",
       "stepConfirm": "Sahkan",
       "stepGenerate": "Jana",
-      "uploadIntro": "Muat naik foto anda. Kami jadikan ia pemain chibi VSB anda — watak yang sama pada kad, senarai pemain sesi dan tempahan anda.",
+      "uploadIntro": "Muat naik foto anda. Kami jadikan ia pemain chibi VSB anda: watak yang sama pada kad, senarai pemain sesi dan tempahan anda.",
       "tip1": "Jelas, menghadap depan, hanya anda dalam foto",
       "tip2": "Cahaya baik, muka tidak tertutup (tudung dan cermin mata tidak mengapa)",
       "tip3": "JPG, PNG atau WebP",
@@ -644,7 +647,7 @@
       "replaces": "Ini akan menggantikan pemain VSB semasa anda.",
       "generateNow": "Jana",
       "generating": "Sedang mencipta pemain anda…",
-      "generatingNote": "Biasanya mengambil masa 20–60 saat. Sila kekalkan halaman ini terbuka.",
+      "generatingNote": "Biasanya mengambil masa 20 hingga 60 saat. Sila kekalkan halaman ini terbuka.",
       "doneTitle": "Anda kini dalam dunia VSB.",
       "doneBody": "Pemain VSB anda telah disimpan dan kini dipaparkan pada kad, senarai pemain dan tempahan anda.",
       "toMyVsb": "Pergi ke VSB Saya",
@@ -660,13 +663,13 @@
         "IN_PROGRESS": "Pemain anda sedang dicipta. Tunggu seminit, kemudian muat semula.",
         "BAD_STYLE": "Ada sesuatu yang lapuk. Muat semula halaman dan cuba lagi.",
         "UPLOAD_FAILED": "Foto tidak dapat dimuat naik. Semak sambungan dan cuba lagi.",
-        "NETWORK": "Masalah sambungan. Penjanaan percuma anda tidak digunakan — cuba lagi."
+        "NETWORK": "Masalah sambungan. Penjanaan percuma anda tidak digunakan, jadi anda boleh cuba lagi."
       }
     },
     "community": {
       "meta": "Warga VSB",
       "title": "Komuniti",
-      "intro": "Semua yang bermain bersama VSB — cari rakan sepasukan mengikut posisi dan tahap, dan lihat siapa yang akan bermain.",
+      "intro": "Semua yang bermain bersama VSB. Cari rakan sepasukan mengikut posisi dan tahap, dan lihat siapa yang akan bermain.",
       "statMembers": "Ahli",
       "statPlayingSoon": "Akan bermain",
       "listHeading": "Ahli",

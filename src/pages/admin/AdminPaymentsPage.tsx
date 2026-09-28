@@ -75,7 +75,7 @@ export default function AdminPaymentsPage() {
     const err = await confirmBooking(b, amountDue(b));
     setBusy(null);
     if (err) { show(err, 'error'); return; }
-    show(`Payment verified — ${bookingDisplayName(b, b.profile)} is confirmed`, 'success');
+    show(`Payment verified. ${bookingDisplayName(b, b.profile)} is confirmed.`, 'success');
     load();
   }
 
@@ -96,7 +96,7 @@ export default function AdminPaymentsPage() {
           <div className="flex min-h-[30vh] items-center justify-center"><Spinner className="h-7 w-7 text-vsb-500" /></div>
         ) : rows.length === 0 ? (
           <p className="py-12 text-slate-400">
-            {queue === 'review' ? 'Nothing to review — no receipts are waiting for verification.' : queue === 'awaiting' ? 'Every pending booking has a receipt.' : 'Nothing here yet.'}
+            {queue === 'review' ? 'Nothing to review. No receipts are waiting for verification.' : queue === 'awaiting' ? 'Every pending booking has a receipt.' : 'Nothing here yet.'}
           </p>
         ) : queue === 'review' ? (
           /* Review queue: oldest receipt first, action-first rows */
@@ -107,7 +107,7 @@ export default function AdminPaymentsPage() {
               return (
                 <li key={b.id} className="grid gap-4 py-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] lg:items-center">
                   <div className="flex min-w-0 items-center gap-3">
-                    <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} seed={b.is_guest ? null : b.user_id} guest={b.is_guest} size="sm" />
+                    <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} guest={b.is_guest} size="sm" />
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-chalk">{name}</p>
                       <p className="truncate text-xs text-muted"><span className="font-mono">{b.booking_reference}</span> · {sessionLine(b)}</p>
@@ -115,7 +115,7 @@ export default function AdminPaymentsPage() {
                   </div>
                   <div className="flex items-center gap-6">
                     <p className="adm-num text-3xl">{tbc ? 'TBC' : formatCurrency(amountDue(b))}</p>
-                    <p className="text-xs text-muted">Receipt<br />{b.receipt_uploaded_at ? formatDateTime(b.receipt_uploaded_at) : '—'}</p>
+                    <p className="text-xs text-muted">Receipt<br />{b.receipt_uploaded_at ? formatDateTime(b.receipt_uploaded_at) : '-'}</p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button onClick={() => viewReceipt(b)} className="adm-btn min-h-[40px]"><Receipt className="h-4 w-4" aria-hidden /> View receipt</button>

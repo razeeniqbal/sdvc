@@ -164,7 +164,7 @@ function FeaturedGame({ game, lang }: { game: MyGame; lang: string }) {
         <div>
           <GameStateLabel state={pending ? 'awaiting-payment' : 'upcoming'} />
           <p className="mt-3 font-display text-4xl font-extrabold uppercase leading-none tracking-wide text-chalk">{game.session.title}</p>
-          <p className="mt-3 text-lg text-slate-300">{formatTime(game.session.start_time)} – {formatTime(game.session.end_time)}</p>
+          <p className="mt-3 text-lg text-slate-300">{t('v2.session.timeRange', { start: formatTime(game.session.start_time), end: formatTime(game.session.end_time) })}</p>
           <p className="text-slate-400">{[game.session.venue_name, game.session.court_number].filter(Boolean).join(' · ')}</p>
           {pending && <p className="mt-4 text-sm text-amber-300">{t('v2.games.payHint', { amount: amount > 0 ? formatCurrency(amount) : 'TBC' })}</p>}
         </div>

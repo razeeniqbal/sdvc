@@ -215,7 +215,7 @@ export default function AdminSessionFormPage() {
     );
   }
 
-  const inputClass = 'w-full rounded-lg border border-ink-500 px-4 py-2.5 text-chalk focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/30 outline-none transition-colors';
+  const inputClass = 'v2-input !py-2.5 !text-base';
   const labelClass = 'block text-sm font-medium text-slate-200 mb-1.5';
 
   return (
@@ -269,7 +269,7 @@ export default function AdminSessionFormPage() {
           <div>
             <label className={labelClass}>Passkey (optional)</label>
             <input className={inputClass} value={form.passkey} onChange={(e) => setForm({ ...form, passkey: e.target.value })} placeholder="Leave blank for a public session" />
-            <p className="text-xs text-slate-400 mt-1">If set, players must enter this exact passkey before they can register — makes the session private/invite-only. It's never shown to players anywhere else, so share it directly.</p>
+            <p className="text-xs text-slate-400 mt-1">If set, players must enter this exact passkey before they can register. This makes the session private/invite-only. It's never shown to players anywhere else, so share it directly.</p>
           </div>
         </div>
 

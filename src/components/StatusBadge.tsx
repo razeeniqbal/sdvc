@@ -51,16 +51,15 @@ export function SessionStatusBadge({ status }: { status: SessionStatus }) {
   return <span className={`${base} ${sessionStatusStyles[status] ?? SLATE}`}>{t(`v2.status.session.${status}`, { defaultValue: status })}</span>;
 }
 
-// Renders nothing when gender is unset — an unlabeled player shouldn't show an
-// empty/placeholder badge in a list full of labeled ones. Neutral styling; the
-// letter carries the meaning (with a full-word label for screen readers).
+// Renders nothing when gender is unset, so an unlabeled player doesn't get an
+// empty badge. Blue / pink (VSB concept), always with ♂/♀ and a spoken label.
 export function GenderBadge({ gender }: { gender: Gender | null | undefined }) {
   const { t } = useTranslation();
   if (!gender) return null;
   const label = gender === 'Male' ? t('common.genderMale') : t('common.genderFemale');
   return (
-    <span title={label} className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-ink-500 bg-ink-700 text-[10px] font-bold text-slate-200">
-      <span aria-hidden>{gender === 'Male' ? 'M' : 'F'}</span>
+    <span title={label} className={`inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold ${gender === 'Male' ? 'bg-vsb-500 text-white' : 'bg-pink-400 text-ink'}`}>
+      <span aria-hidden>{gender === 'Male' ? '♂' : '♀'}</span>
       <span className="sr-only">{label}</span>
     </span>
   );

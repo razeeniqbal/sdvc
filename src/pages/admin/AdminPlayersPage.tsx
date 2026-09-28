@@ -123,7 +123,7 @@ export default function AdminPlayersPage() {
           <option value="recent">Most recently played</option>
           <option value="games">Most games</option>
           <option value="joined">Newest members</option>
-          <option value="name">Name A–Z</option>
+          <option value="name">Name A to Z</option>
         </select>
       </div>
 
@@ -151,7 +151,7 @@ export default function AdminPlayersPage() {
               <tr key={p.id} className="cursor-pointer" onClick={() => setSelected(p)}>
                 <td>
                   <button onClick={(e) => { e.stopPropagation(); setSelected(p); }} className="flex items-center gap-3 text-left">
-                    <PlayerAvatar name={name} src={avatars.get(p.id)} seed={p.id} size="xs" />
+                    <PlayerAvatar name={name} src={avatars.get(p.id)} size="xs" />
                     <span className="min-w-0">
                       <span className="block truncate font-semibold text-chalk">{name}</span>
                       {p.short_name && p.short_name !== p.full_name && <span className="block truncate text-xs text-muted">{p.full_name}</span>}
@@ -159,8 +159,8 @@ export default function AdminPlayersPage() {
                     {p.role === 'admin' && <OpsBadge tone="info">Admin</OpsBadge>}
                   </button>
                 </td>
-                <td className="font-display text-base font-bold text-vsb-300">{p.playing_position ? POSITION_ABBR[p.playing_position] : <span className="text-muted">—</span>}</td>
-                <td>{p.skill_level || <span className="text-muted">—</span>}</td>
+                <td className="font-display text-base font-bold text-vsb-300">{p.playing_position ? POSITION_ABBR[p.playing_position] : <span className="text-muted">-</span>}</td>
+                <td>{p.skill_level || <span className="text-muted">-</span>}</td>
                 <td className="hidden lg:table-cell">{p.gender || <span className="text-muted">Not set</span>}</td>
                 <td className="text-right font-display text-lg font-bold text-chalk">{a?.played ?? 0}</td>
                 <td className="text-right font-display text-lg font-bold text-chalk">{a?.attended ?? 0}</td>
@@ -179,7 +179,7 @@ export default function AdminPlayersPage() {
           return (
             <li key={p.id}>
               <button onClick={() => setSelected(p)} className="flex w-full items-center gap-3 py-3 text-left">
-                <PlayerAvatar name={name} src={avatars.get(p.id)} seed={p.id} size="sm" />
+                <PlayerAvatar name={name} src={avatars.get(p.id)} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-chalk">{name}</p>
                   <p className="text-xs text-muted">{[p.playing_position && POSITION_ABBR[p.playing_position], p.skill_level, p.gender].filter(Boolean).join(' · ') || 'Profile incomplete'}</p>

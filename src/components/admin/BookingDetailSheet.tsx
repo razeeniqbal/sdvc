@@ -82,7 +82,7 @@ export function BookingDetailSheet({ booking, onClose, onChanged }: {
       <aside className="animate-slide-up absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-ink-600 bg-ink-850 sm:animate-none">
         <header className="flex items-start justify-between gap-4 border-b border-ink-600 p-5">
           <div className="flex min-w-0 items-center gap-3">
-            <PlayerAvatar name={name} src={booking.is_guest ? null : avatars.get(booking.user_id)} seed={booking.is_guest ? null : booking.user_id} guest={booking.is_guest} size="md" />
+            <PlayerAvatar name={name} src={booking.is_guest ? null : avatars.get(booking.user_id)} guest={booking.is_guest} size="md" />
             <div className="min-w-0">
               <h2 id="booking-sheet-title" className="truncate font-display text-2xl font-extrabold uppercase leading-none text-chalk">{name}</h2>
               <p className="mt-1 font-mono text-xs text-muted">{booking.booking_reference}</p>
@@ -149,7 +149,7 @@ export function BookingDetailSheet({ booking, onClose, onChanged }: {
 
           <section>
             <h3 className="adm-label mb-2">Admin notes</h3>
-            <textarea aria-label="Admin notes" className="v2-input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Internal notes — not shown to the player" />
+            <textarea aria-label="Admin notes" className="v2-input" rows={3} value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Internal notes, not shown to the player" />
             <button onClick={saveNotes} disabled={savingNotes || notes === (booking.admin_notes || '')} className="adm-btn mt-2">{savingNotes ? 'Saving…' : 'Save notes'}</button>
           </section>
         </div>
@@ -168,7 +168,7 @@ export function BookingDetailSheet({ booking, onClose, onChanged }: {
             <>
               {unpaid && !cancelled && (
                 <button
-                  onClick={() => run(() => confirmBooking(booking, parseFloat(amount) || 0), 'Payment verified — booking confirmed')}
+                  onClick={() => run(() => confirmBooking(booking, parseFloat(amount) || 0), 'Payment verified. Booking confirmed.')}
                   disabled={busy || !amount}
                   className="flex w-full items-center justify-center gap-2 rounded-md bg-green-600 py-3 font-display text-lg font-bold uppercase tracking-wider text-white transition-colors hover:bg-green-700 disabled:opacity-60"
                 >

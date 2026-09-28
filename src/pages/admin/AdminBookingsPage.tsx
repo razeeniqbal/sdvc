@@ -208,7 +208,7 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
                     <tr key={b.id} className="cursor-pointer" onClick={() => setSelected(b)}>
                       <td>
                         <div className="flex items-center gap-3">
-                          <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} seed={b.is_guest ? null : b.user_id} guest={b.is_guest} size="xs" />
+                          <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} guest={b.is_guest} size="xs" />
                           <div className="min-w-0">
                             <p className="truncate font-semibold text-chalk">{name}</p>
                             <p className="truncate text-xs text-muted">
@@ -248,7 +248,7 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
                 return (
                   <li key={b.id}>
                     <button onClick={() => setSelected(b)} className="flex w-full items-start gap-3 py-3 text-left">
-                      <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} seed={b.is_guest ? null : b.user_id} guest={b.is_guest} size="sm" />
+                      <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} guest={b.is_guest} size="sm" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <p className="truncate font-semibold text-chalk">{name}</p>
@@ -264,7 +264,7 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
             </ul>
 
             <div className="mt-4 flex flex-wrap items-center justify-between gap-3 text-sm text-slate-400">
-              <span>Showing {rangeStart}–{rangeEnd} of {totalCount}</span>
+              <span>Showing {rangeStart} to {rangeEnd} of {totalCount}</span>
               <div className="flex items-center gap-2">
                 <button onClick={() => setPage((p) => Math.max(0, p - 1))} disabled={page === 0 || loading} className="adm-btn" aria-label="Previous page"><ChevronLeft className="h-4 w-4" /></button>
                 <span className="px-2">Page {page + 1} of {totalPages}</span>

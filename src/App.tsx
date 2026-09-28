@@ -8,6 +8,7 @@ import { LoadingScreen } from '@/components/LoadingScreen';
 import { ProtectedRoute, AdminRoute } from '@/components/ProtectedRoute';
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute';
 import { AdminShell } from '@/components/admin/AdminShell';
+import { ScrollToTop } from '@/components/ScrollToTop';
 
 const LandingPage = lazy(() => import('@/pages/LandingPage'));
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
@@ -98,6 +99,7 @@ function App() {
     <ToastProvider>
       <AuthProvider>
         <BrowserRouter>
+          <ScrollToTop />
           <Routes>
             {/* ===== VSB Play ===== */}
             <Route element={<PlayShell />}>
