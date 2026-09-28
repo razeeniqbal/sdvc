@@ -6,6 +6,8 @@ import { BookingSteps } from '@/components/BookingSteps';
 import { SessionDetailsView } from '@/components/vsb/SessionDetailsView';
 import type { CourtPlayer, SessionWithCount } from '@/lib/sessions';
 import { vsbAssets } from '@/lib/vsbAssets';
+import { YourGameForm } from '@/components/vsb/YourGameForm';
+import { EMPTY_YOUR_GAME, type YourGame } from '@/lib/yourGame';
 
 // DEV-ONLY design review page (route registered only when import.meta.env.DEV).
 // Sample data lives here and nowhere else — never shown to real users.
@@ -41,6 +43,7 @@ const sessions: SessionWithCount[] = [
 
 export default function V2PreviewPage() {
   const q = new URLSearchParams(window.location.search);
+  const [yourGame, setYourGame] = useState<YourGame>({ ...EMPTY_YOUR_GAME, playstyle: 'all_rounder', play_reasons: ['fitness'] });
   const [capacity, setCapacity] = useState(Number(q.get('cap') ?? 12));
   const [count, setCount] = useState(Number(q.get('players') ?? 8));
   return (
@@ -91,14 +94,15 @@ export default function V2PreviewPage() {
 
       <section className="vsb-section grid items-start gap-10 border-t border-ink-600 md:grid-cols-2">
         <div className="w-[19rem]">
-          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" stats={{ played: 24, attended: 22, attendancePct: 92 }} artSrc={vsbAssets.players[0].full.src} />
-          <div className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" stats={{ played: 1, attended: 0, attendancePct: null }} /></div>
+          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" games={24} tags={["All-rounder", "Competitive"]} artSrc={vsbAssets.players[0].full.src} />
+          <div className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" games={0} /></div>
           {/* generated art (transparent margins): V3 accepted, V2 wider figure */}
           {GENERATED_SAMPLES.map((src) => (
-            <div key={src} className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" stats={{ played: 1, attended: 0, attendancePct: null }} artSrc={src} /></div>
+            <div key={src} className="mt-8"><PlayerCard name="Jeen" position="Flexible / Any Position" skill="Open Level" games={12} tags={["All-rounder", "Balanced"]} artSrc={src} /></div>
           ))}
         </div>
         <div className="space-y-6">
+          <div className="border border-ink-600 p-5" id="your-game-preview"><YourGameForm value={yourGame} onChange={setYourGame} idPrefix="preview" /></div>
           <BookingSteps current={1} />
           <BookingSteps current={2} />
           <BookingSteps current={3} />

@@ -12,6 +12,8 @@ import type { Profile } from '@/types/database';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
 import { useAvatarMap } from '@/lib/avatars';
+import { useTranslation } from 'react-i18next';
+import { experienceKey, playstyleKey, reasonKey, vibeKey, yourGameOf } from '@/lib/yourGame';
 
 // Admin → Players: operational view of the membership. Activity is derived
 // from the player's own (non-guest) bookings only. Contact and emergency
@@ -200,6 +202,7 @@ export default function AdminPlayersPage() {
 }
 
 function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profile; avatarUrl?: string; activity?: Activity; onClose: () => void }) {
+  const { t } = useTranslation();
   const { show } = useToast();
   const { profile: me } = useAuth();
   const [gens, setGens] = useState<{ used: number; allowed: number; lastFailure: string | null } | null>(null);
@@ -246,6 +249,12 @@ function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profi
     ['Member since', formatDateShort(profile.created_at)],
     ['Role', profile.role === 'admin' ? 'Administrator' : profile.role === 'organizer' ? 'Organizer' : 'Player'],
   ];
+  // Your Game: the player's own description of how they play (not a rating).
+  const yg = yourGameOf(profile);
+  if (yg.playstyle) facts.push(['Playstyle (self-described)', t(playstyleKey(yg.playstyle))]);
+  if (yg.game_vibe) facts.push(['Game vibe (self-described)', t(vibeKey(yg.game_vibe))]);
+  if (yg.experience_range) facts.push(['Experience (self-described)', t(experienceKey(yg.experience_range))]);
+  if (yg.play_reasons.length) facts.push(['Plays for', yg.play_reasons.map((r) => t(reasonKey(r))).join(' · ')]);
 
   return (
     <div className="fixed inset-0 z-50" role="dialog" aria-modal="true" aria-labelledby="player-sheet-title">

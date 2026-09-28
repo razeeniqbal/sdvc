@@ -57,25 +57,26 @@ export function byDateAsc(a: MyGame, b: MyGame) {
   return `${a.session.session_date} ${a.session.start_time}`.localeCompare(`${b.session.session_date} ${b.session.start_time}`);
 }
 
-export interface PlayerStats {
-  played: number;     // past games not cancelled (attended + missed + unmarked)
-  attended: number;   // marked present
-  marked: number;     // past games with an attendance mark
+// REAL VSB ACTIVITY for the player identity (card + My VSB). Only the
+// player's own place counts (not companions they booked for).
+//   games   = past sessions where their booking ended Confirmed or Completed
+//             (cancelled, unpaid, refunded and no-show bookings don't count)
+//   venues  = distinct venues among those games
+//   upcoming = booked games still ahead
+// No attendance or performance metrics: VSB doesn't rate players.
+export interface PlayerActivity {
+  games: number;
+  venues: number;
   upcoming: number;
-  attendancePct: number | null; // attended / marked — null until something is marked
 }
 
-// Stats count the player's OWN place only (not companions they booked for).
-export function playerStats(games: MyGame[]): PlayerStats {
+const PLAYED_STATUSES = ['Confirmed', 'Completed'];
+
+export function playerActivity(games: MyGame[]): PlayerActivity {
   const today = localToday();
   const own = games.filter((g) => !g.is_guest);
-  let played = 0, attended = 0, marked = 0, upcoming = 0;
-  for (const g of own) {
-    const s = gameState(g, today);
-    if (s === 'upcoming' || s === 'awaiting-payment') upcoming++;
-    else if (s === 'attended') { played++; attended++; marked++; }
-    else if (s === 'missed') { played++; marked++; }
-    else if (s === 'played') played++;
-  }
-  return { played, attended, marked, upcoming, attendancePct: marked > 0 ? Math.round((attended / marked) * 100) : null };
+  const played = own.filter((g) => g.session.session_date < today && PLAYED_STATUSES.includes(g.booking_status));
+  const venues = new Set(played.map((g) => g.session.venue_name.trim().toLowerCase()).filter(Boolean));
+  const upcoming = own.filter((g) => isUpcoming(g, today)).length;
+  return { games: played.length, venues: venues.size, upcoming };
 }

@@ -4,8 +4,8 @@ import { useTranslation } from 'react-i18next';
 import { AlertCircle, ArrowRight, Save } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { friendlyProfileError } from '@/lib/auth';
-import { dateParts, formatDateLocale, formatTime } from '@/lib/format';
-import { byDateAsc, fetchMyGames, gameState, isUpcoming, playerStats, type MyGame } from '@/lib/myGames';
+import { dateParts, formatTime } from '@/lib/format';
+import { byDateAsc, fetchMyGames, gameState, isUpcoming, playerActivity, type MyGame } from '@/lib/myGames';
 import { PLAYING_POSITIONS, POSITION_KEY, SKILL_LEVELS, SKILL_LEVEL_KEY } from '@/lib/volleyball';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -17,10 +17,15 @@ import type { PlayingPosition, SkillLevel } from '@/types/database';
 import { vsbAssets } from '@/lib/vsbAssets';
 import { setShowInCommunity } from '@/lib/community';
 import { OrganizeSection } from '@/components/vsb/OrganizeSection';
+import { YourGameForm } from '@/components/vsb/YourGameForm';
+import { experienceKey, hasYourGame, playstyleKey, reasonKey, saveYourGame, vibeKey, yourGameOf, type YourGame } from '@/lib/yourGame';
 
-// MY VSB — the player's hub. Hierarchy: identity → next game → recent games
-// → volleyball profile → account & safety. Profile/account editing is inline
-// (Edit / Manage) rather than separate pages or tabs.
+// MY VSB: the player's hub. Identity first:
+//   card (collectible) + profile facts + REAL activity → next game → recent
+//   games → YOUR GAME (self-described) → volleyball profile → account.
+// Three kinds of data, never mixed up: profile facts, what the player says
+// about their game, and what they have actually done in VSB. No ratings, no
+// attendance. Editing is inline rather than separate pages.
 
 export default function ProfilePage() {
   const { t, i18n } = useTranslation();
@@ -45,6 +50,24 @@ export default function ProfilePage() {
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ new_password: '', confirm_password: '' });
   const [savingVisibility, setSavingVisibility] = useState(false);
+  const [editingGame, setEditingGame] = useState(false);
+  const [gameDraft, setGameDraft] = useState<YourGame>(yourGameOf(profile));
+  const [savingGame, setSavingGame] = useState(false);
+
+  async function handleSaveGame() {
+    if (!profile) return;
+    setSavingGame(true);
+    try {
+      await saveYourGame(profile.id, gameDraft);
+      await refreshProfile();
+      setEditingGame(false);
+      show(t('v2.yourGame.saved'), 'success');
+    } catch {
+      show(t('v2.yourGame.saveError'), 'error');
+    } finally {
+      setSavingGame(false);
+    }
+  }
 
   async function toggleCommunity() {
     if (!profile) return;
@@ -113,7 +136,11 @@ export default function ProfilePage() {
   const labelClass = 'mb-1.5 block text-sm font-medium text-slate-300';
   const isComplete = !!profile.phone_number && !!profile.gender;
   const displayName = profile.short_name || profile.full_name;
-  const stats = games ? playerStats(games) : null;
+  const activity = games ? playerActivity(games) : null;
+  const yourGame = yourGameOf(profile);
+  const cardTags = [yourGame.playstyle && t(playstyleKey(yourGame.playstyle)), yourGame.game_vibe && t(vibeKey(yourGame.game_vibe))].filter(Boolean) as string[];
+  const memberSince = new Intl.DateTimeFormat(i18n.language === 'ms' ? 'ms-MY' : 'en-MY', { month: 'short', year: 'numeric' }).format(new Date(profile.created_at));
+  const canGenerate = !avatar || entitlement?.unlimited || (entitlement?.remaining ?? 0) > 0;
   const upcoming = (games || []).filter((g) => !g.is_guest && isUpcoming(g)).sort(byDateAsc);
   const next = upcoming[0];
   const recent = (games || []).filter((g) => !g.is_guest && !isUpcoming(g) && gameState(g) !== 'cancelled').sort(byDateAsc).reverse().slice(0, 4);
@@ -132,10 +159,11 @@ export default function ProfilePage() {
       <section id="card" aria-labelledby="myvsb-name" className="vsb-gutter relative scroll-mt-16 overflow-hidden border-b border-ink-600 py-10 lg:py-16">
         <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] xl:gap-16">
           <div className="mx-auto w-full max-w-[24rem] lg:mx-0">
-            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} stats={stats} artSrc={avatar?.image} />
-            {(!avatar || entitlement?.unlimited || (entitlement?.remaining ?? 0) > 0) && (
-              <Link to="/profile/player" className={`mt-4 w-full font-display uppercase tracking-wider ${avatar ? 'v2-btn-secondary' : 'v2-btn-primary'}`}>
-                {avatar ? t('v2.create.regenerate') : t('v2.landing.createPlayer')} <ArrowRight className="h-4 w-4" aria-hidden />
+            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level}
+              games={activity ? activity.games : null} tags={cardTags} artSrc={avatar?.image} />
+            {!avatar && (
+              <Link to="/profile/player" className="v2-btn-primary mt-4 w-full font-display uppercase tracking-wider">
+                {t('v2.landing.createPlayer')} <ArrowRight className="h-4 w-4" aria-hidden />
               </Link>
             )}
           </div>
@@ -145,14 +173,13 @@ export default function ProfilePage() {
             <p className="mt-3 font-display text-2xl font-bold uppercase tracking-wide text-vsb-300">
               {[profile.playing_position && t(POSITION_KEY[profile.playing_position]), profile.skill_level && t(SKILL_LEVEL_KEY[profile.skill_level])].filter(Boolean).join(' · ') || t('v2.myVsb.setPosition')}
             </p>
-            <p className="mt-1 text-sm text-muted">{t('v2.myVsb.memberSince', { date: formatDateLocale(profile.created_at, i18n.language, 'medium') })}</p>
+            <p className="vsb-meta mt-2">{t('v2.myVsb.vsbMember', { date: memberSince.toUpperCase() })}</p>
 
             <dl className="mt-8 grid max-w-xl grid-cols-3 gap-6 border-t border-ink-600 pt-6">
-              <BigStat label={t('v2.card.games')} value={stats?.played} />
-              <BigStat label={t('v2.card.attended')} value={stats?.attended} />
-              <BigStat label={t('v2.card.attendance')} value={stats?.attendancePct != null ? `${stats.attendancePct}%` : '-'} />
+              <BigStat label={t('v2.myVsb.statGames')} value={activity?.games} />
+              <BigStat label={t('v2.myVsb.statVenues')} value={activity?.venues} />
+              <BigStat label={t('v2.myVsb.statUpcoming')} value={activity?.upcoming} />
             </dl>
-            <p className="mt-3 max-w-xl text-xs text-muted">{t('v2.myVsb.statsNote')}</p>
 
             {!isComplete && (
               <div className="mt-6 flex max-w-xl items-start gap-3 border-l-2 border-amber-400 pl-4">
@@ -209,7 +236,7 @@ export default function ProfilePage() {
                     <Link to={`/bookings/${g.id}`} className="flex items-center gap-4 py-3 hover:bg-ink-850">
                       <span className="w-14 text-center font-display leading-none"><span className="block text-2xl font-extrabold text-chalk">{d.day}</span><span className="text-[11px] font-bold tracking-wider text-muted">{d.month}</span></span>
                       <span className="min-w-0 flex-1 truncate font-semibold text-chalk">{g.session.title}</span>
-                      <GameStateLabel state={gameState(g)} />
+                      <span className="hidden max-w-[40%] truncate text-sm text-muted sm:block">{g.session.venue_name}</span>
                     </Link>
                   </li>
                 );
@@ -218,6 +245,45 @@ export default function ProfilePage() {
           )}
         </section>
       </div>
+
+      {/* ===== Your Game (self-described) + player identity ===== */}
+      <section id="your-game" aria-labelledby="yg-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">
+        <HubHeading id="yg-heading" action={!editingGame && <button onClick={() => { setGameDraft(yourGame); setEditingGame(true); }} className="hub-link">{hasYourGame(yourGame) ? t('v2.yourGame.edit') : t('v2.yourGame.start')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
+          {t('v2.yourGame.title')}
+        </HubHeading>
+        {editingGame ? (
+          <div className="max-w-4xl">
+            <p className="mb-6 text-slate-300">{t('v2.yourGame.intro')}</p>
+            <YourGameForm value={gameDraft} onChange={setGameDraft} idPrefix="myvsb" />
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button type="button" onClick={handleSaveGame} disabled={savingGame} className="v2-btn-primary !px-6 font-display uppercase tracking-wider">
+                {savingGame ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" aria-hidden />} {t('v2.yourGame.save')}
+              </button>
+              <button type="button" onClick={() => setEditingGame(false)} className="v2-btn-secondary">{t('v2.myVsb.cancel')}</button>
+            </div>
+          </div>
+        ) : hasYourGame(yourGame) ? (
+          <dl className="grid max-w-5xl grid-cols-2 gap-x-6 gap-y-6 sm:grid-cols-4">
+            {yourGame.playstyle && <Fact label={t('v2.yourGame.label.playstyle')} value={t(playstyleKey(yourGame.playstyle))} />}
+            {yourGame.game_vibe && <Fact label={t('v2.yourGame.label.vibe')} value={t(vibeKey(yourGame.game_vibe))} />}
+            {yourGame.experience_range && <Fact label={t('v2.yourGame.label.experience')} value={t(experienceKey(yourGame.experience_range))} />}
+            {yourGame.play_reasons.length > 0 && <Fact label={t('v2.yourGame.label.reasons')} value={yourGame.play_reasons.map((r) => t(reasonKey(r))).join(' · ')} />}
+          </dl>
+        ) : (
+          <p className="max-w-2xl text-slate-300">{t('v2.yourGame.empty')}</p>
+        )}
+
+        {avatar && (
+          <div className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2 border-t border-ink-700 pt-5 text-sm">
+            <span className="vsb-meta">{t('v2.yourGame.identity')}</span>
+            {canGenerate ? (
+              <Link to="/profile/player" className="font-semibold text-slate-300 underline decoration-ink-500 underline-offset-4 hover:text-white">{t('v2.create.regenerate')}</Link>
+            ) : (
+              <span className="text-muted">{t('v2.yourGame.regenerateUsed')}</span>
+            )}
+          </div>
+        )}
+      </section>
 
       {/* ===== Volleyball profile ===== */}
       <section id="profile-section" aria-labelledby="vp-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">
@@ -387,7 +453,8 @@ function NextGame({ game, lang }: { game: MyGame; lang: string }) {
         </p>
         <div className="min-w-0 flex-1 pb-1">
           <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk">{game.session.title}</p>
-          <p className="mt-2 text-slate-300">{formatTime(game.session.start_time)} · {[game.session.venue_name, game.session.court_number].filter(Boolean).join(' · ')}</p>
+          <p className="mt-2 text-slate-300">{[game.session.venue_name, game.session.court_number].filter(Boolean).join(' · ')}</p>
+          <p className="text-slate-400">{t('v2.session.timeRange', { start: formatTime(game.session.start_time), end: formatTime(game.session.end_time) })}</p>
           <div className="mt-3 flex flex-wrap items-center gap-3">
             <GameStateLabel state={pending ? 'awaiting-payment' : 'upcoming'} />
             <span className="inline-flex items-center gap-1 font-display font-bold uppercase tracking-wider text-vsb-400 group-hover:text-vsb-300">{t('v2.myVsb.viewGame')} <ArrowRight className="h-4 w-4" aria-hidden /></span>

@@ -9,6 +9,8 @@ import { supabase } from '@/lib/supabase';
 import type { PlayingPosition } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 import { PlayerCard } from '@/components/PlayerCard';
+import { YourGameForm } from '@/components/vsb/YourGameForm';
+import { hasYourGame, playstyleKey, saveYourGame, vibeKey, yourGameOf, type YourGame } from '@/lib/yourGame';
 
 // CREATE YOUR VSB PLAYER: photo → crop → position → generate → "your player
 // is ready". Only the photo and the position are asked for; name, level and
@@ -16,7 +18,7 @@ import { PlayerCard } from '@/components/PlayerCard';
 // touch the entitlement; only the explicit "Generate" confirmation calls the
 // server. The AI is infrastructure: the result is presented as the player.
 
-type Step = 'upload' | 'crop' | 'confirm' | 'generating' | 'done' | 'error';
+type Step = 'upload' | 'crop' | 'confirm' | 'game' | 'generating' | 'done' | 'error';
 
 const FRAME = 288; // on-screen crop frame (px) — fits 320px phones with gutters
 const OUTPUT = 1024; // exported square photo (px)
@@ -36,6 +38,19 @@ export default function CreatePlayerPage() {
   const [confirming, setConfirming] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [position, setPosition] = useState<PlayingPosition>(profile?.playing_position ?? 'Flexible / Any Position');
+  // Your Game is asked only if it was never answered (and can be skipped).
+  const [needsGame] = useState(() => !hasYourGame(yourGameOf(profile)));
+  const [gameDraft, setGameDraft] = useState<YourGame>(yourGameOf(profile));
+  const [savingGame, setSavingGame] = useState(false);
+
+  async function continueFromGame(save: boolean) {
+    if (save && profile && hasYourGame(gameDraft)) {
+      setSavingGame(true);
+      try { await saveYourGame(profile.id, gameDraft); await refreshProfile(); } catch { /* optional; generation can still go ahead */ }
+      setSavingGame(false);
+    }
+    setConfirming(true);
+  }
   const drag = useRef<{ x: number; y: number; ox: number; oy: number } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -131,8 +146,9 @@ export default function CreatePlayerPage() {
     }
   }
 
-  const stepIndex = { upload: 1, crop: 2, confirm: 3, generating: 4, done: 4, error: 4 }[step];
-  const steps = [t('v2.create.stepPhoto'), t('v2.create.stepCrop'), t('v2.create.stepPosition'), t('v2.create.stepGenerate')];
+  const steps = [t('v2.create.stepPhoto'), t('v2.create.stepCrop'), t('v2.create.stepPosition'), ...(needsGame ? [t('v2.create.stepYourGame')] : []), t('v2.create.stepGenerate')];
+  const genIndex = steps.length;
+  const stepIndex = { upload: 1, crop: 2, confirm: 3, game: 4, generating: genIndex, done: genIndex, error: genIndex }[step];
 
   return (
     <div className="bg-ink text-chalk">
@@ -226,8 +242,8 @@ export default function CreatePlayerPage() {
                     <>
                       {isFirst && <p className="border-t border-ink-600 pt-4 text-slate-300">{t('v2.create.firstFree')}</p>}
                       <div className="flex flex-wrap gap-3">
-                        <button onClick={() => setConfirming(true)} disabled={!entitlement} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
-                          {t('v2.create.generate')} <ArrowRight className="h-4 w-4" aria-hidden />
+                        <button onClick={() => (needsGame ? setStep('game') : setConfirming(true))} disabled={!entitlement} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
+                          {needsGame ? t('v2.create.continue') : t('v2.create.generate')} <ArrowRight className="h-4 w-4" aria-hidden />
                         </button>
                         <button onClick={() => setStep('crop')} className="v2-btn-secondary"><RotateCcw className="h-4 w-4" aria-hidden /> {t('v2.create.recrop')}</button>
                       </div>
@@ -237,7 +253,22 @@ export default function CreatePlayerPage() {
               </div>
             )}
 
-            {/* 04 — generating */}
+            {/* 04 — Your Game (optional, only when never answered) */}
+            {step === 'game' && (
+              <div className="max-w-3xl">
+                <p className="font-display text-3xl font-extrabold uppercase text-chalk">{t('v2.yourGame.title')}</p>
+                <p className="mt-2 text-slate-300">{t('v2.yourGame.intro')}</p>
+                <div className="mt-6"><YourGameForm value={gameDraft} onChange={setGameDraft} idPrefix="create" /></div>
+                <div className="mt-8 flex flex-wrap gap-3">
+                  <button onClick={() => continueFromGame(true)} disabled={savingGame} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
+                    {savingGame && <Spinner className="h-4 w-4" />} {t('v2.create.generate')} <ArrowRight className="h-4 w-4" aria-hidden />
+                  </button>
+                  <button onClick={() => continueFromGame(false)} className="v2-btn-secondary">{t('v2.yourGame.skip')}</button>
+                </div>
+              </div>
+            )}
+
+            {/* 05 — generating */}
             {step === 'generating' && (
               <div className="flex items-start gap-4" role="status" aria-live="polite">
                 <Spinner className="h-8 w-8 text-vsb-500" />
@@ -282,7 +313,8 @@ export default function CreatePlayerPage() {
             name={profile.short_name || profile.full_name}
             position={position}
             skill={profile.skill_level}
-            stats={null}
+            games={null}
+            tags={[gameDraft.playstyle && t(playstyleKey(gameDraft.playstyle)), gameDraft.game_vibe && t(vibeKey(gameDraft.game_vibe))].filter(Boolean) as string[]}
             artSrc={avatar?.image}
           />
           <p className="mt-3 text-center text-xs text-muted">
@@ -309,15 +341,6 @@ export default function CreatePlayerPage() {
           </div>
         </div>
       )}
-    </div>
-  );
-}
-
-function Fact({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="vsb-meta mb-1">{label}</dt>
-      <dd className="font-semibold text-chalk">{value}</dd>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { fetchCommunity, type CommunityPlayer } from '@/lib/community';
 import { PLAYING_POSITIONS, POSITION_ABBR, POSITION_KEY, SKILL_LEVELS, SKILL_LEVEL_KEY } from '@/lib/volleyball';
 import { formatDateLocale } from '@/lib/format';
 import { vsbAssets } from '@/lib/vsbAssets';
+import { playstyleKey, type Playstyle } from '@/lib/yourGame';
 import type { PlayingPosition, SkillLevel } from '@/types/database';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { Spinner } from '@/components/LoadingScreen';
@@ -125,6 +126,9 @@ export default function CommunityPage() {
                       {[p.playing_position ? t(POSITION_KEY[p.playing_position]) : t('v2.community.noPosition'),
                         p.skill_level ? t(SKILL_LEVEL_KEY[p.skill_level]) : null].filter(Boolean).join(' · ')}
                     </p>
+                    {p.playstyle && (
+                      <p className="mt-1.5"><span className="border border-vsb-500/50 px-2 py-0.5 font-display text-[11px] font-bold uppercase tracking-[0.14em] text-vsb-200">{t(playstyleKey(p.playstyle as Playstyle))}</span></p>
+                    )}
                     <p className="mt-1 text-xs text-muted">
                       {t('v2.community.games', { count: p.games_played })} · {t('v2.community.since', { date: formatDateLocale(p.member_since, lang, 'medium') })}
                     </p>

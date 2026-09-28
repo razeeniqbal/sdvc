@@ -10,6 +10,8 @@ export interface CommunityPlayer {
   display_name: string;
   playing_position: PlayingPosition | null;
   skill_level: SkillLevel | null;
+  /** One public Your Game tag (self-described). */
+  playstyle: string | null;
   avatar_url: string | null;
   games_played: number;
   member_since: string;

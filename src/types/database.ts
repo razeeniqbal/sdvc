@@ -57,6 +57,11 @@ export interface Profile {
   playing_position: PlayingPosition | null;
   skill_level: SkillLevel | null;
   show_in_community: boolean;
+  // YOUR GAME (self-described; see lib/yourGame.ts)
+  game_vibe: string | null;
+  playstyle: string | null;
+  experience_range: string | null;
+  play_reasons: string[];
   role: UserRole;
   created_at: string;
   updated_at: string;

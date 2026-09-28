@@ -1,5 +1,5 @@
 import { useTranslation } from 'react-i18next';
-import { CalendarCheck, Gamepad2, Shield, Target, Users } from 'lucide-react';
+import { Shield, Target } from 'lucide-react';
 import type { PlayingPosition, SkillLevel } from '@/types/database';
 import { POSITION_ABBR, POSITION_KEY, SKILL_LEVEL_KEY } from '@/lib/volleyball';
 import { vsbAssets } from '@/lib/vsbAssets';
@@ -11,23 +11,21 @@ import { VsbLogo } from '@/components/VsbLogo';
 //             the VSB mark sit in the upper-left (where the concept shows its
 //             exploratory "87" rating, which VSB does not have)
 //   IDENTITY  name, then position + skill level
-//   STATS     games, attended, attendance: real bookings and attendance only
-// Permanent identity = art, name, position, level. Stats update around it; the
-// art is never regenerated for them. Gender is not part of the collectible.
+//   ACTIVITY  real games played in VSB, plus at most two of the player's own
+//             Your Game tags (self-described, never a rating)
+// Permanent identity = art, name, position, level. Games update around it; the
+// art is never regenerated for them. No attendance, no gender, no ratings.
 // Sizes use card-width units (cqw) so the card scales as one piece: a full-width
 // phone card is not a shrunken desktop card.
-
-export interface PlayerCardStats {
-  played: number;
-  attended: number;
-  attendancePct: number | null; // null until at least one game has an attendance mark
-}
 
 interface PlayerCardProps {
   name: string;
   position: PlayingPosition | null;
   skill: SkillLevel | null;
-  stats: PlayerCardStats | null;
+  /** Real past games in VSB; null hides the line (e.g. a sample card). */
+  games: number | null;
+  /** Translated Your Game tags (playstyle, vibe); unanswered ones are simply omitted. */
+  tags?: string[];
   artSrc?: string | null;
   // Replaces the position + level row (e.g. a sample card).
   subtitle?: string;
@@ -37,15 +35,11 @@ interface PlayerCardProps {
 const FRAME = 'polygon(9% 0, 91% 0, 100% 6%, 100% 84%, 50% 100%, 0 84%, 0 6%)';
 const PLATE = 'polygon(3% 0, 97% 0, 100% 50%, 97% 100%, 3% 100%, 0 50%)';
 
-export function PlayerCard({ name, position, skill, stats, artSrc, subtitle }: PlayerCardProps) {
+export function PlayerCard({ name, position, skill, games, tags = [], artSrc, subtitle }: PlayerCardProps) {
   const { t } = useTranslation();
   const abbr = position ? POSITION_ABBR[position] : null;
 
-  const statItems = [
-    { label: t('v2.card.games'), value: stats?.played ?? 0, Icon: Gamepad2 },
-    { label: t('v2.card.attended'), value: stats?.attended ?? 0, Icon: CalendarCheck },
-    { label: t('v2.card.attendance'), value: stats?.attendancePct != null ? `${stats.attendancePct}%` : '-', Icon: Users },
-  ];
+  const shownTags = tags.filter(Boolean).slice(0, 2);
 
   return (
     <figure
@@ -109,17 +103,22 @@ export function PlayerCard({ name, position, skill, stats, artSrc, subtitle }: P
           </div>
         </div>
 
-        {/* ---- STATS ---- */}
-        <dl className="absolute inset-x-[10%] top-[77%] z-20 grid grid-cols-3 text-center">
-          {statItems.map(({ label, value, Icon }, i) => (
-            <div key={label} className={`flex flex-col-reverse items-center ${i > 0 ? 'border-l border-ink-500' : ''}`}>
-              <dt className="mt-[1cqw] inline-flex items-center gap-[0.8cqw] text-[2.6cqw] font-bold uppercase tracking-wider text-muted">
-                <Icon className="h-[2.8cqw] w-[2.8cqw] text-vsb-400" aria-hidden />{label}
-              </dt>
-              <dd className="font-display text-[8cqw] font-extrabold leading-none text-chalk">{value}</dd>
-            </div>
-          ))}
-        </dl>
+        {/* ---- ACTIVITY + YOUR GAME ---- */}
+        <div className="absolute inset-x-[10%] top-[76%] z-20 flex flex-col items-center text-center">
+          {games !== null && (
+            <p className="flex items-baseline gap-[1.6cqw] font-display uppercase leading-none">
+              <span className="text-[10cqw] font-extrabold text-chalk">{games}</span>
+              <span className="text-[3.6cqw] font-bold tracking-[0.2em] text-slate-300">{t('v2.card.gamesLabel', { count: games })}</span>
+            </p>
+          )}
+          {shownTags.length > 0 && (
+            <ul className="mt-[2cqw] flex flex-wrap justify-center gap-[1.5cqw]">
+              {shownTags.map((tag) => (
+                <li key={tag} className="border border-vsb-500/50 px-[2cqw] py-[0.6cqw] font-display text-[3.2cqw] font-bold uppercase tracking-[0.14em] text-vsb-200">{tag}</li>
+              ))}
+            </ul>
+          )}
+        </div>
         <p className="absolute inset-x-0 bottom-[5.5%] z-20 text-center font-display text-[2.4cqw] font-bold uppercase tracking-[0.35em] text-chalk/55" aria-hidden>
           {t('v2.card.tagline')}
         </p>

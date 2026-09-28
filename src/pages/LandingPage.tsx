@@ -176,7 +176,7 @@ export default function LandingPage() {
               className="hidden h-[26rem] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:block lg:h-[32rem]" />
             <div className="w-[17rem] sm:w-[19rem]">
               <PlayerCard name={t('v2.landing.cardName')} position={null} skill={null}
-                stats={null} artSrc={vsbAssets.players[0].sm.src} subtitle={t('v2.landing.cardSub')} />
+                games={null} artSrc={vsbAssets.players[0].sm.src} subtitle={t('v2.landing.cardSub')} />
             </div>
           </div>
           <div>

@@ -53,11 +53,19 @@ Two experiences, one design system:
 - **Behaviour changes wait for launch.** V1 on `main` shares this database.
   Anything that changes what V1 users experience lives in
   `supabase/launch/` (see its README) instead of `migrations/`.
+- **Player identity = profile facts + Your Game + real activity**, never
+  mixed up and never a rating. Profile facts: name, position, level, member
+  since. Your Game (`src/lib/yourGame.ts`, profiles.game_vibe / playstyle /
+  experience_range / play_reasons, CHECK-validated machine values): the
+  player's own description, optional, never gates booking. Real activity
+  (`playerActivity`): games = past sessions with a Confirmed/Completed booking,
+  venues = distinct venues of those, upcoming. No attendance %, no ratings,
+  no invented jersey numbers.
 - **Player card composition** follows the approved V2 concept: the generated
   character dominates the top and fades into the identity panel; position
-  abbreviation + VSB mark top-left (never a rating: VSB has none); name, then
-  position | level; games / attended / attendance from real data. No gender on
-  the card. Sized in card-width units (cqw) so phone cards scale, not shrink.
+  abbreviation + VSB mark top-left; name, then position | level; then
+  "N GAMES" and at most two Your Game tags. No gender. Sized in card-width
+  units (cqw) so phone cards scale, not shrink.
 - **Avatar generation** runs in the `generate-avatar` edge function, which
   owns the entitlement (1 free + admin grants, admins unlimited by DB role,
   idempotent, failed attempts don't count) and deletes source photos. Never

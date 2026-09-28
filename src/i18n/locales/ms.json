@@ -535,9 +535,9 @@
       "tagline": "Lebih dari permainan",
       "ariaLabel": "Kad pemain VSB untuk {{name}}",
       "games": "Permainan",
-      "attended": "Hadir",
-      "attendance": "Kehadiran",
-      "flexible": "Fleksibel"
+      "flexible": "Fleksibel",
+      "gamesLabel_one": "Permainan",
+      "gamesLabel_other": "Permainan"
     },
     "profile": {
       "title": "Pemain VSB Saya",
@@ -575,7 +575,6 @@
       "cancel": "Batal",
       "setPosition": "Tetapkan posisi & tahap anda",
       "memberSince": "Ahli sejak {{date}}",
-      "statsNote": "Permainan dan kehadiran dikira daripada tempahan anda sendiri. % kehadiran mengira permainan yang telah ditanda oleh penganjur.",
       "completeNow": "Lengkapkan sekarang",
       "nextOnCourt": "Seterusnya di gelanggang",
       "allGames": "Permainan saya",
@@ -592,7 +591,11 @@
       "password": "Kata laluan",
       "viewGame": "Lihat permainan",
       "welcomeTitle": "Selamat datang ke VSB",
-      "welcomeBody": "Cari permainan, tempah slot anda dan kenali pemain lain."
+      "welcomeBody": "Cari permainan, tempah slot anda dan kenali pemain lain.",
+      "vsbMember": "Ahli VSB · {{date}}",
+      "statGames": "Permainan",
+      "statVenues": "Tempat",
+      "statUpcoming": "Akan datang"
     },
     "games": {
       "meta": "VSB Saya / Permainan",
@@ -673,7 +676,9 @@
       "readyTitle": "Pemain VSB anda sudah siap.",
       "readyAlt": "{{name}} sebagai pemain VSB",
       "viewCard": "Lihat kad pemain",
-      "yourCard": "Kad pemain anda"
+      "yourCard": "Kad pemain anda",
+      "stepYourGame": "Gaya Permainan",
+      "continue": "Teruskan"
     },
     "community": {
       "meta": "Warga VSB",
@@ -763,6 +768,57 @@
       "leave": "Keluarkan saya dari permainan ini",
       "leaveConfirm": "Keluar dari permainan ini? Rakan anda akan dimaklumkan.",
       "left": "Anda telah keluar. Rakan anda telah dimaklumkan."
+    },
+    "yourGame": {
+      "title": "Gaya Permainan",
+      "intro": "Beritahu kami cara anda suka bermain. 4 soalan ringkas. Anda boleh ubah bila-bila masa.",
+      "start": "Tetapkan",
+      "edit": "Ubah Gaya Permainan",
+      "save": "Simpan",
+      "skip": "Langkau dahulu",
+      "saved": "Gaya Permainan disimpan.",
+      "saveError": "Tidak dapat menyimpan Gaya Permainan. Cuba lagi.",
+      "empty": "Beritahu pemain lain cara anda suka bermain: gaya anda, jenis permainan yang anda gemari, dan sebab anda bermain. Hanya beberapa saat.",
+      "identity": "Identiti pemain",
+      "regenerateUsed": "Penjanaan pemain percuma anda telah digunakan.",
+      "q": {
+        "vibe": "Bagaimana anda suka bermain?",
+        "playstyle": "Apa yang menggambarkan anda di gelanggang?",
+        "experience": "Berapa lama anda bermain bola tampar?",
+        "reasons": "Kenapa anda bermain?",
+        "reasonsHint": "Pilih seberapa banyak yang anda mahu."
+      },
+      "label": {
+        "vibe": "Suasana permainan",
+        "playstyle": "Gaya bermain",
+        "experience": "Pengalaman",
+        "reasons": "Bermain untuk"
+      },
+      "vibe": {
+        "competitive": "Kompetitif",
+        "balanced": "Seimbang",
+        "just_for_fun": "Suka-suka"
+      },
+      "playstyle": {
+        "attacking": "Menyerang",
+        "defensive": "Bertahan",
+        "supportive": "Penyokong",
+        "all_rounder": "Serba boleh"
+      },
+      "experience": {
+        "new": "Baru bermain",
+        "under_1": "Kurang 1 tahun",
+        "1_3": "1 hingga 3 tahun",
+        "3_5": "3 hingga 5 tahun",
+        "5_plus": "5 tahun ke atas"
+      },
+      "reason": {
+        "compete": "Bertanding",
+        "improve": "Tingkatkan diri",
+        "fitness": "Kecergasan",
+        "social": "Bersosial",
+        "love_volleyball": "Minat bola tampar"
+      }
     }
   }
 }

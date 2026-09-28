@@ -535,9 +535,9 @@
       "tagline": "More than a game",
       "ariaLabel": "VSB player card for {{name}}",
       "games": "Games",
-      "attended": "Attended",
-      "attendance": "Attendance",
-      "flexible": "Flexible"
+      "flexible": "Flexible",
+      "gamesLabel_one": "Game",
+      "gamesLabel_other": "Games"
     },
     "profile": {
       "title": "My VSB Player",
@@ -575,7 +575,6 @@
       "cancel": "Cancel",
       "setPosition": "Set your position & level",
       "memberSince": "Member since {{date}}",
-      "statsNote": "Games and attendance come from your own bookings. Attendance % counts games the organiser has marked.",
       "completeNow": "Complete now",
       "nextOnCourt": "Next on court",
       "allGames": "My games",
@@ -592,7 +591,11 @@
       "password": "Password",
       "viewGame": "View game",
       "welcomeTitle": "Welcome to VSB",
-      "welcomeBody": "Find a game, book your spot and meet the people you play with."
+      "welcomeBody": "Find a game, book your spot and meet the people you play with.",
+      "vsbMember": "VSB member · {{date}}",
+      "statGames": "Games",
+      "statVenues": "Venues",
+      "statUpcoming": "Upcoming"
     },
     "games": {
       "meta": "My VSB / Games",
@@ -673,7 +676,9 @@
       "readyTitle": "Your VSB player is ready.",
       "readyAlt": "{{name}} as a VSB player",
       "viewCard": "View player card",
-      "yourCard": "Your player card"
+      "yourCard": "Your player card",
+      "stepYourGame": "Your Game",
+      "continue": "Continue"
     },
     "community": {
       "meta": "The people of VSB",
@@ -763,6 +768,57 @@
       "leave": "Remove me from this game",
       "leaveConfirm": "Remove yourself from this game? Your friend will be notified.",
       "left": "You left the game. Your friend was notified."
+    },
+    "yourGame": {
+      "title": "Your Game",
+      "intro": "Tell us how you like to play. 4 quick questions. You can change these anytime.",
+      "start": "Set up",
+      "edit": "Edit Your Game",
+      "save": "Save",
+      "skip": "Skip for now",
+      "saved": "Your Game saved.",
+      "saveError": "Couldn't save Your Game. Try again.",
+      "empty": "Tell other players how you like to play: your style, the kind of game you enjoy, and why you play. It takes a few seconds.",
+      "identity": "Player identity",
+      "regenerateUsed": "Your free player generation has been used.",
+      "q": {
+        "vibe": "How do you like to play?",
+        "playstyle": "What describes you on court?",
+        "experience": "How long have you been playing volleyball?",
+        "reasons": "Why do you play?",
+        "reasonsHint": "Pick as many as you like."
+      },
+      "label": {
+        "vibe": "Game vibe",
+        "playstyle": "Playstyle",
+        "experience": "Experience",
+        "reasons": "Plays for"
+      },
+      "vibe": {
+        "competitive": "Competitive",
+        "balanced": "Balanced",
+        "just_for_fun": "Just for fun"
+      },
+      "playstyle": {
+        "attacking": "Attacking",
+        "defensive": "Defensive",
+        "supportive": "Supportive",
+        "all_rounder": "All-rounder"
+      },
+      "experience": {
+        "new": "New to volleyball",
+        "under_1": "Less than 1 year",
+        "1_3": "1 to 3 years",
+        "3_5": "3 to 5 years",
+        "5_plus": "5+ years"
+      },
+      "reason": {
+        "compete": "Compete",
+        "improve": "Improve",
+        "fitness": "Fitness",
+        "social": "Social",
+        "love_volleyball": "Just love volleyball"
+      }
     }
   }
 }
