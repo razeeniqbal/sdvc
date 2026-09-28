@@ -362,5 +362,52 @@
       "errorPasswordMismatch": "Kata laluan tidak sepadan",
       "success": "Kata laluan dikemas kini!"
     }
+  },
+  "volleyball": {
+    "skill": {
+      "beginner": "Pemula",
+      "intermediate": "Pertengahan",
+      "advanced": "Mahir",
+      "open": "Semua Tahap"
+    },
+    "position": {
+      "setter": "Setter",
+      "outsideHitter": "Outside Hitter",
+      "opposite": "Opposite Hitter",
+      "middleBlocker": "Middle Blocker",
+      "libero": "Libero",
+      "flex": "Fleksibel / Mana-mana Posisi"
+    }
+  },
+  "v2": {
+    "landing": {
+      "eyebrow": "Komuniti bola tampar Malaysia",
+      "heroLine1": "Gelanggang sama.",
+      "heroLine2": "Lebih ramai.",
+      "heroLine3": "Permainan lebih best.",
+      "heroSubtitle": "Tempah sesi bola tampar santai, kenali pemain sebenar, dan sertai komuniti VSB.",
+      "heroAlt": "Pemain VSB berpakaian jersi rasmi, berdiri bersama di gelanggang bola tampar dalam dewan",
+      "findGame": "Cari Permainan",
+      "seeHowItWorks": "Cara Ia Berfungsi",
+      "upcomingSessions": "Sesi Akan Datang",
+      "howVsbWorks": "Cara VSB Berfungsi",
+      "finalTitle": "Permainan seterusnya menanti anda"
+    },
+    "session": {
+      "public": "Awam",
+      "private": "Peribadi",
+      "perPlayer": "/ pemain",
+      "join": "Sertai",
+      "confirmedOfCapacity": "{{confirmed}} / {{max}}",
+      "openSlots_one": "{{count}} slot kosong",
+      "openSlots_other": "{{count}} slot kosong",
+      "beFirst": "Jadi yang pertama sertai"
+    },
+    "sessions": {
+      "skillLevel": "Tahap kemahiran",
+      "allSkillLevels": "Semua tahap",
+      "sessionType": "Jenis sesi",
+      "clearFilters": "Kosongkan penapis"
+    }
   }
 }

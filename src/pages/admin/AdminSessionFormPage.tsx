@@ -4,7 +4,8 @@ import { ArrowLeft, Save, Repeat } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import type { Session, SessionStatus } from '@/types/database';
+import type { Session, SessionStatus, SkillLevel } from '@/types/database';
+import { SKILL_LEVELS } from '@/lib/volleyball';
 import { Spinner } from '@/components/LoadingScreen';
 
 export default function AdminSessionFormPage() {
@@ -27,6 +28,7 @@ export default function AdminSessionFormPage() {
     venue_address: '',
     maps_link: '',
     court_number: '',
+    skill_level: 'Open Level' as SkillLevel,
     price: '20',
     maximum_capacity: '18',
     booking_open_at: '',
@@ -58,6 +60,7 @@ export default function AdminSessionFormPage() {
             venue_address: s.venue_address || '',
             maps_link: s.maps_link || '',
             court_number: s.court_number || '',
+            skill_level: s.skill_level || 'Open Level',
             price: s.price.toString(),
             maximum_capacity: s.maximum_capacity.toString(),
             booking_open_at: s.booking_open_at ? s.booking_open_at.slice(0, 16) : '',
@@ -90,6 +93,7 @@ export default function AdminSessionFormPage() {
           venue_address: s.venue_address || '',
           maps_link: s.maps_link || '',
           court_number: s.court_number || '',
+          skill_level: s.skill_level || 'Open Level',
           price: s.price.toString(),
           maximum_capacity: s.maximum_capacity.toString(),
           cancellation_deadline: s.cancellation_deadline ? s.cancellation_deadline.replace(' hours', '') : '24',
@@ -127,6 +131,7 @@ export default function AdminSessionFormPage() {
       venue_address: form.venue_address || null,
       maps_link: form.maps_link || null,
       court_number: form.court_number || null,
+      skill_level: form.skill_level,
       price: parseFloat(form.price) || 0,
       maximum_capacity: parseInt(form.maximum_capacity) || 18,
       booking_open_at: form.booking_open_at ? new Date(form.booking_open_at).toISOString() : null,
@@ -259,6 +264,12 @@ export default function AdminSessionFormPage() {
             <div>
               <label className={labelClass}>Court Number</label>
               <input className={inputClass} value={form.court_number} onChange={(e) => setForm({ ...form, court_number: e.target.value })} placeholder="e.g. Court 1" />
+            </div>
+            <div>
+              <label className={labelClass}>Skill Level</label>
+              <select className={inputClass} value={form.skill_level} onChange={(e) => setForm({ ...form, skill_level: e.target.value as SkillLevel })}>
+                {SKILL_LEVELS.map((level) => <option key={level} value={level}>{level}</option>)}
+              </select>
             </div>
           </div>
 

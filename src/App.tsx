@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
+import type { ReactNode } from 'react';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { Navbar, PlayerTabBar } from '@/components/Navbar';
@@ -31,12 +32,22 @@ const AdminAttendancePage = lazy(() => import('@/pages/admin/AdminAttendancePage
 const AdminWaitingListPage = lazy(() => import('@/pages/admin/AdminWaitingListPage'));
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 
+// Screens already moved onto the V2 (dark) brand. Everything else keeps the V1
+// light page background until its milestone lands.
+const V2_ROUTES = /^\/($|sessions(\/|$)|login|register|forgot-password|reset-password)/;
+
+function Shell({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  const bg = V2_ROUTES.test(pathname) ? 'bg-ink' : 'bg-slate-50';
+  return <div className={`min-h-screen flex flex-col ${bg}`}>{children}</div>;
+}
+
 function App() {
   return (
     <ToastProvider>
       <AuthProvider>
         <BrowserRouter>
-          <div className="min-h-screen flex flex-col bg-slate-50">
+          <Shell>
             <Navbar />
             <main className="flex-1">
               <Suspense fallback={<LoadingScreen />}>
@@ -70,7 +81,7 @@ function App() {
             </main>
             <Footer />
             <PlayerTabBar />
-          </div>
+          </Shell>
         </BrowserRouter>
       </AuthProvider>
     </ToastProvider>

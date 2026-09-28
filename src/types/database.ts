@@ -35,6 +35,16 @@ export type UserRole = 'player' | 'admin';
 
 export type Gender = 'Male' | 'Female';
 
+export type SkillLevel = 'Beginner' | 'Intermediate' | 'Advanced' | 'Open Level';
+
+export type PlayingPosition =
+  | 'Setter'
+  | 'Outside Hitter'
+  | 'Opposite Hitter'
+  | 'Middle Blocker'
+  | 'Libero'
+  | 'Flexible / Any Position';
+
 export interface Profile {
   id: string;
   full_name: string;
@@ -44,6 +54,8 @@ export interface Profile {
   emergency_contact_name: string | null;
   emergency_contact_phone: string | null;
   gender: Gender | null;
+  playing_position: PlayingPosition | null;
+  skill_level: SkillLevel | null;
   role: UserRole;
   created_at: string;
   updated_at: string;
@@ -60,6 +72,7 @@ export interface Session {
   venue_address: string | null;
   maps_link: string | null;
   court_number: string | null;
+  skill_level: SkillLevel;
   price: number;
   maximum_capacity: number;
   booking_open_at: string | null;

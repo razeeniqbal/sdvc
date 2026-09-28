@@ -1,6 +1,6 @@
 import { supabase } from './supabase';
 import { formatTime } from './format';
-import type { Session, Gender } from '@/types/database';
+import type { Session, Gender, PlayingPosition } from '@/types/database';
 
 export interface SessionWithCount extends Session {
   confirmed_count: number;
@@ -40,6 +40,15 @@ export function getSessionStatus(
   return 'Available';
 }
 
+// i18n keys for getSessionStatus() results.
+export const SESSION_STATUS_KEY: Record<string, string> = {
+  Available: 'sessionStatus.available',
+  'Almost Full': 'sessionStatus.almostFull',
+  'Fully Booked': 'sessionStatus.fullyBooked',
+  'Booking Closed': 'sessionStatus.bookingClosed',
+  Cancelled: 'sessionStatus.cancelled',
+};
+
 export function canBook(session: Session, confirmedCount: number): boolean {
   const status = getSessionStatus(session, confirmedCount);
   return status === 'Available' || status === 'Almost Full';
@@ -56,7 +65,49 @@ export async function fetchSessionRoster(sessionId: string): Promise<SessionRost
   return (data || []) as SessionRosterPlayer[];
 }
 
-const MALAY_DAYS = ['AHAD', 'ISNIN', 'SELASA', 'RABU', 'KHAMIS', 'JUMAAT', 'SABTU'];
+// ===== VSB V2: Who's Playing =====
+
+export interface CourtPlayer {
+  display_name: string;
+  booking_status: string;
+  gender: Gender | null;
+  playing_position: PlayingPosition | null;
+  is_guest: boolean;
+}
+
+// Prefers the V2 `session_player_roster` RPC (adds position + is_guest). Falls
+// back to the V1 `session_player_list` if that migration hasn't been applied
+// yet, so the redesigned page still works — just without positions, and with
+// companions indistinguishable from account holders.
+export async function fetchCourtRoster(sessionId: string): Promise<CourtPlayer[]> {
+  const { data, error } = await supabase.rpc('session_player_roster', { p_session_id: sessionId });
+  if (!error) return (data || []) as CourtPlayer[];
+  const v1 = await fetchSessionRoster(sessionId);
+  return v1.map((p) => ({ ...p, playing_position: null, is_guest: false }));
+}
+
+export interface SessionExtras {
+  roster: CourtPlayer[];
+  isPrivate: boolean;
+}
+
+// Per-card extras for the sessions grid: who's already in (for the avatar row)
+// and whether the session is passkey-gated. Signed-in only — both RPCs are for
+// authenticated users.
+export async function fetchSessionExtras(sessionIds: string[]): Promise<Record<string, SessionExtras>> {
+  const entries = await Promise.all(
+    sessionIds.map(async (id) => {
+      const [roster, passkey] = await Promise.all([
+        fetchCourtRoster(id),
+        supabase.rpc('session_requires_passkey', { p_session_id: id }),
+      ]);
+      return [id, { roster, isPrivate: !!passkey.data }] as const;
+    })
+  );
+  return Object.fromEntries(entries);
+}
+
+const MALAY_DAYS =['AHAD', 'ISNIN', 'SELASA', 'RABU', 'KHAMIS', 'JUMAAT', 'SABTU'];
 
 // Builds a numbered signup-sheet style roster, e.g.:
 //   1) Shen ✅

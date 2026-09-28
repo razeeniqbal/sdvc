@@ -362,5 +362,52 @@
       "errorPasswordMismatch": "Passwords do not match",
       "success": "Password updated!"
     }
+  },
+  "volleyball": {
+    "skill": {
+      "beginner": "Beginner",
+      "intermediate": "Intermediate",
+      "advanced": "Advanced",
+      "open": "Open Level"
+    },
+    "position": {
+      "setter": "Setter",
+      "outsideHitter": "Outside Hitter",
+      "opposite": "Opposite Hitter",
+      "middleBlocker": "Middle Blocker",
+      "libero": "Libero",
+      "flex": "Flexible / Any Position"
+    }
+  },
+  "v2": {
+    "landing": {
+      "eyebrow": "Malaysia's volleyball community",
+      "heroLine1": "Same court.",
+      "heroLine2": "More people.",
+      "heroLine3": "Better games.",
+      "heroSubtitle": "Book social volleyball sessions, meet real players, and join the VSB community.",
+      "heroAlt": "VSB players in the home kit, standing together on an indoor volleyball court",
+      "findGame": "Find a Game",
+      "seeHowItWorks": "See How It Works",
+      "upcomingSessions": "Upcoming Sessions",
+      "howVsbWorks": "How VSB Works",
+      "finalTitle": "Your next game is waiting"
+    },
+    "session": {
+      "public": "Public",
+      "private": "Private",
+      "perPlayer": "/ player",
+      "join": "Join",
+      "confirmedOfCapacity": "{{confirmed}} / {{max}}",
+      "openSlots_one": "{{count}} open slot",
+      "openSlots_other": "{{count}} open slots",
+      "beFirst": "Be the first to join"
+    },
+    "sessions": {
+      "skillLevel": "Skill level",
+      "allSkillLevels": "All skill levels",
+      "sessionType": "Session type",
+      "clearFilters": "Clear filters"
+    }
   }
 }
