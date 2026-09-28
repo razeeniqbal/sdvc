@@ -89,7 +89,8 @@ export class GenerationError extends Error {
 
 // The approved style reference ships with the app; the edge function verifies
 // its SHA-256, so it can't be swapped for a different image.
-const STYLE_REFERENCE_URL = '/brand/avatar-style-v1.webp';
+// VSB style master (production Player #10). Pinned by SHA-256 in generate-avatar.
+const STYLE_REFERENCE_URL = '/brand/avatar-style-v2.webp';
 
 // Uploads the cropped photo + style reference to the player's private folder,
 // then asks the edge function to generate. One idempotency key per attempt:

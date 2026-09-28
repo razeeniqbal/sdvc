@@ -54,12 +54,16 @@ Two experiences, one design system:
   Anything that changes what V1 users experience lives in
   `supabase/launch/` (see its README) instead of `migrations/`.
 - **Avatar generation** runs in the `generate-avatar` edge function, which
-  owns the entitlement (1 free + admin grants, admins unlimited, idempotent,
-  failed attempts don't count) and deletes source photos. Never decide
-  entitlement in the client. The style reference is
-  `public/brand/avatar-style-v1.webp`, pinned by SHA-256 in the function —
-  change both (and `STYLE_VERSION`) together. The OpenAI key lives only in
-  Supabase Edge Function secrets (`OPENAI_API_KEY`).
+  owns the entitlement (1 free + admin grants, admins unlimited by DB role,
+  idempotent, failed attempts don't count) and deletes source photos. Never
+  decide entitlement in the client. Prompt `VSB_PLAYER_V2`: image 1 is the
+  STYLE MASTER (production Player #10, `public/brand/avatar-style-v2.webp`,
+  pinned by SHA-256 in the function), image 2 the photo (identity only).
+  Change the file, `STYLE_SHA256`, `STYLE_VERSION` and `PROMPT_VERSION`
+  together. Each attempt records prompt version, model and provider request
+  id; earlier results are kept, not deleted. Only the character is generated:
+  number, name, stats and frame are drawn by `PlayerCard`. The OpenAI key
+  lives only in Supabase Edge Function secrets (`OPENAI_API_KEY`).
 - **Full-width layout.** Player screens run edge to edge: sections use
   `.vsb-gutter` / `.vsb-section` (`padding-inline: clamp(20px, 3vw, 64px)`) and
   `FullWidthSection` / `SectionHeader` (src/components/layout/Section.tsx) —
@@ -76,7 +80,7 @@ Two experiences, one design system:
   (brand, hero, court, players, states), generated from the supplied PNGs by
   resizing/cropping/re-encoding only. Reference it **only through
   `src/lib/vsbAssets.ts`** — never hardcode a path. `public/brand/` now only
-  holds the hash-pinned avatar style reference.
+  holds the hash-pinned avatar style master.
 - **Logo**: `<VsbLogo variant="lockup|mark" />` only. Never redraw, stretch,
   box or recolour it.
 - **Characters** are illustration for marketing surfaces only. A member's
