@@ -12,6 +12,7 @@ import { fetchClubSettings } from '@/lib/settings';
 import { StatusBadge, PaymentStatusBadge, GenderBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import { ReceiptUpload } from '@/components/ReceiptUpload';
+import { HoldCountdown } from '@/components/vsb/HoldCountdown';
 import { ACTIVE_BOOKING_STATUSES, MAX_COMPANIONS } from '@/lib/bookingRules';
 import type { Booking, Session, Payment, Attendance, ClubSettings } from '@/types/database';
 
@@ -302,6 +303,11 @@ export default function BookingDetailsPage() {
                 </div>
               </div>
             </div>
+          )}
+
+          {/* Pay-by deadline (12-hour hold); a receipt upload stops the clock */}
+          {awaitingConfirmation && !booking.receipt_path && booking.reserved_until && (
+            <HoldCountdown reservedUntil={booking.reserved_until} />
           )}
 
           {/* Awaiting confirmation notice */}

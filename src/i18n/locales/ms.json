@@ -93,7 +93,7 @@
     "faqQ2": "Boleh saya batalkan tempahan saya?",
     "faqA2": "Anda boleh batalkan sehingga 24 jam sebelum sesi untuk membebaskan slot anda. Walau bagaimanapun, semua tempahan tidak boleh dikembalikan.",
     "faqQ3": "Bagaimana jika sesi penuh?",
-    "faqA3": "Sertai senarai menunggu. Jika ada slot terbuka, anda akan dimaklumkan dan diberi 10 minit untuk melengkapkan tempahan anda.",
+    "faqA3": "Sertai senarai menunggu. Jika ada slot kosong, anda akan dimasukkan secara automatik mengikut giliran dan dimaklumkan — kemudian bayar dan muat naik resit dalam tempoh tahanan (sehingga 12 jam).",
     "faqQ4": "Bagaimana saya boleh hubungi kelab?",
     "faqA4": "Mesej kami di WhatsApp di {{whatsapp}} atau sertai kumpulan WhatsApp kami.",
     "readyToPlay": "Sedia untuk Bermain?",
@@ -224,7 +224,7 @@
     "joinWaitlist": "Sertai Senarai Menunggu",
     "sessionNotFound": "Sesi tidak dijumpai",
     "alreadyOnWaitlist": "Anda sudah berada dalam senarai menunggu",
-    "addedToWaitlist": "Ditambah ke senarai menunggu! Kami akan maklumkan jika ada slot terbuka.",
+    "addedToWaitlist": "Anda dalam senarai menunggu. Jika ada slot kosong, kami akan tempah untuk anda secara automatik dan memaklumkan anda.",
     "whatsappQuestion": "Hai, saya ada soalan tentang sesi \"{{title}}\" pada {{date}}."
   },
   "checkout": {
@@ -511,7 +511,11 @@
       "viewSession": "Lihat Sesi",
       "addFriend": "+ Bawa seorang kawan",
       "companionLimit_one": "Anda boleh bawa {{count}} kawan bagi setiap tempahan.",
-      "companionLimit_other": "Anda boleh bawa sehingga {{count}} kawan bagi setiap tempahan."
+      "companionLimit_other": "Anda boleh bawa sehingga {{count}} kawan bagi setiap tempahan.",
+      "holdTitle": "Bayar sebelum {{time}}",
+      "holdLeftHours": "tinggal {{hours}}j {{minutes}}m",
+      "holdLeftMinutes": "tinggal {{minutes}} min",
+      "holdDesc": "Bayar dan muat naik resit sebelum masa itu, atau slot anda akan dilepaskan kepada senarai menunggu. Muat naik resit akan menghentikan kiraan masa."
     },
     "card": {
       "played": "Dimain",

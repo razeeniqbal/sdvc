@@ -93,7 +93,7 @@
     "faqQ2": "Can I cancel my booking?",
     "faqA2": "You can cancel up to 24 hours before the session to free up your slot. However, all bookings are non-refundable.",
     "faqQ3": "What if a session is full?",
-    "faqA3": "Join the waiting list. If a slot opens up, you will be notified and given 10 minutes to complete your booking.",
+    "faqA3": "Join the waiting list. When a place opens up, you're booked in automatically in queue order and notified — then pay and upload your receipt within the hold time (up to 12 hours).",
     "faqQ4": "How do I contact the club?",
     "faqA4": "Message us on WhatsApp at {{whatsapp}} or join our WhatsApp group.",
     "readyToPlay": "Ready to Play?",
@@ -224,7 +224,7 @@
     "joinWaitlist": "Join Waiting List",
     "sessionNotFound": "Session not found",
     "alreadyOnWaitlist": "You are already on the waiting list",
-    "addedToWaitlist": "Added to the waiting list! We will notify you if a slot opens up.",
+    "addedToWaitlist": "You're on the waiting list. If a place opens up, we'll book you in automatically and let you know.",
     "whatsappQuestion": "Hi, I have a question about the session \"{{title}}\" on {{date}}."
   },
   "checkout": {
@@ -511,7 +511,11 @@
       "viewSession": "View Session",
       "addFriend": "+ Bring a friend",
       "companionLimit_one": "You can bring {{count}} friend per booking.",
-      "companionLimit_other": "You can bring up to {{count}} friends per booking."
+      "companionLimit_other": "You can bring up to {{count}} friends per booking.",
+      "holdTitle": "Pay by {{time}}",
+      "holdLeftHours": "{{hours}}h {{minutes}}m left",
+      "holdLeftMinutes": "{{minutes}} min left",
+      "holdDesc": "Pay and upload your receipt before then, or your place is released to the waiting list. Uploading a receipt stops the clock."
     },
     "card": {
       "played": "Played",
