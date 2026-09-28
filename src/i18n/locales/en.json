@@ -490,7 +490,12 @@
       "confirmedCapacity": "{{confirmed}} / {{max}} joined",
       "meta": "Session / VSB",
       "unlockToBook": "Unlock to book",
-      "bookMySpot": "Book my spot"
+      "bookMySpot": "Book my spot",
+      "bookingLabel": "Book this session",
+      "gameInfo": "Game info",
+      "whatToKnow": "What to know",
+      "venue": "Venue",
+      "sessionType": "Session type"
     },
     "booking": {
       "stepBook": "Book",
@@ -533,7 +538,8 @@
       "playerMenu": "Player menu for {{name}}",
       "signedInAs": "Signed in as",
       "language": "Language",
-      "mobileLabel": "Primary"
+      "mobileLabel": "Primary",
+      "adminConsole": "Admin Console"
     },
     "footer": {
       "tagline": "People · Play · Connect · Belong",

@@ -1,29 +1,39 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { ArrowLeft, Users, Phone, UserPlus, Trash2 } from 'lucide-react';
+import { useParams } from 'react-router-dom';
+import { Trash2 } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
-import { formatDate, formatTime, formatDateTime } from '@/lib/format';
-import { Spinner } from '@/components/LoadingScreen';
-import { GenderBadge } from '@/components/StatusBadge';
+import { formatDate, formatDateTime } from '@/lib/format';
 import { whatsappLink } from '@/lib/settings';
-import type { Session, WaitingListEntry, Profile } from '@/types/database';
+import { Spinner } from '@/components/LoadingScreen';
+import { PlayerAvatar } from '@/components/PlayerAvatar';
+import { OpsBadge, type OpsTone } from '@/components/admin/AdminUI';
+import { useSessionWorkspace } from './sessionWorkspace';
+import type { WaitingListEntry, Profile, WaitingListStatus } from '@/types/database';
 
 interface WaitlistEntry extends WaitingListEntry {
   profile: Profile;
 }
 
+const STATUS_TONE: Record<WaitingListStatus, OpsTone> = { Waiting: 'attention', Offered: 'info', Booked: 'good', Expired: 'neutral', Cancelled: 'neutral' };
+
+function waitedFor(iso: string) {
+  const mins = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (mins < 60) return `${mins} min`;
+  const h = Math.round(mins / 60);
+  return h < 48 ? `${h} h` : `${Math.round(h / 24)} days`;
+}
+
 export default function AdminWaitingListPage() {
   const { id } = useParams<{ id: string }>();
   const { show } = useToast();
-  const [session, setSession] = useState<Session | null>(null);
+  const { session, reload } = useSessionWorkspace();
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
+  const [busy, setBusy] = useState<string | null>(null);
 
   async function load() {
     if (!id) return;
-    const { data: s } = await supabase.from('sessions').select('*').eq('id', id).maybeSingle();
-    setSession(s as Session);
     const { data } = await supabase
       .from('waiting_list')
       .select('*, profile:profiles(*)')
@@ -41,8 +51,9 @@ export default function AdminWaitingListPage() {
   // them "Offered" and waiting for them to click through Checkout themselves — faster
   // and doesn't depend on them acting within a countdown window.
   async function offerSlot(entry: WaitlistEntry) {
-    if (!session) return;
+    setBusy(entry.id);
     const { data: bookingId, error } = await supabase.rpc('admin_book_waitlist_offer', { p_entry_id: entry.id });
+    setBusy(null);
     if (error) { show(error.message, 'error'); return; }
 
     if (entry.profile.phone_number) {
@@ -56,85 +67,85 @@ export default function AdminWaitingListPage() {
 
     show('Slot booked for this player', 'success');
     load();
+    reload();
   }
 
   async function removeEntry(entry: WaitlistEntry) {
+    setBusy(entry.id);
     const { error } = await supabase.from('waiting_list').delete().eq('id', entry.id);
+    setBusy(null);
     if (error) { show(error.message, 'error'); return; }
     show('Removed from waiting list', 'success');
     load();
+    reload();
   }
 
-  if (loading || !session) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-vsb-600" />
-      </div>
-    );
+  if (loading) {
+    return <div className="flex min-h-[30vh] items-center justify-center"><Spinner className="h-7 w-7 text-vsb-500" /></div>;
   }
+
+  const waiting = entries.filter((e) => e.status === 'Waiting');
+  const history = entries.filter((e) => e.status !== 'Waiting');
+  const spotsLeft = Math.max(0, session.maximum_capacity - session.active_count);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <Link to="/admin/sessions" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4">
-        <ArrowLeft className="h-4 w-4" />
-        Back to sessions
-      </Link>
-
-      <div className="mb-6">
-        <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Waiting List</h1>
-        <p className="text-slate-500 text-sm mt-1">{session.title} · {formatDate(session.session_date)} · {formatTime(session.start_time)}</p>
+    <div className="adm-page">
+      <div className="flex flex-wrap items-end justify-between gap-6 border-b border-ink-600 pb-5">
+        <div>
+          <p className="adm-label">Waiting list</p>
+          <p className="adm-num mt-1 text-4xl">{waiting.length} <span className="text-lg font-bold tracking-wider text-muted">waiting</span></p>
+        </div>
+        <p className="text-sm text-slate-400">
+          {spotsLeft > 0 ? <><span className="font-semibold text-chalk">{spotsLeft} spot{spotsLeft === 1 ? '' : 's'}</span> open — booking a player uses one.</> : 'Session is currently full.'}
+        </p>
       </div>
 
-      {entries.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-4">
-            <Users className="h-8 w-8" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1">No one on the waiting list</h3>
-          <p className="text-slate-500 text-sm">When the session is full, players can join the waiting list.</p>
-        </div>
+      {waiting.length === 0 ? (
+        <p className="py-10 text-slate-400">No one is waiting. When the session is full, players can join the waiting list from the session page.</p>
       ) : (
-        <div className="space-y-3">
-          {entries.map((entry) => (
-            <div key={entry.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
-              <div className="flex items-center justify-between gap-3">
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-slate-100 text-slate-600 font-bold text-sm">
-                    #{entry.queue_position}
-                  </div>
-                  <div>
-                    <p className="flex items-center gap-1.5 font-semibold text-slate-900">
-                      {entry.profile.full_name}
-                      <GenderBadge gender={entry.profile.gender} />
+        <ol className="divide-y divide-ink-700 border-b border-ink-600">
+          {waiting.map((entry, i) => {
+            const name = entry.profile.short_name || entry.profile.full_name;
+            return (
+              <li key={entry.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
+                <div className="flex min-w-0 flex-1 items-center gap-4">
+                  <span className="adm-num w-10 text-3xl text-vsb-500">{String(i + 1).padStart(2, '0')}</span>
+                  <PlayerAvatar name={name} size="sm" />
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-chalk">{name}</p>
+                    <p className="text-xs text-muted">
+                      Waiting {waitedFor(entry.created_at)} · {entry.profile.gender || 'Gender not set'} · {entry.profile.phone_number || 'No phone'}
                     </p>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
-                      <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{entry.profile.phone_number || 'N/A'}</span>
-                    </div>
-                    <p className="text-xs text-slate-500 mt-0.5">Joined {formatDateTime(entry.created_at)}</p>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${
-                    entry.status === 'Waiting' ? 'bg-amber-100 text-amber-800 border-amber-200' :
-                    entry.status === 'Booked' ? 'bg-green-100 text-green-800 border-green-200' :
-                    'bg-slate-100 text-slate-600 border-slate-200'
-                  }`}>
-                    {entry.status}
-                  </span>
-                  {entry.status === 'Waiting' && (
-                    <button onClick={() => offerSlot(entry)} className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 font-medium rounded-lg text-sm border border-green-200 transition-colors">
-                      <UserPlus className="h-4 w-4" />
-                      Book This Slot
-                    </button>
-                  )}
-                  <button onClick={() => removeEntry(entry)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors">
+                <div className="flex gap-2">
+                  <button onClick={() => offerSlot(entry)} disabled={busy === entry.id} className="v2-btn-primary min-h-[44px] flex-1 font-display uppercase tracking-wider sm:flex-none">
+                    {busy === entry.id && <Spinner className="h-4 w-4" />} Book this slot
+                  </button>
+                  <button onClick={() => removeEntry(entry)} disabled={busy === entry.id} aria-label={`Remove ${name} from the waiting list`} className="adm-btn min-h-[44px] !px-3">
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
+              </li>
+            );
+          })}
+        </ol>
+      )}
+
+      {history.length > 0 && (
+        <section className="mt-8" aria-labelledby="wl-history">
+          <h2 id="wl-history" className="adm-label mb-2">Earlier entries</h2>
+          <ul className="divide-y divide-ink-700 border-y border-ink-600">
+            {history.map((entry) => (
+              <li key={entry.id} className="flex items-center gap-3 py-2.5 text-sm">
+                <span className="min-w-0 flex-1 truncate text-slate-300">{entry.profile.short_name || entry.profile.full_name}</span>
+                <span className="hidden text-xs text-muted sm:inline">Joined {formatDateTime(entry.created_at)}</span>
+                <OpsBadge tone={STATUS_TONE[entry.status]}>{entry.status}</OpsBadge>
+                <button onClick={() => removeEntry(entry)} disabled={busy === entry.id} aria-label="Remove entry" className="p-1.5 text-muted hover:text-red-300"><Trash2 className="h-4 w-4" /></button>
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
     </div>
   );

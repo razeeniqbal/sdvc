@@ -490,7 +490,12 @@
       "confirmedCapacity": "{{confirmed}} / {{max}} menyertai",
       "meta": "Sesi / VSB",
       "unlockToBook": "Buka untuk tempah",
-      "bookMySpot": "Tempah slot saya"
+      "bookMySpot": "Tempah slot saya",
+      "bookingLabel": "Tempah sesi ini",
+      "gameInfo": "Info permainan",
+      "whatToKnow": "Perlu tahu",
+      "venue": "Tempat",
+      "sessionType": "Jenis sesi"
     },
     "booking": {
       "stepBook": "Tempah",
@@ -533,7 +538,8 @@
       "playerMenu": "Menu pemain untuk {{name}}",
       "signedInAs": "Log masuk sebagai",
       "language": "Bahasa",
-      "mobileLabel": "Utama"
+      "mobileLabel": "Utama",
+      "adminConsole": "Konsol Admin"
     },
     "footer": {
       "tagline": "Kenal · Main · Hubung · Bersama",

@@ -8,8 +8,19 @@ cleaned up. Follow these rules on any new UI work so it doesn't drift back.
 
 Player-facing screens are being moved onto the VSB V2 brand (dark, athletic,
 community-first). Source of truth: `VSB_V2_Revamp_PRD.md` (kept outside the repo).
-All player-facing screens are on V2 (dark). `/admin/*` intentionally keeps a
-light, data-dense layout with VSB Blue accents.
+Two experiences, one design system:
+- **VSB Play** (`PlayShell` in App.tsx): public + player screens — navbar,
+  footer, mobile tab bar. Primary nav is only SESSIONS (+ COMMUNITY once it
+  exists); everything personal (My Games = /bookings, profile, card, account)
+  lives under **My VSB** (/profile) via the avatar menu. Routes ≠ navigation.
+- **VSB Admin** (`AdminShell`, src/components/admin): its own full-height
+  console — sidebar on desktop, header + drawer below lg, no consumer
+  navbar/footer. Attendance and the waiting list live inside the session
+  workspace (/admin/sessions/:id/…), never in global admin nav. Admin uses
+  `.adm-*` primitives and `AdminUI` (Stat, OpsBadge, SectionTitle); don't reuse
+  player components like SessionCard there.
+- Player session details is one scrollable page (no tabs); tabs are for
+  operational context switching (admin session workspace).
 
 - **Palette** (tailwind.config.js): `ink` (Deep Ink #0A0D12 background, plus
   800/700/600 raised surfaces), `vsb` (VSB Blue #168BFF — primary action,
@@ -28,9 +39,8 @@ light, data-dense layout with VSB Blue accents.
   not a centred `max-w-* mx-auto` page container. Readable widths go on text
   blocks inside sections. Cards only for real objects (session, ticket, player
   card); otherwise thin `border-ink-600` rules and typography.
-- **Type scale.** Root is 16px for player screens; `html.admin-scale` (toggled
-  by the App shell on /admin) keeps admin at its original 82.5%. Display type
-  uses `.vsb-display` / `.vsb-meta`.
+- **Type scale.** 16px root everywhere. Display type uses `.vsb-display` /
+  `.vsb-meta` (player) and `.adm-title` / `.adm-label` / `.adm-num` (admin).
 - **Primitives** (src/index.css): `.v2-surface`, `.v2-btn-primary`,
   `.v2-btn-secondary`, `.v2-chip`, `.v2-input`, `.v2-heading`, `.vsb-tab`
   (underline tabs/filters — not pills). Court geometry: `<CourtLines />`. Headings use
@@ -45,8 +55,9 @@ light, data-dense layout with VSB Blue accents.
   only what can be derived from real data.
 - **Gender is explicit profile data only.** Never inferred from name, avatar,
   or photo. Always show it as text/label, not colour alone.
-- **Admin stays operational.** Don't apply chibi/collectible styling to
-  `/admin/*` — compact and data-dense.
+- **Admin stays operational.** No chibi/collectible styling or marketing
+  typography in `/admin/*` — compact, data-dense, uses the full width beside
+  the sidebar. Player avatars are fine where they identify people.
 - **i18n**: all new player copy goes through `t()` with keys in both
   `en.json` and `ms.json`.
 
@@ -81,7 +92,7 @@ light, data-dense layout with VSB Blue accents.
    status colors — don't invent new status-color mappings elsewhere.
 
 7. **Solid backgrounds, not pastel gradient washes.** Player pages are
-   `bg-ink`; admin pages are `bg-slate-50` / `bg-white`.
+   `bg-ink`; the admin workspace is `bg-ink-850` beside an `bg-ink` sidebar.
 
 ## When reviewing your own UI output
 

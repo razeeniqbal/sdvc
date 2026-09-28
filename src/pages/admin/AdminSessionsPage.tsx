@@ -1,28 +1,37 @@
 import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Link } from 'react-router-dom';
-import { Plus, Search, Copy, Trash2, Edit, Users, CalendarDays, Megaphone, MoreVertical } from 'lucide-react';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Plus, Search, MoreHorizontal, ArrowRight } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
-import { formatCurrency, formatDate } from '@/lib/format';
+import { formatCurrency, formatTime } from '@/lib/format';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
-import { Spinner } from '@/components/LoadingScreen';
-import { SessionStatusBadge } from '@/components/StatusBadge';
+import { adminSessionState, fetchAdminSessions, localToday, STATE_TONE, type AdminSession } from '@/lib/adminSessions';
 import { sendGroupBlast } from '@/lib/notifications';
+import { Spinner } from '@/components/LoadingScreen';
+import { AdminPageHeader, OpsBadge } from '@/components/admin/AdminUI';
 import type { Session } from '@/types/database';
 
-interface SessionWithCount extends Session {
-  confirmed_count: number;
+type Filter = 'upcoming' | 'completed' | 'cancelled' | 'all';
+
+function dateBits(iso: string) {
+  const d = new Date(`${iso}T00:00:00`);
+  return { day: d.getDate(), mon: d.toLocaleDateString('en-MY', { month: 'short' }).toUpperCase(), wk: d.toLocaleDateString('en-MY', { weekday: 'short' }).toUpperCase() };
 }
 
 export default function AdminSessionsPage() {
   const { show } = useToast();
-  const [sessions, setSessions] = useState<SessionWithCount[]>([]);
+  const navigate = useNavigate();
+  const [sessions, setSessions] = useState<AdminSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [timeFilter, setTimeFilter] = useState<'upcoming' | 'past' | 'all'>('upcoming');
+  // Filter lives in the URL so a view can be linked to (e.g. ?filter=completed).
+  const [params, setParams] = useSearchParams();
+  const filterParam = params.get('filter') as Filter | null;
+  const filter: Filter = filterParam && ['upcoming', 'completed', 'cancelled', 'all'].includes(filterParam) ? filterParam : 'upcoming';
+  const setFilter = (f: Filter) => setParams(f === 'upcoming' ? {} : { filter: f }, { replace: true });
   const [deleteId, setDeleteId] = useState<string | null>(null);
-  const [blastSession, setBlastSession] = useState<SessionWithCount | null>(null);
+  const [blastSession, setBlastSession] = useState<AdminSession | null>(null);
   const [blastMessage, setBlastMessage] = useState('');
   const [blasting, setBlasting] = useState(false);
   const [blastLoading, setBlastLoading] = useState(false);
@@ -34,30 +43,24 @@ export default function AdminSessionsPage() {
     function onDocClick(e: MouseEvent) {
       if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpenMenuId(null);
     }
+    function onKey(e: KeyboardEvent) { if (e.key === 'Escape') setOpenMenuId(null); }
     document.addEventListener('click', onDocClick);
-    return () => document.removeEventListener('click', onDocClick);
+    document.addEventListener('keydown', onKey);
+    return () => { document.removeEventListener('click', onDocClick); document.removeEventListener('keydown', onKey); };
   }, []);
 
   function toggleMenu(sessionId: string, e: React.MouseEvent<HTMLButtonElement>) {
     // The portaled menu lives outside this button in the DOM, so this same click
     // would otherwise bubble to the document listener and immediately close it.
     e.stopPropagation();
-    if (openMenuId === sessionId) {
-      setOpenMenuId(null);
-      return;
-    }
+    if (openMenuId === sessionId) { setOpenMenuId(null); return; }
     const rect = e.currentTarget.getBoundingClientRect();
     setMenuPos({ top: rect.bottom + 4, right: window.innerWidth - rect.right });
     setOpenMenuId(sessionId);
   }
 
   async function load() {
-    const { data } = await supabase.from('sessions').select('*').order('session_date', { ascending: true });
-    const sessionList = (data || []) as Session[];
-    const { data: active } = await supabase.from('bookings').select('session_id, booking_status').in('booking_status', ['Pending Payment', 'Confirmed']);
-    const counts = new Map<string, number>();
-    (active || []).forEach((b: { session_id: string }) => counts.set(b.session_id, (counts.get(b.session_id) || 0) + 1));
-    setSessions(sessionList.map((s) => ({ ...s, confirmed_count: counts.get(s.id) || 0 })));
+    setSessions(await fetchAdminSessions());
     setLoading(false);
   }
 
@@ -78,6 +81,7 @@ export default function AdminSessionsPage() {
       venue_address: session.venue_address,
       maps_link: session.maps_link,
       court_number: session.court_number,
+      skill_level: session.skill_level,
       price: session.price,
       maximum_capacity: session.maximum_capacity,
       booking_open_at: session.booking_open_at,
@@ -108,7 +112,7 @@ export default function AdminSessionsPage() {
     load();
   }
 
-  async function openBlast(s: SessionWithCount) {
+  async function openBlast(s: AdminSession) {
     setBlastSession(s);
     setBlastLoading(true);
     setBlastMessage('');
@@ -127,188 +131,167 @@ export default function AdminSessionsPage() {
     setBlastSession(null);
   }
 
-  const today = new Date().toISOString().split('T')[0];
+  const today = localToday();
+  const buckets: Record<Filter, AdminSession[]> = {
+    upcoming: sessions.filter((s) => s.session_date >= today && s.status !== 'Cancelled'),
+    completed: sessions.filter((s) => s.session_date < today && s.status !== 'Cancelled'),
+    cancelled: sessions.filter((s) => s.status === 'Cancelled'),
+    all: sessions,
+  };
+  const q = search.toLowerCase();
+  const rows = buckets[filter]
+    .filter((s) => !q || s.title.toLowerCase().includes(q) || s.venue_name.toLowerCase().includes(q))
+    .sort((a, b) => (filter === 'upcoming' ? a.session_date.localeCompare(b.session_date) : b.session_date.localeCompare(a.session_date)));
 
-  const filtered = sessions
-    .filter((s) => {
-      if (timeFilter === 'upcoming') return s.session_date >= today;
-      if (timeFilter === 'past') return s.session_date < today;
-      return true;
-    })
-    .filter((s) => {
-      if (!search) return true;
-      const q = search.toLowerCase();
-      return s.title.toLowerCase().includes(q) || s.venue_name.toLowerCase().includes(q);
-    })
-    .sort((a, b) => (timeFilter === 'past' ? b.session_date.localeCompare(a.session_date) : a.session_date.localeCompare(b.session_date)));
+  const filterLabels: Record<Filter, string> = { upcoming: 'Upcoming', completed: 'Completed', cancelled: 'Cancelled', all: 'All' };
+  const menuSession = sessions.find((s) => s.id === openMenuId);
 
   if (loading) {
-    return (
-      <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-vsb-600" />
-      </div>
-    );
+    return <div className="flex min-h-[60vh] items-center justify-center"><Spinner className="h-8 w-8 text-vsb-500" /></div>;
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Session Management</h1>
-          <p className="text-slate-500 text-sm mt-1">Create, edit, and manage volleyball sessions</p>
-        </div>
-        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all">
-          <Plus className="h-5 w-5" />
-          Create Session
-        </Link>
-      </div>
+    <div className="adm-page">
+      <AdminPageHeader
+        meta="Operations"
+        title="Sessions"
+        actions={<Link to="/admin/sessions/new" className="v2-btn-primary font-display uppercase tracking-wider"><Plus className="h-4 w-4" aria-hidden /> Create session</Link>}
+      />
 
-      <div className="flex flex-col sm:flex-row gap-3 mb-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
-          <input
-            placeholder="Search by title or venue..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-        <div className="inline-flex rounded-full border border-slate-200 p-1 bg-slate-50 w-fit">
-          {(['upcoming', 'past', 'all'] as const).map((f) => (
-            <button
-              key={f}
-              onClick={() => setTimeFilter(f)}
-              className={`px-3.5 py-1.5 rounded-full text-sm font-medium capitalize transition-colors ${
-                timeFilter === f ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
-              }`}
-            >
-              {f}
+      <div className="mb-4 flex flex-wrap items-end justify-between gap-4 border-b border-ink-600">
+        <div className="-mb-px flex gap-6 overflow-x-auto [scrollbar-width:none]" role="group" aria-label="Filter sessions">
+          {(Object.keys(filterLabels) as Filter[]).map((f) => (
+            <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} className="vsb-tab py-3">
+              {filterLabels[f]} <span className="text-muted">{buckets[f].length}</span>
             </button>
           ))}
         </div>
+        <div className="relative mb-2 w-full sm:w-72">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted" aria-hidden />
+          <input aria-label="Search sessions" placeholder="Search title or venue" className="v2-input !pl-9" value={search} onChange={(e) => setSearch(e.target.value)} />
+        </div>
       </div>
 
-      {filtered.length === 0 ? (
-        <div className="text-center py-16">
-          <div className="inline-flex h-16 w-16 items-center justify-center rounded-full bg-slate-100 text-slate-400 mb-4">
-            <CalendarDays className="h-8 w-8" />
-          </div>
-          <h3 className="text-lg font-semibold text-slate-900 mb-1">
-            {timeFilter === 'past' ? 'No past sessions' : 'No sessions yet'}
-          </h3>
-          <p className="text-slate-500 text-sm mb-4">
-            {timeFilter === 'past' ? 'Sessions move here automatically once their date has passed.' : 'Create your first volleyball session.'}
-          </p>
-          {timeFilter !== 'past' && (
-            <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all">
-              <Plus className="h-5 w-5" />
-              Create Session
-            </Link>
+      {rows.length === 0 ? (
+        <div className="py-16">
+          <p className="font-display text-2xl font-bold uppercase text-chalk">{filter === 'completed' ? 'No completed sessions' : filter === 'cancelled' ? 'No cancelled sessions' : 'No sessions found'}</p>
+          {filter === 'upcoming' && !q && (
+            <Link to="/admin/sessions/new" className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300">Create a session <ArrowRight className="h-4 w-4" aria-hidden /></Link>
           )}
         </div>
       ) : (
-        <div className="overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm">
-          <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
+        <>
+          {/* Desktop / tablet table */}
+          <table className="adm-table hidden md:table">
+            <thead>
               <tr>
-                <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3">Session</th>
-                <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3 hidden sm:table-cell">Date</th>
-                <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3 hidden md:table-cell">Venue</th>
-                <th className="text-center text-xs font-semibold text-slate-600 px-4 py-3">Bookings</th>
-                <th className="text-center text-xs font-semibold text-slate-600 px-4 py-3">Status</th>
-                <th className="text-right text-xs font-semibold text-slate-600 px-4 py-3">Actions</th>
+                <th className="w-20">Date</th>
+                <th>Session</th>
+                <th className="hidden lg:table-cell">Venue</th>
+                <th className="w-56">Players</th>
+                <th className="w-32">Status</th>
+                <th className="w-40 text-right">Action</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
-              {filtered.map((s) => (
-                <tr key={s.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3">
-                    <p className="font-semibold text-slate-900 text-sm">{s.title}</p>
-                    <p className="text-xs text-slate-500">{s.price > 0 ? formatCurrency(s.price) : 'TBC'}</p>
-                  </td>
-                  <td className="px-4 py-3 hidden sm:table-cell text-sm text-slate-600">{formatDate(s.session_date)}</td>
-                  <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-600">{s.venue_name}</td>
-                  <td className="px-4 py-3 text-center">
-                    <Link to={`/admin/sessions/${s.id}/attendance`} className="inline-flex items-center gap-1 text-sm text-blue-600 hover:underline">
-                      <Users className="h-3.5 w-3.5" />
-                      {s.confirmed_count}/{s.maximum_capacity}
-                    </Link>
-                  </td>
-                  <td className="px-4 py-3 text-center">
-                    <button onClick={() => toggleStatus(s)}>
-                      <SessionStatusBadge status={s.status} />
-                    </button>
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <Link to={`/admin/sessions/${s.id}/edit`} className="p-2 text-slate-400 hover:text-vsb-600 rounded-lg hover:bg-vsb-50 transition-colors" title="Edit">
-                        <Edit className="h-4 w-4" />
-                      </Link>
-                      <button onClick={() => setDeleteId(s.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors" title="Delete">
-                        <Trash2 className="h-4 w-4" />
-                      </button>
-                      <button
-                        onClick={(e) => toggleMenu(s.id, e)}
-                        className="p-2 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 transition-colors"
-                        title="More actions"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </button>
-                      {openMenuId === s.id && menuPos && createPortal(
-                        <div
-                          ref={menuRef}
-                          style={{ top: menuPos.top, right: menuPos.right }}
-                          className="fixed w-44 bg-white rounded-xl border border-slate-200 shadow-lg z-50 py-1 text-sm"
-                        >
-                          <Link to={`/admin/sessions/${s.id}/attendance`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
-                            <Users className="h-4 w-4 text-blue-500" /> Attendance
-                          </Link>
-                          <Link to={`/admin/sessions/${s.id}/waiting-list`} onClick={() => setOpenMenuId(null)} className="flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
-                            <CalendarDays className="h-4 w-4 text-amber-500" /> Waiting List
-                          </Link>
-                          <button onClick={() => { setOpenMenuId(null); openBlast(s); }} className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
-                            <Megaphone className="h-4 w-4 text-green-500" /> Blast to Telegram
-                          </button>
-                          <button onClick={() => { setOpenMenuId(null); handleDuplicate(s.id); }} className="w-full flex items-center gap-2 px-3 py-2 text-slate-700 hover:bg-slate-50">
-                            <Copy className="h-4 w-4 text-green-500" /> Duplicate
-                          </button>
-                        </div>,
-                        document.body
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              ))}
+            <tbody>
+              {rows.map((s) => {
+                const d = dateBits(s.session_date);
+                const state = adminSessionState(s, today);
+                const pct = Math.min(100, (s.active_count / s.maximum_capacity) * 100);
+                return (
+                  <tr key={s.id} className="cursor-pointer" onClick={() => navigate(`/admin/sessions/${s.id}`)}>
+                    <td>
+                      <p className="font-display leading-none"><span className="text-3xl font-extrabold text-chalk">{d.day}</span> <span className="text-xs font-bold tracking-wider text-muted">{d.mon}</span></p>
+                      <p className="text-[11px] font-semibold tracking-wider text-muted">{d.wk}</p>
+                    </td>
+                    <td>
+                      <Link to={`/admin/sessions/${s.id}`} onClick={(e) => e.stopPropagation()} className="font-semibold text-chalk hover:text-vsb-300">{s.title}</Link>
+                      <p className="text-xs text-muted">{formatTime(s.start_time)} – {formatTime(s.end_time)} · {s.price > 0 ? formatCurrency(s.price) : 'Price TBC'}</p>
+                    </td>
+                    <td className="hidden lg:table-cell">
+                      <p>{s.venue_name}</p>
+                      {s.court_number && <p className="text-xs text-muted">{s.court_number}</p>}
+                    </td>
+                    <td>
+                      <p className="font-display text-lg font-bold leading-none text-chalk">{s.active_count}<span className="text-muted"> / {s.maximum_capacity}</span></p>
+                      <div className="mt-1.5 h-1 w-full bg-ink-600" aria-hidden><div className={`h-full ${state === 'Full' ? 'bg-ball' : 'bg-vsb-500'}`} style={{ width: `${pct}%` }} /></div>
+                      {s.pending_count > 0 && <p className="mt-1 text-[11px] text-amber-300">{s.pending_count} awaiting payment</p>}
+                    </td>
+                    <td><OpsBadge tone={STATE_TONE[state]}>{state}</OpsBadge></td>
+                    <td className="text-right">
+                      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                        <Link to={`/admin/sessions/${s.id}`} className="adm-btn">Manage</Link>
+                        <button onClick={(e) => toggleMenu(s.id, e)} aria-label={`More actions for ${s.title}`} aria-haspopup="menu" aria-expanded={openMenuId === s.id} className="rounded-md p-1.5 text-muted hover:bg-ink-700 hover:text-chalk">
+                          <MoreHorizontal className="h-5 w-5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
-        </div>
+
+          {/* Mobile stacked rows */}
+          <ul className="divide-y divide-ink-700 border-y border-ink-600 md:hidden">
+            {rows.map((s) => {
+              const d = dateBits(s.session_date);
+              const state = adminSessionState(s, today);
+              return (
+                <li key={s.id} className="flex items-start gap-3 py-4">
+                  <div className="w-12 flex-shrink-0 font-display leading-none">
+                    <p className="text-[11px] font-bold tracking-wider text-vsb-300">{d.wk}</p>
+                    <p className="text-3xl font-extrabold text-chalk">{d.day}</p>
+                    <p className="text-[11px] font-bold tracking-wider text-muted">{d.mon}</p>
+                  </div>
+                  <Link to={`/admin/sessions/${s.id}`} className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-chalk">{s.title}</p>
+                    <p className="truncate text-xs text-muted">{formatTime(s.start_time)} · {s.venue_name}</p>
+                    <div className="mt-2 flex flex-wrap items-center gap-2">
+                      <span className="font-display text-base font-bold text-chalk">{s.active_count}<span className="text-muted">/{s.maximum_capacity}</span></span>
+                      <OpsBadge tone={STATE_TONE[state]}>{state}</OpsBadge>
+                    </div>
+                  </Link>
+                  <button onClick={(e) => toggleMenu(s.id, e)} aria-label={`More actions for ${s.title}`} className="rounded-md p-2 text-muted hover:bg-ink-700 hover:text-chalk">
+                    <MoreHorizontal className="h-5 w-5" />
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
+
+      {/* Row actions menu */}
+      {menuSession && menuPos && createPortal(
+        <div ref={menuRef} role="menu" style={{ top: menuPos.top, right: menuPos.right }} className="fixed z-50 w-52 border border-ink-600 bg-ink-800 py-1 text-sm shadow-2xl shadow-black/50">
+          <Link role="menuitem" to={`/admin/sessions/${menuSession.id}/edit`} onClick={() => setOpenMenuId(null)} className="block px-3 py-2 text-slate-200 hover:bg-ink-700">Edit session</Link>
+          {menuSession.status !== 'Cancelled' && menuSession.session_date >= today && (
+            <button role="menuitem" onClick={() => { setOpenMenuId(null); toggleStatus(menuSession); }} className="block w-full px-3 py-2 text-left text-slate-200 hover:bg-ink-700">
+              {menuSession.status === 'Open' ? 'Close booking' : 'Open booking'}
+            </button>
+          )}
+          <button role="menuitem" onClick={() => { setOpenMenuId(null); openBlast(menuSession); }} className="block w-full px-3 py-2 text-left text-slate-200 hover:bg-ink-700">Blast roster to Telegram</button>
+          <button role="menuitem" onClick={() => { setOpenMenuId(null); handleDuplicate(menuSession.id); }} className="block w-full px-3 py-2 text-left text-slate-200 hover:bg-ink-700">Duplicate for next week</button>
+          <button role="menuitem" onClick={() => { setOpenMenuId(null); setDeleteId(menuSession.id); }} className="block w-full border-t border-ink-600 px-3 py-2 text-left text-red-300 hover:bg-red-500/10">Delete session</button>
+        </div>,
+        document.body
       )}
 
       {/* Blast dialog */}
       {blastSession && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setBlastSession(null)}>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold text-slate-900 mb-1 flex items-center gap-2">
-              <Megaphone className="h-5 w-5 text-green-600" /> Blast "{blastSession.title}"
-            </h3>
-            <p className="text-sm text-slate-500 mb-4">
-              Sends this roster directly to your Telegram group. Confirmed players are ticked automatically.
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setBlastSession(null)}>
+          <div role="dialog" aria-modal="true" aria-labelledby="blast-title" className="w-full max-w-md border border-ink-600 bg-ink-800 p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 id="blast-title" className="font-display text-xl font-bold uppercase tracking-wide text-chalk">Blast “{blastSession.title}”</h3>
+            <p className="mb-4 mt-1 text-sm text-slate-400">Sends this roster directly to your Telegram group. Confirmed players are ticked automatically.</p>
             {blastLoading ? (
-              <div className="flex items-center justify-center py-10">
-                <Spinner className="h-6 w-6 text-green-600" />
-              </div>
+              <div className="flex items-center justify-center py-10"><Spinner className="h-6 w-6 text-green-400" /></div>
             ) : (
-              <textarea
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-sm text-slate-900 focus:border-green-400 focus:ring-2 focus:ring-green-400/20 outline-none transition-all resize-none font-mono"
-                rows={14}
-                value={blastMessage}
-                onChange={(e) => setBlastMessage(e.target.value)}
-              />
+              <textarea aria-label="Blast message" className="v2-input resize-none font-mono" rows={14} value={blastMessage} onChange={(e) => setBlastMessage(e.target.value)} />
             )}
-            <div className="flex gap-3 mt-4">
-              <button onClick={() => setBlastSession(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
-              <button onClick={handleBlastSend} disabled={blasting || blastLoading} className="flex-1 py-2.5 bg-green-600 hover:bg-green-700 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+            <div className="mt-4 flex gap-3">
+              <button onClick={() => setBlastSession(null)} className="adm-btn flex-1 !py-2.5">Cancel</button>
+              <button onClick={handleBlastSend} disabled={blasting || blastLoading} className="flex flex-1 items-center justify-center gap-2 rounded-md bg-green-600 py-2.5 font-bold text-white transition-colors hover:bg-green-700 disabled:opacity-60">
                 {blasting && <Spinner className="h-4 w-4" />}
                 {blasting ? 'Sending...' : 'Send'}
               </button>
@@ -319,13 +302,13 @@ export default function AdminSessionsPage() {
 
       {/* Delete dialog */}
       {deleteId && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setDeleteId(null)}>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold text-slate-900 mb-2">Delete this session?</h3>
-            <p className="text-sm text-slate-500 mb-4">This will also delete all associated bookings and payments. This action cannot be undone.</p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4" onClick={() => setDeleteId(null)}>
+          <div role="alertdialog" aria-modal="true" aria-labelledby="delete-title" className="w-full max-w-md border border-ink-600 bg-ink-800 p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 id="delete-title" className="font-display text-xl font-bold uppercase tracking-wide text-chalk">Delete this session?</h3>
+            <p className="mb-4 mt-1 text-sm text-slate-400">This will also delete all associated bookings and payments. This action cannot be undone.</p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteId(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
-              <button onClick={handleDelete} className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors">Delete</button>
+              <button onClick={() => setDeleteId(null)} className="adm-btn flex-1 !py-2.5">Cancel</button>
+              <button onClick={handleDelete} className="flex-1 rounded-md bg-red-600 py-2.5 font-bold text-white transition-colors hover:bg-red-700">Delete</button>
             </div>
           </div>
         </div>

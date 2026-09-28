@@ -210,13 +210,13 @@ export default function AdminSettingsPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-vsb-600" />
+        <Spinner className="h-8 w-8 text-vsb-400" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:border-vsb-400 focus:ring-2 focus:ring-vsb-400/20 outline-none transition-all bg-white';
-  const labelClass = 'block text-sm font-medium text-slate-600 mb-1.5';
+  const inputClass = 'w-full rounded-md border border-ink-600 px-4 py-2.5 text-chalk focus:border-vsb-400 focus:ring-2 focus:ring-vsb-400/20 outline-none transition-all bg-ink-800';
+  const labelClass = 'block text-sm font-medium text-slate-300 mb-1.5';
 
   const tabs: { key: Tab; label: string }[] = [
     { key: 'general', label: 'General' },
@@ -225,16 +225,16 @@ export default function AdminSettingsPage() {
   ];
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-6">Settings</h1>
+    <div className="adm-page max-w-5xl">
+      <h1 className="text-xl sm:text-2xl font-semibold text-chalk mb-6">Settings</h1>
 
-      <div className="inline-flex rounded-full border border-slate-200 p-1 bg-slate-50 mb-6">
+      <div className="inline-flex rounded-full border border-ink-600 p-1 bg-ink-850 mb-6">
         {tabs.map((tb) => (
           <button
             key={tb.key}
             onClick={() => setTab(tb.key)}
             className={`px-4 py-1.5 rounded-full text-sm font-medium transition-colors ${
-              tab === tb.key ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+              tab === tb.key ? 'bg-ink-800 text-chalk ' : 'text-slate-400 hover:text-white'
             }`}
           >
             {tb.label}
@@ -244,16 +244,16 @@ export default function AdminSettingsPage() {
 
       {tab === 'general' && (
         <form onSubmit={handleSubmit} className="space-y-5">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <h2 className="font-bold text-slate-900">Club Information</h2>
+          <div className="v2-surface p-6 space-y-4">
+            <h2 className="font-bold text-chalk">Club Information</h2>
             <div>
               <label className={labelClass}>Club Name</label>
               <input className={inputClass} value={form.club_name} onChange={(e) => setForm({ ...form, club_name: e.target.value })} required />
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <h2 className="font-bold text-slate-900 flex items-center gap-2"><Phone className="h-5 w-5 text-slate-500" /> Contact Person</h2>
+          <div className="v2-surface p-6 space-y-4">
+            <h2 className="font-bold text-chalk flex items-center gap-2"><Phone className="h-5 w-5 text-slate-400" /> Contact Person</h2>
             <div className="grid sm:grid-cols-2 gap-4">
               <div>
                 <label className={labelClass}>Contact Person Name</label>
@@ -266,22 +266,22 @@ export default function AdminSettingsPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <h2 className="font-bold text-slate-900 flex items-center gap-2"><MessageCircle className="h-5 w-5 text-green-500" /> WhatsApp Group</h2>
+          <div className="v2-surface p-6 space-y-4">
+            <h2 className="font-bold text-chalk flex items-center gap-2"><MessageCircle className="h-5 w-5 text-green-500" /> WhatsApp Group</h2>
             <div>
               <label className={labelClass}>WhatsApp Group Link</label>
               <input className={inputClass} placeholder="https://chat.whatsapp.com/..." value={form.whatsapp_group_link} onChange={(e) => setForm({ ...form, whatsapp_group_link: e.target.value })} />
             </div>
-            <label className="flex items-start gap-2 cursor-pointer bg-green-50 rounded-xl p-3 border border-green-200">
-              <input type="checkbox" checked={form.whatsapp_group_notify} onChange={(e) => setForm({ ...form, whatsapp_group_notify: e.target.checked })} className="mt-1 h-4 w-4 rounded border-slate-300 text-green-500 focus:ring-green-500" />
+            <label className="flex items-start gap-2 cursor-pointer bg-green-500/10 rounded-md p-3 border border-green-500/40">
+              <input type="checkbox" checked={form.whatsapp_group_notify} onChange={(e) => setForm({ ...form, whatsapp_group_notify: e.target.checked })} className="mt-1 h-4 w-4 rounded border-ink-500 text-green-500 focus:ring-green-500" />
               <div>
                 <span className="text-sm font-medium text-green-900 flex items-center gap-1.5"><Bell className="h-4 w-4" /> Notify Telegram group on slot updates</span>
-                <span className="text-xs text-green-700 block mt-0.5">When enabled, a message is sent to your Telegram group when a player books or cancels a session.</span>
+                <span className="text-xs text-green-400 block mt-0.5">When enabled, a message is sent to your Telegram group when a player books or cancels a session.</span>
               </div>
             </label>
           </div>
 
-          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all disabled:opacity-60">
+          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-md transition-all disabled:opacity-60">
             {saving ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
             {saving ? 'Saving...' : 'Save Settings'}
           </button>
@@ -289,18 +289,18 @@ export default function AdminSettingsPage() {
       )}
 
       {tab === 'payment' && (
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <h2 className="font-bold text-slate-900 flex items-center gap-2"><QrCode className="h-5 w-5 text-blue-500" /> Payment QR Code</h2>
-          <p className="text-sm text-slate-500">Shown to players after they lock a slot, so they can scan and pay via DuitNow (or your bank's QR) directly.</p>
+        <div className="v2-surface p-6 space-y-4">
+          <h2 className="font-bold text-chalk flex items-center gap-2"><QrCode className="h-5 w-5 text-vsb-400" /> Payment QR Code</h2>
+          <p className="text-sm text-slate-400">Shown to players after they lock a slot, so they can scan and pay via DuitNow (or your bank's QR) directly.</p>
           {qrUrl && (
-            <img src={qrUrl} alt="Payment QR code" className="w-40 h-40 object-contain rounded-lg border border-slate-200 p-2" />
+            <img src={qrUrl} alt="Payment QR code" className="w-40 h-40 object-contain rounded-lg border border-ink-600 p-2" />
           )}
           <input ref={qrInputRef} type="file" accept="image/*" className="hidden" onChange={handleQrUpload} disabled={uploadingQr} />
           <button
             type="button"
             onClick={() => qrInputRef.current?.click()}
             disabled={uploadingQr}
-            className="inline-flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-ink-600 hover:bg-ink-500 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
           >
             {uploadingQr ? <Spinner className="h-4 w-4" /> : <Upload className="h-4 w-4" />}
             {uploadingQr ? 'Uploading...' : qrUrl ? 'Change QR Code' : 'Upload QR Code'}
@@ -311,33 +311,33 @@ export default function AdminSettingsPage() {
       {tab === 'admins' && (
         <div className="space-y-4">
           <div className="grid grid-cols-3 gap-3">
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-              <div className="flex items-center gap-2 text-slate-500 text-xs font-medium mb-1"><Users className="h-4 w-4" /> Total Users</div>
-              <p className="text-2xl font-bold text-slate-900">{users.length}</p>
+            <div className="v2-surface p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-medium mb-1"><Users className="h-4 w-4" /> Total Users</div>
+              <p className="text-2xl font-bold text-chalk">{users.length}</p>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-              <div className="flex items-center gap-2 text-slate-500 text-xs font-medium mb-1"><ShieldCheck className="h-4 w-4" /> Admins</div>
-              <p className="text-2xl font-bold text-slate-900">{adminCount}</p>
+            <div className="v2-surface p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-medium mb-1"><ShieldCheck className="h-4 w-4" /> Admins</div>
+              <p className="text-2xl font-bold text-chalk">{adminCount}</p>
             </div>
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4">
-              <div className="flex items-center gap-2 text-slate-500 text-xs font-medium mb-1"><UserCog className="h-4 w-4" /> Players</div>
-              <p className="text-2xl font-bold text-slate-900">{playerCount}</p>
+            <div className="v2-surface p-4">
+              <div className="flex items-center gap-2 text-slate-400 text-xs font-medium mb-1"><UserCog className="h-4 w-4" /> Players</div>
+              <p className="text-2xl font-bold text-chalk">{playerCount}</p>
             </div>
           </div>
 
           {resetRequests.length > 0 && (
-            <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-              <h2 className="font-bold text-slate-900 flex items-center gap-2 mb-1">
-                <KeyRound className="h-5 w-5 text-vsb-600" />
+            <div className="v2-surface p-6">
+              <h2 className="font-bold text-chalk flex items-center gap-2 mb-1">
+                <KeyRound className="h-5 w-5 text-vsb-400" />
                 Password Reset Requests
               </h2>
-              <p className="text-sm text-slate-500 mb-4">A player requested a password reset below. Send them the link on WhatsApp, they'll tap it to set a new password themselves.</p>
+              <p className="text-sm text-slate-400 mb-4">A player requested a password reset below. Send them the link on WhatsApp, they'll tap it to set a new password themselves.</p>
               <div className="space-y-2">
                 {resetRequests.map((r) => (
-                  <div key={r.id} className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border border-slate-100">
+                  <div key={r.id} className="flex items-center justify-between bg-ink-850 rounded-md p-3 border border-ink-600">
                     <div>
-                      <p className="font-medium text-slate-900 text-sm">{r.profile?.short_name || r.profile?.full_name}</p>
-                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
+                      <p className="font-medium text-chalk text-sm">{r.profile?.short_name || r.profile?.full_name}</p>
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-400">
                         <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{r.phone_number}</span>
                         <span className="flex items-center gap-1"><Clock className="h-3 w-3" />Requested {formatDateTime(r.created_at)}</span>
                       </div>
@@ -357,33 +357,33 @@ export default function AdminSettingsPage() {
             </div>
           )}
 
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
+          <div className="v2-surface p-6">
             <div className="flex items-center justify-between mb-1 gap-3">
-              <h2 className="font-bold text-slate-900 flex items-center gap-2">
-                <UserCog className="h-5 w-5 text-vsb-600" />
+              <h2 className="font-bold text-chalk flex items-center gap-2">
+                <UserCog className="h-5 w-5 text-vsb-400" />
                 Manage Users
               </h2>
               <button
                 onClick={exportUsersCSV}
-                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-800 hover:bg-slate-900 text-white text-xs font-semibold rounded-lg transition-colors flex-shrink-0"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-ink-600 hover:bg-ink-500 text-white text-xs font-semibold rounded-lg transition-colors flex-shrink-0"
               >
                 <Download className="h-3.5 w-3.5" />
                 Export CSV
               </button>
             </div>
-            <p className="text-sm text-slate-500 mb-4">Promote or demote users between player and admin roles.</p>
+            <p className="text-sm text-slate-400 mb-4">Promote or demote users between player and admin roles.</p>
 
             <div className="flex flex-col sm:flex-row gap-3 mb-4">
               <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
                 <input
                   placeholder="Search by name, phone, or email..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-vsb-400 focus:ring-2 focus:ring-vsb-400/20 outline-none bg-white"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-md border border-ink-600 text-sm focus:border-vsb-400 focus:ring-2 focus:ring-vsb-400/20 outline-none bg-ink-800"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
               </div>
-              <div className="inline-flex rounded-full border border-slate-200 p-1 bg-slate-50 w-fit">
+              <div className="inline-flex rounded-full border border-ink-600 p-1 bg-ink-850 w-fit">
                 {([
                   { key: 'all', label: 'All' },
                   { key: 'admin', label: 'Admins' },
@@ -393,7 +393,7 @@ export default function AdminSettingsPage() {
                     key={f.key}
                     onClick={() => setRoleFilter(f.key)}
                     className={`px-3.5 py-1.5 rounded-full text-sm font-medium transition-colors ${
-                      roleFilter === f.key ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'
+                      roleFilter === f.key ? 'bg-ink-800 text-chalk ' : 'text-slate-400 hover:text-white'
                     }`}
                   >
                     {f.label}
@@ -402,30 +402,30 @@ export default function AdminSettingsPage() {
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 mb-3">{filteredUsers.length} of {users.length} users</p>
+            <p className="text-xs text-slate-400 mb-3">{filteredUsers.length} of {users.length} users</p>
 
             <div className="space-y-2">
               {filteredUsers.length === 0 ? (
-                <p className="text-sm text-slate-500 text-center py-8">No users match your search.</p>
+                <p className="text-sm text-slate-400 text-center py-8">No users match your search.</p>
               ) : filteredUsers.map((u) => (
-              <div key={u.id} className="flex items-center justify-between bg-slate-50 rounded-xl p-3 border border-slate-100">
+              <div key={u.id} className="flex items-center justify-between bg-ink-850 rounded-md p-3 border border-ink-600">
                 <div className="flex items-center gap-3 min-w-0">
-                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-slate-200 text-slate-600 text-sm font-bold">
+                  <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-full bg-ink-600 text-slate-300 text-sm font-bold">
                     {(u.short_name || u.full_name)?.charAt(0).toUpperCase()}
                   </div>
                   <div className="min-w-0">
-                    <p className="flex items-center gap-1.5 font-medium text-slate-900 text-sm">
+                    <p className="flex items-center gap-1.5 font-medium text-chalk text-sm">
                       {u.short_name || u.full_name}
                       <GenderBadge gender={u.gender} />
                     </p>
-                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-500">
+                    <div className="flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs text-slate-400">
                       <span className="flex items-center gap-1"><Phone className="h-3 w-3" />{u.phone_number || 'No phone number'}</span>
                       <span className="flex items-center gap-1"><CalendarDays className="h-3 w-3" />Joined {formatDate(u.created_at)}</span>
                     </div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-vsb-100 text-vsb-600' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-vsb-900 text-vsb-400' : 'bg-vsb-900 text-vsb-300'}`}>
                     {u.role === 'admin' ? 'Admin' : 'Player'}
                   </span>
                   <button
@@ -433,7 +433,7 @@ export default function AdminSettingsPage() {
                     disabled={promoting}
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 ${
                       u.role === 'admin'
-                        ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
+                        ? 'bg-ink-700 hover:bg-ink-600 text-slate-200'
                         : 'bg-vsb-600 hover:bg-vsb-700 text-white'
                     }`}
                   >
@@ -442,14 +442,14 @@ export default function AdminSettingsPage() {
                   <button
                     onClick={() => { setResetUser(u); setNewPassword(''); }}
                     title="Reset password"
-                    className="p-1.5 text-slate-400 hover:text-vsb-600 rounded-lg hover:bg-slate-100 transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-vsb-300 rounded-lg hover:bg-ink-700 transition-colors"
                   >
                     <KeyRound className="h-4 w-4" />
                   </button>
                   <button
                     onClick={() => setDeleteUser(u)}
                     title="Delete account"
-                    className="p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
@@ -464,9 +464,9 @@ export default function AdminSettingsPage() {
       {/* Reset password dialog */}
       {resetUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setResetUser(null)}>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold text-slate-900 mb-2">Reset {resetUser.short_name || resetUser.full_name}'s password</h3>
-            <p className="text-sm text-slate-500 mb-4">
+          <div className="bg-ink-800 border border-ink-600 rounded-md max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-chalk mb-2">Reset {resetUser.short_name || resetUser.full_name}'s password</h3>
+            <p className="text-sm text-slate-400 mb-4">
               Set a new password for this account. Share it with the player yourself, e.g. via WhatsApp.
             </p>
             <input
@@ -478,7 +478,7 @@ export default function AdminSettingsPage() {
               onChange={(e) => setNewPassword(e.target.value)}
             />
             <div className="flex gap-3 mt-4">
-              <button onClick={() => setResetUser(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
+              <button onClick={() => setResetUser(null)} className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-slate-200 font-semibold rounded-lg transition-colors">Cancel</button>
               <button onClick={handleResetPassword} disabled={resetting} className="flex-1 py-2.5 bg-vsb-600 hover:bg-vsb-700 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                 {resetting && <Spinner className="h-4 w-4" />}
                 {resetting ? 'Resetting...' : 'Reset Password'}
@@ -491,13 +491,13 @@ export default function AdminSettingsPage() {
       {/* Delete user dialog */}
       {deleteUser && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setDeleteUser(null)}>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
-            <h3 className="font-bold text-slate-900 mb-2">Delete {deleteUser.short_name || deleteUser.full_name}'s account?</h3>
-            <p className="text-sm text-slate-500 mb-4">
+          <div className="bg-ink-800 border border-ink-600 rounded-md max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+            <h3 className="font-bold text-chalk mb-2">Delete {deleteUser.short_name || deleteUser.full_name}'s account?</h3>
+            <p className="text-sm text-slate-400 mb-4">
               This permanently deletes their login, profile, and all associated bookings and payment history. This action cannot be undone.
             </p>
             <div className="flex gap-3">
-              <button onClick={() => setDeleteUser(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
+              <button onClick={() => setDeleteUser(null)} className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-slate-200 font-semibold rounded-lg transition-colors">Cancel</button>
               <button onClick={handleDeleteUser} disabled={deleting} className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                 {deleting && <Spinner className="h-4 w-4" />}
                 {deleting ? 'Deleting...' : 'Delete'}

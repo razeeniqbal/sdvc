@@ -43,6 +43,20 @@
   .vsb-tab[aria-pressed='true']::after, .vsb-tab[aria-selected='true']::after {
     content: ''; @apply absolute inset-x-0 -bottom-px h-0.5 bg-vsb-500;
   }
+
+  /* ===== VSB Admin (operations console) =====
+     Same tokens, denser rhythm. The sidebar sets the left edge; pages use the
+     remaining width rather than a centred container. */
+  .adm-page { @apply px-4 py-6 sm:px-6 lg:px-10 lg:py-8; }
+  .adm-title { @apply font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-4xl; }
+  .adm-label { @apply text-[11px] font-semibold uppercase tracking-[0.18em] text-muted; }
+  .adm-num { @apply font-display font-extrabold leading-none text-chalk; }
+  .adm-table { @apply w-full text-sm; }
+  .adm-table th { @apply border-b border-ink-600 px-3 py-2.5 text-left text-[11px] font-semibold uppercase tracking-[0.14em] text-muted; }
+  .adm-table td { @apply border-b border-ink-700 px-3 py-3 align-middle text-slate-200; }
+  .adm-table tbody tr { @apply transition-colors hover:bg-ink-800; }
+  .adm-btn { @apply inline-flex items-center justify-center gap-1.5 rounded-md border border-ink-500 px-3 py-1.5 text-sm font-semibold text-slate-200 transition-colors hover:border-chalk hover:text-white disabled:opacity-50
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400; }
 }
 
 @keyframes slide-up {
@@ -69,9 +83,6 @@
 html {
   scroll-behavior: smooth;
 }
-/* Admin keeps its original compact scale (its dense tables were built for it).
-   Player screens use the full 16px root and an intentional type scale. */
-html.admin-scale { font-size: 82.5%; }
 
 body {
   -webkit-font-smoothing: antialiased;

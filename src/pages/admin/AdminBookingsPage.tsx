@@ -24,14 +24,16 @@ function sanitizeSearchTerm(raw: string): string {
   return raw.replace(/[^a-zA-Z0-9 _-]/g, '').trim();
 }
 
-export default function AdminBookingsPage() {
+// Also rendered inside the session workspace (Bookings tab) with `sessionId`,
+// which locks the session filter and drops the page-level header.
+export default function AdminBookingsPage({ sessionId }: { sessionId?: string } = {}) {
   const { show } = useToast();
   const [bookings, setBookings] = useState<AdminBooking[]>([]);
   const [totalCount, setTotalCount] = useState(0);
   const [page, setPage] = useState(0);
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
-  const [filters, setFilters] = useState({ search: '', session: '', bookingStatus: '', paymentStatus: '' });
+  const [filters, setFilters] = useState({ search: '', session: sessionId ?? '', bookingStatus: '', paymentStatus: '' });
   const [hideCancelled, setHideCancelled] = useState(true);
   const [selected, setSelected] = useState<AdminBooking | null>(null);
   const [actionLoading, setActionLoading] = useState(false);
@@ -235,12 +237,12 @@ export default function AdminBookingsPage() {
   if (loading && bookings.length === 0) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-vsb-600" />
+        <Spinner className="h-8 w-8 text-vsb-400" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none';
+  const inputClass = 'w-full rounded-lg border border-ink-600 px-3 py-2 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/30 outline-none';
   // Editable while unpaid so it can be corrected if the session price changed after
   // booking; the input defaults to the session's current price, not the stale snapshot
   // taken when the booking was created.
@@ -250,28 +252,28 @@ export default function AdminBookingsPage() {
   const rangeEnd = Math.min(totalCount, (page + 1) * PAGE_SIZE);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+    <div className="adm-page">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Booking Management</h1>
-          <p className="text-slate-500 text-sm mt-1">View, search, and manage all bookings</p>
+          <h1 className={sessionId ? 'sr-only' : 'adm-title'}>Bookings</h1>
+          {!sessionId && <p className="text-slate-400 text-sm mt-2">Search, confirm payments and manage every booking.</p>}
         </div>
-        <button onClick={exportCSV} disabled={exporting} className="inline-flex items-center gap-2 px-5 py-2.5 bg-slate-800 hover:bg-slate-900 text-white font-bold rounded-xl transition-colors disabled:opacity-60">
+        <button onClick={exportCSV} disabled={exporting} className="inline-flex items-center gap-2 px-5 py-2.5 bg-ink-600 hover:bg-ink-500 text-white font-bold rounded-md transition-colors disabled:opacity-60">
           {exporting ? <Spinner className="h-5 w-5" /> : <Download className="h-5 w-5" />}
           {exporting ? 'Exporting...' : 'Export CSV'}
         </button>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="v2-surface p-4 mb-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="relative sm:col-span-2 lg:col-span-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" />
           <input placeholder="Search name, phone, ref..." className={`${inputClass} pl-9`} value={filters.search} onChange={(e) => { setPage(0); setFilters({ ...filters, search: e.target.value }); }} />
         </div>
-        <select className={inputClass} value={filters.session} onChange={(e) => { setPage(0); setFilters({ ...filters, session: e.target.value }); }}>
+        {!sessionId && <select className={inputClass} value={filters.session} onChange={(e) => { setPage(0); setFilters({ ...filters, session: e.target.value }); }}>
           <option value="">All sessions</option>
           {sessions.map((s) => <option key={s.id} value={s.id}>{s.title}</option>)}
-        </select>
+        </select>}
         <select className={inputClass} value={filters.bookingStatus} onChange={(e) => { setPage(0); setFilters({ ...filters, bookingStatus: e.target.value }); }}>
           <option value="">All booking statuses</option>
           {['Pending Payment', 'Confirmed', 'Cancelled by Player', 'Cancelled by Admin', 'Completed', 'No Show', 'Refunded'].map((s) => <option key={s} value={s}>{s}</option>)}
@@ -280,12 +282,12 @@ export default function AdminBookingsPage() {
           <option value="">All payment statuses</option>
           {['Pending', 'Paid', 'Failed', 'Cancelled', 'Refunded', 'Partially Refunded', 'Manual Payment Pending Verification'].map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        <label className="flex items-center gap-2 text-sm text-slate-600 sm:col-span-2 lg:col-span-4">
+        <label className="flex items-center gap-2 text-sm text-slate-300 sm:col-span-2 lg:col-span-4">
           <input
             type="checkbox"
             checked={hideCancelled}
             onChange={(e) => { setPage(0); setHideCancelled(e.target.checked); }}
-            className="h-4 w-4 rounded border-slate-300 text-vsb-600 focus:ring-vsb-500"
+            className="h-4 w-4 rounded border-ink-500 text-vsb-400 focus:ring-vsb-500"
           />
           Hide cancelled bookings
         </label>
@@ -293,7 +295,7 @@ export default function AdminBookingsPage() {
 
       {bookings.length === 0 ? (
         <div className="text-center py-16">
-          <p className="text-slate-500">No bookings found.</p>
+          <p className="text-slate-400">No bookings found.</p>
         </div>
       ) : (
         <>
@@ -303,66 +305,66 @@ export default function AdminBookingsPage() {
             <button
               key={b.id}
               onClick={() => { setSelected(b); setAmountInput((b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toString()); }}
-              className="w-full text-left bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover:border-vsb-300 hover:shadow-md transition-all"
+              className="w-full text-left v2-surface p-4 hover:border-vsb-500 hover:border-vsb-500 transition-all"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
-                  <p className="flex items-center gap-1.5 font-semibold text-slate-900 text-sm truncate">
+                  <p className="flex items-center gap-1.5 font-semibold text-chalk text-sm truncate">
                     {bookingDisplayName(b, b.profile)}
                     <GenderBadge gender={b.is_guest ? b.guest_gender : b.profile.gender} />
-                    {b.is_guest && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium">Guest</span>}
+                    {b.is_guest && <span className="px-1.5 py-0.5 rounded bg-vsb-900 text-vsb-300 text-[10px] font-medium">Guest</span>}
                   </p>
-                  <p className="text-xs text-slate-500">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
-                  <p className="font-mono text-xs text-slate-500 mt-1">{b.booking_reference}</p>
+                  <p className="text-xs text-slate-400">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
+                  <p className="font-mono text-xs text-slate-400 mt-1">{b.booking_reference}</p>
                 </div>
-                <p className="text-sm font-bold text-slate-900 flex-shrink-0">{formatCurrency(b.payment_status !== 'Paid' ? b.session.price : b.total_amount)}</p>
+                <p className="text-sm font-bold text-chalk flex-shrink-0">{formatCurrency(b.payment_status !== 'Paid' ? b.session.price : b.total_amount)}</p>
               </div>
-              <p className="text-xs text-slate-500 mt-2 truncate">{b.session.title} · {formatDate(b.session.session_date)}</p>
+              <p className="text-xs text-slate-400 mt-2 truncate">{b.session.title} · {formatDate(b.session.session_date)}</p>
               <div className="mt-2 flex items-center gap-2">
                 <StatusBadge status={b.booking_status} />
-                {b.receipt_path && <Receipt className="h-3.5 w-3.5 text-blue-500" />}
+                {b.receipt_path && <Receipt className="h-3.5 w-3.5 text-vsb-400" />}
               </div>
             </button>
           ))}
         </div>
 
         {/* Desktop table */}
-        <div className="hidden sm:block overflow-x-auto bg-white rounded-2xl border border-slate-200 shadow-sm">
+        <div className="hidden sm:block overflow-x-auto v2-surface">
           <table className="w-full">
-            <thead className="bg-slate-50 border-b border-slate-200">
+            <thead className="bg-ink-850 border-b border-ink-600">
               <tr>
-                <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3">Reference</th>
-                <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3">Player</th>
-                <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3 hidden sm:table-cell">Session</th>
-                <th className="text-left text-xs font-semibold text-slate-600 px-4 py-3 hidden md:table-cell">Date</th>
-                <th className="text-center text-xs font-semibold text-slate-600 px-4 py-3">Status</th>
-                <th className="text-right text-xs font-semibold text-slate-600 px-4 py-3">Amount</th>
-                <th className="text-right text-xs font-semibold text-slate-600 px-4 py-3">Actions</th>
+                <th className="text-left text-xs font-semibold text-slate-300 px-4 py-3">Reference</th>
+                <th className="text-left text-xs font-semibold text-slate-300 px-4 py-3">Player</th>
+                <th className="text-left text-xs font-semibold text-slate-300 px-4 py-3 hidden sm:table-cell">Session</th>
+                <th className="text-left text-xs font-semibold text-slate-300 px-4 py-3 hidden md:table-cell">Date</th>
+                <th className="text-center text-xs font-semibold text-slate-300 px-4 py-3">Status</th>
+                <th className="text-right text-xs font-semibold text-slate-300 px-4 py-3">Amount</th>
+                <th className="text-right text-xs font-semibold text-slate-300 px-4 py-3">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-100">
+            <tbody className="divide-y divide-ink-600">
               {bookings.map((b) => (
-                <tr key={b.id} className="hover:bg-slate-50">
-                  <td className="px-4 py-3 font-mono text-xs text-slate-900">{b.booking_reference}</td>
+                <tr key={b.id} className="hover:bg-ink-700">
+                  <td className="px-4 py-3 font-mono text-xs text-chalk">{b.booking_reference}</td>
                   <td className="px-4 py-3">
-                    <p className="flex items-center gap-1.5 font-medium text-slate-900 text-sm">
+                    <p className="flex items-center gap-1.5 font-medium text-chalk text-sm">
                       {bookingDisplayName(b, b.profile)}
                       <GenderBadge gender={b.is_guest ? b.guest_gender : b.profile.gender} />
-                      {b.is_guest && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium">Guest</span>}
+                      {b.is_guest && <span className="px-1.5 py-0.5 rounded bg-vsb-900 text-vsb-300 text-[10px] font-medium">Guest</span>}
                     </p>
-                    <p className="text-xs text-slate-500">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
+                    <p className="text-xs text-slate-400">{(b.is_guest ? b.guest_phone : b.profile.phone_number) || 'N/A'}</p>
                   </td>
-                  <td className="px-4 py-3 hidden sm:table-cell text-sm text-slate-600">{b.session.title}</td>
-                  <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-600">{formatDate(b.session.session_date)}</td>
+                  <td className="px-4 py-3 hidden sm:table-cell text-sm text-slate-300">{b.session.title}</td>
+                  <td className="px-4 py-3 hidden md:table-cell text-sm text-slate-300">{formatDate(b.session.session_date)}</td>
                   <td className="px-4 py-3 text-center">
                     <div className="inline-flex items-center gap-1.5">
                       <StatusBadge status={b.booking_status} />
-                      {b.receipt_path && <Receipt className="h-3.5 w-3.5 text-blue-500" />}
+                      {b.receipt_path && <Receipt className="h-3.5 w-3.5 text-vsb-400" />}
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right text-sm font-bold text-slate-900">{formatCurrency(b.payment_status !== 'Paid' ? b.session.price : b.total_amount)}</td>
+                  <td className="px-4 py-3 text-right text-sm font-bold text-chalk">{formatCurrency(b.payment_status !== 'Paid' ? b.session.price : b.total_amount)}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => { setSelected(b); setAmountInput((b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toString()); }} className="p-2 text-slate-400 hover:text-vsb-600 rounded-lg hover:bg-vsb-50 transition-colors">
+                    <button onClick={() => { setSelected(b); setAmountInput((b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toString()); }} className="p-2 text-slate-400 hover:text-vsb-300 rounded-lg hover:bg-ink-700 transition-colors">
                       <Eye className="h-4 w-4" />
                     </button>
                   </td>
@@ -373,13 +375,13 @@ export default function AdminBookingsPage() {
         </div>
 
         {/* Pagination */}
-        <div className="flex items-center justify-between mt-4 text-sm text-slate-500">
+        <div className="flex items-center justify-between mt-4 text-sm text-slate-400">
           <span>Showing {rangeStart}–{rangeEnd} of {totalCount}</span>
           <div className="flex items-center gap-2">
             <button
               onClick={() => setPage((p) => Math.max(0, p - 1))}
               disabled={page === 0 || loading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-ink-600 bg-ink-800 hover:bg-ink-700 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               <ChevronLeft className="h-4 w-4" /> Previous
             </button>
@@ -387,7 +389,7 @@ export default function AdminBookingsPage() {
             <button
               onClick={() => setPage((p) => Math.min(totalPages - 1, p + 1))}
               disabled={page + 1 >= totalPages || loading}
-              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed"
+              className="inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-ink-600 bg-ink-800 hover:bg-ink-700 disabled:opacity-40 disabled:cursor-not-allowed"
             >
               Next <ChevronRight className="h-4 w-4" />
             </button>
@@ -399,7 +401,7 @@ export default function AdminBookingsPage() {
       {/* Detail modal */}
       {selected && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4 py-4 overflow-y-auto" onClick={() => setSelected(null)}>
-          <div className="bg-white rounded-2xl max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-ink-800 rounded-md max-w-2xl w-full my-8 max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
             <div className="bg-slate-900 p-5 sticky top-0 z-10">
               <div className="flex items-center justify-between">
                 <div>
@@ -415,68 +417,68 @@ export default function AdminBookingsPage() {
             <div className="p-6 space-y-5">
               {/* Player */}
               <div>
-                <h3 className="font-bold text-slate-900 mb-2 text-sm flex items-center gap-2">
+                <h3 className="font-bold text-chalk mb-2 text-sm flex items-center gap-2">
                   Player
-                  {selected.is_guest && <span className="px-1.5 py-0.5 rounded bg-blue-100 text-blue-700 text-[10px] font-medium">Guest</span>}
+                  {selected.is_guest && <span className="px-1.5 py-0.5 rounded bg-vsb-900 text-vsb-300 text-[10px] font-medium">Guest</span>}
                 </h3>
-                <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
-                  <p><span className="text-slate-500">Name:</span> <span className="font-medium">{bookingDisplayName(selected, selected.profile)}</span></p>
-                  <p className="flex items-center gap-1.5"><span className="text-slate-500">Gender:</span> <GenderBadge gender={selected.is_guest ? selected.guest_gender : selected.profile.gender} /> {!(selected.is_guest ? selected.guest_gender : selected.profile.gender) && <span className="font-medium">N/A</span>}</p>
-                  <p><span className="text-slate-500">Phone:</span> <span className="font-medium">{(selected.is_guest ? selected.guest_phone : selected.profile.phone_number) || 'N/A'}</span></p>
+                <div className="bg-ink-850 rounded-md p-3 text-sm space-y-1">
+                  <p><span className="text-slate-400">Name:</span> <span className="font-medium">{bookingDisplayName(selected, selected.profile)}</span></p>
+                  <p className="flex items-center gap-1.5"><span className="text-slate-400">Gender:</span> <GenderBadge gender={selected.is_guest ? selected.guest_gender : selected.profile.gender} /> {!(selected.is_guest ? selected.guest_gender : selected.profile.gender) && <span className="font-medium">N/A</span>}</p>
+                  <p><span className="text-slate-400">Phone:</span> <span className="font-medium">{(selected.is_guest ? selected.guest_phone : selected.profile.phone_number) || 'N/A'}</span></p>
                   {selected.is_guest && (
-                    <p><span className="text-slate-500">Booked by:</span> <span className="font-medium">{selected.profile.short_name || selected.profile.full_name}</span></p>
+                    <p><span className="text-slate-400">Booked by:</span> <span className="font-medium">{selected.profile.short_name || selected.profile.full_name}</span></p>
                   )}
                 </div>
               </div>
 
               {/* Session */}
               <div>
-                <h3 className="font-bold text-slate-900 mb-2 text-sm">Session</h3>
-                <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
-                  <p><span className="text-slate-500">Title:</span> <span className="font-medium">{selected.session.title}</span></p>
-                  <p><span className="text-slate-500">Date:</span> <span className="font-medium">{formatDate(selected.session.session_date)}</span></p>
-                  <p><span className="text-slate-500">Time:</span> <span className="font-medium">{formatTime(selected.session.start_time)} - {formatTime(selected.session.end_time)}</span></p>
-                  <p><span className="text-slate-500">Venue:</span> <span className="font-medium">{selected.session.venue_name}</span></p>
+                <h3 className="font-bold text-chalk mb-2 text-sm">Session</h3>
+                <div className="bg-ink-850 rounded-md p-3 text-sm space-y-1">
+                  <p><span className="text-slate-400">Title:</span> <span className="font-medium">{selected.session.title}</span></p>
+                  <p><span className="text-slate-400">Date:</span> <span className="font-medium">{formatDate(selected.session.session_date)}</span></p>
+                  <p><span className="text-slate-400">Time:</span> <span className="font-medium">{formatTime(selected.session.start_time)} - {formatTime(selected.session.end_time)}</span></p>
+                  <p><span className="text-slate-400">Venue:</span> <span className="font-medium">{selected.session.venue_name}</span></p>
                 </div>
               </div>
 
               {/* Payment */}
               <div>
-                <h3 className="font-bold text-slate-900 mb-2 text-sm">Payment</h3>
-                <div className="bg-slate-50 rounded-xl p-3 text-sm space-y-1">
+                <h3 className="font-bold text-chalk mb-2 text-sm">Payment</h3>
+                <div className="bg-ink-850 rounded-md p-3 text-sm space-y-1">
                   {showAmountEditor ? (
                     <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500">Final Amount (RM)</span>
+                      <span className="text-slate-400">Final Amount (RM)</span>
                       <input
                         type="number" step="0.01" min="0"
-                        className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none"
+                        className="w-28 rounded-lg border border-ink-500 px-2 py-1 text-right text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/30 outline-none"
                         value={amountInput}
                         onChange={(e) => setAmountInput(e.target.value)}
                       />
                     </div>
                   ) : (
                     <>
-                      <div className="flex justify-between"><span className="text-slate-500">Session fee</span><span>{formatCurrency(selected.subtotal)}</span></div>
-                      {selected.processing_fee > 0 && <div className="flex justify-between"><span className="text-slate-500">Processing fee</span><span>{formatCurrency(selected.processing_fee)}</span></div>}
+                      <div className="flex justify-between"><span className="text-slate-400">Session fee</span><span>{formatCurrency(selected.subtotal)}</span></div>
+                      {selected.processing_fee > 0 && <div className="flex justify-between"><span className="text-slate-400">Processing fee</span><span>{formatCurrency(selected.processing_fee)}</span></div>}
                       <div className="flex justify-between font-bold"><span>Total</span><span>{formatCurrency(selected.total_amount)}</span></div>
                     </>
                   )}
-                  <div className="flex justify-between pt-2 border-t border-slate-200"><span className="text-slate-500">Status</span><StatusBadge status={selected.booking_status} /></div>
+                  <div className="flex justify-between pt-2 border-t border-ink-600"><span className="text-slate-400">Status</span><StatusBadge status={selected.booking_status} /></div>
                 </div>
               </div>
 
               {/* Payment receipt */}
               {selected.receipt_path && (
                 <div>
-                  <h3 className="font-bold text-slate-900 mb-2 text-sm">Payment Receipt</h3>
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3 text-sm flex items-center justify-between gap-2">
-                    <span className="text-blue-800">
+                  <h3 className="font-bold text-chalk mb-2 text-sm">Payment Receipt</h3>
+                  <div className="bg-vsb-900/40 border border-vsb-700 rounded-md p-3 text-sm flex items-center justify-between gap-2">
+                    <span className="text-vsb-200">
                       {selected.receipt_uploaded_at ? `Uploaded ${formatDateTime(selected.receipt_uploaded_at)}` : 'Receipt uploaded'}
                     </span>
                     <button
                       onClick={() => viewReceipt(selected.receipt_path!)}
                       disabled={viewingReceipt}
-                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-60 flex-shrink-0"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-vsb-500 hover:bg-vsb-400 text-white text-xs font-semibold rounded-lg transition-colors disabled:opacity-60 flex-shrink-0"
                     >
                       <Receipt className="h-3.5 w-3.5" />
                       {viewingReceipt ? 'Loading...' : 'View Receipt'}
@@ -486,41 +488,41 @@ export default function AdminBookingsPage() {
               )}
 
               {selected.cancelled_at && (
-                <div className="bg-red-50 border border-red-200 rounded-xl p-3 text-sm">
-                  <p className="font-semibold text-red-900">Cancelled</p>
-                  <p className="text-red-700 text-xs mt-1">{selected.cancellation_reason}</p>
-                  <p className="text-red-600 text-xs mt-1">{formatDateTime(selected.cancelled_at)}</p>
+                <div className="bg-red-500/10 border border-red-500/40 rounded-md p-3 text-sm">
+                  <p className="font-semibold text-red-200">Cancelled</p>
+                  <p className="text-red-300 text-xs mt-1">{selected.cancellation_reason}</p>
+                  <p className="text-red-400 text-xs mt-1">{formatDateTime(selected.cancelled_at)}</p>
                 </div>
               )}
 
               {/* Admin actions */}
               <div>
-                <h3 className="font-bold text-slate-900 mb-2 text-sm">Admin Actions</h3>
+                <h3 className="font-bold text-chalk mb-2 text-sm">Admin Actions</h3>
                 <div className="flex flex-wrap gap-2">
                   {selected.payment_status !== 'Paid' && selected.booking_status !== 'Cancelled by Player' && selected.booking_status !== 'Cancelled by Admin' && (
                     <button
                       onClick={() => confirmBooking(selected, showAmountEditor ? parseFloat(amountInput) || 0 : undefined)}
                       disabled={actionLoading || (showAmountEditor && !amountInput)}
-                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-50 hover:bg-green-100 text-green-700 font-medium rounded-lg text-sm border border-green-200 transition-colors disabled:opacity-60"
+                      className="inline-flex items-center gap-1.5 px-3 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 font-medium rounded-lg text-sm border border-green-500/40 transition-colors disabled:opacity-60"
                     >
                       <DollarSign className="h-4 w-4" />
                       Confirm Booking
                     </button>
                   )}
                   {selected.payment_status === 'Paid' && selected.booking_status !== 'Refunded' && (
-                    <button onClick={() => issueRefund(selected)} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-purple-50 hover:bg-purple-100 text-purple-700 font-medium rounded-lg text-sm border border-purple-200 transition-colors disabled:opacity-60">
+                    <button onClick={() => issueRefund(selected)} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-purple-500/10 hover:bg-purple-100 text-purple-300 font-medium rounded-lg text-sm border border-purple-500/40 transition-colors disabled:opacity-60">
                       <RotateCcw className="h-4 w-4" />
                       Issue Refund
                     </button>
                   )}
                   {selected.booking_status === 'Confirmed' && (
-                    <button onClick={() => updateBookingStatus(selected, 'Completed')} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-blue-50 hover:bg-blue-100 text-blue-700 font-medium rounded-lg text-sm border border-blue-200 transition-colors disabled:opacity-60">
+                    <button onClick={() => updateBookingStatus(selected, 'Completed')} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-vsb-900/40 hover:bg-blue-100 text-vsb-300 font-medium rounded-lg text-sm border border-vsb-700 transition-colors disabled:opacity-60">
                       <RefreshCw className="h-4 w-4" />
                       Mark Completed
                     </button>
                   )}
                   {!selected.booking_status.includes('Cancelled') && selected.booking_status !== 'Completed' && (
-                    <button onClick={() => updateBookingStatus(selected, 'Cancelled by Admin')} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-700 font-medium rounded-lg text-sm border border-red-200 transition-colors disabled:opacity-60">
+                    <button onClick={() => updateBookingStatus(selected, 'Cancelled by Admin')} disabled={actionLoading} className="inline-flex items-center gap-1.5 px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-300 font-medium rounded-lg text-sm border border-red-500/40 transition-colors disabled:opacity-60">
                       <XCircle className="h-4 w-4" />
                       Cancel Booking
                     </button>
@@ -554,15 +556,15 @@ function AdminNotes({ booking, onUpdate }: { booking: AdminBooking; onUpdate: ()
 
   return (
     <div>
-      <h3 className="font-bold text-slate-900 mb-2 text-sm">Admin Notes</h3>
+      <h3 className="font-bold text-chalk mb-2 text-sm">Admin Notes</h3>
       <textarea
-        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none"
+        className="w-full rounded-lg border border-ink-600 px-3 py-2 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/30 outline-none"
         rows={2}
         value={notes}
         onChange={(e) => setNotes(e.target.value)}
         placeholder="Internal notes..."
       />
-      <button onClick={save} disabled={saving} className="mt-2 px-4 py-2 bg-slate-800 hover:bg-slate-900 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60">
+      <button onClick={save} disabled={saving} className="mt-2 px-4 py-2 bg-ink-600 hover:bg-ink-500 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60">
         {saving ? 'Saving...' : 'Save Notes'}
       </button>
     </div>

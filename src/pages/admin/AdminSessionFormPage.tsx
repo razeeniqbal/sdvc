@@ -191,26 +191,26 @@ export default function AdminSessionFormPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-vsb-600" />
+        <Spinner className="h-8 w-8 text-vsb-400" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none transition-colors';
-  const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
+  const inputClass = 'w-full rounded-lg border border-ink-500 px-4 py-2.5 text-chalk focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/30 outline-none transition-colors';
+  const labelClass = 'block text-sm font-medium text-slate-200 mb-1.5';
 
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <Link to="/admin/sessions" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4">
+    <div className="adm-page max-w-5xl">
+      <Link to="/admin/sessions" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-4">
         <ArrowLeft className="h-4 w-4" />
         Back to sessions
       </Link>
 
-      <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-6">{isEdit ? 'Edit Session' : 'Create Session'}</h1>
+      <h1 className="text-xl sm:text-2xl font-semibold text-chalk mb-6">{isEdit ? 'Edit Session' : 'Create Session'}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <h2 className="font-bold text-slate-900">Session Details</h2>
+        <div className="v2-surface p-6 space-y-4">
+          <h2 className="font-bold text-chalk">Session Details</h2>
 
           <div>
             <label className={labelClass}>Session Title *</label>
@@ -249,12 +249,12 @@ export default function AdminSessionFormPage() {
           <div>
             <label className={labelClass}>Passkey (optional)</label>
             <input className={inputClass} value={form.passkey} onChange={(e) => setForm({ ...form, passkey: e.target.value })} placeholder="Leave blank for a public session" />
-            <p className="text-xs text-slate-500 mt-1">If set, players must enter this exact passkey before they can register — makes the session private/invite-only. It's never shown to players anywhere else, so share it directly.</p>
+            <p className="text-xs text-slate-400 mt-1">If set, players must enter this exact passkey before they can register — makes the session private/invite-only. It's never shown to players anywhere else, so share it directly.</p>
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <h2 className="font-bold text-slate-900">Venue Information</h2>
+        <div className="v2-surface p-6 space-y-4">
+          <h2 className="font-bold text-chalk">Venue Information</h2>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -284,14 +284,14 @@ export default function AdminSessionFormPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <h2 className="font-bold text-slate-900">Pricing & Capacity</h2>
+        <div className="v2-surface p-6 space-y-4">
+          <h2 className="font-bold text-chalk">Pricing & Capacity</h2>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>Price per Player (RM) *</label>
               <input type="number" step="0.01" min="0" className={inputClass} value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} required />
-              <p className="text-xs text-slate-500 mt-1">Set to 0 for TBC (To Be Confirmed). Players can still lock a slot, and you finalize the amount per booking once turnout is known.</p>
+              <p className="text-xs text-slate-400 mt-1">Set to 0 for TBC (To Be Confirmed). Players can still lock a slot, and you finalize the amount per booking once turnout is known.</p>
             </div>
             <div>
               <label className={labelClass}>Maximum Players *</label>
@@ -315,29 +315,29 @@ export default function AdminSessionFormPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-          <h2 className="font-bold text-slate-900">Notes for Players</h2>
+        <div className="v2-surface p-6 space-y-4">
+          <h2 className="font-bold text-chalk">Notes for Players</h2>
           <textarea className={inputClass} rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes visible to players" />
         </div>
 
         {/* Recurring sessions */}
         {!isEdit && (
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
-            <button type="button" onClick={() => setShowRecurring(!showRecurring)} className="flex items-center gap-2 font-bold text-slate-900">
-              <Repeat className="h-5 w-5 text-vsb-600" />
+          <div className="v2-surface p-6 space-y-4">
+            <button type="button" onClick={() => setShowRecurring(!showRecurring)} className="flex items-center gap-2 font-bold text-chalk">
+              <Repeat className="h-5 w-5 text-vsb-400" />
               Recurring Sessions
             </button>
             {showRecurring && (
               <div className="space-y-3">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={recurring.enabled} onChange={(e) => setRecurring({ ...recurring, enabled: e.target.checked })} className="h-4 w-4 rounded border-slate-300 text-vsb-600 focus:ring-vsb-500" />
-                  <span className="text-sm text-slate-600">Repeat weekly on the same day and time</span>
+                  <input type="checkbox" checked={recurring.enabled} onChange={(e) => setRecurring({ ...recurring, enabled: e.target.checked })} className="h-4 w-4 rounded border-ink-500 text-vsb-400 focus:ring-vsb-500" />
+                  <span className="text-sm text-slate-300">Repeat weekly on the same day and time</span>
                 </label>
                 {recurring.enabled && (
                   <div>
                     <label className={labelClass}>End Date</label>
                     <input type="date" className={inputClass} value={recurring.endDate} onChange={(e) => setRecurring({ ...recurring, endDate: e.target.value })} />
-                    <p className="text-xs text-slate-500 mt-1">Sessions will be created weekly from the start date until this date.</p>
+                    <p className="text-xs text-slate-400 mt-1">Sessions will be created weekly from the start date until this date.</p>
                   </div>
                 )}
               </div>
@@ -346,10 +346,10 @@ export default function AdminSessionFormPage() {
         )}
 
         <div className="flex gap-3">
-          <Link to="/admin/sessions" className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-center transition-colors">
+          <Link to="/admin/sessions" className="flex-1 py-3 bg-ink-700 hover:bg-ink-600 text-slate-200 font-bold rounded-md text-center transition-colors">
             Cancel
           </Link>
-          <button type="submit" disabled={saving} className="flex-1 py-3 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+          <button type="submit" disabled={saving} className="flex-1 py-3 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-md transition-all disabled:opacity-60 flex items-center justify-center gap-2">
             {saving ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
             {saving ? 'Saving...' : isEdit ? 'Update Session' : 'Create Session'}
           </button>

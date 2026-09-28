@@ -1,4 +1,4 @@
-import { useRef, useState, type KeyboardEvent, type ReactNode } from 'react';
+import { useRef, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Info, Lock, MapPin, MessageCircle } from 'lucide-react';
@@ -11,11 +11,10 @@ import { PasskeyGate } from '@/components/PasskeyGate';
 import { WhosPlaying } from '@/components/WhosPlaying';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
 
-// Presentation for /sessions/:id. All data loading and booking/waitlist
-// behaviour lives in SessionDetailsPage and arrives here as props + callbacks.
-
-type Tab = 'players' | 'details' | 'rules' | 'location';
-const TABS: Tab[] = ['players', 'details', 'rules', 'location'];
+// Presentation for /sessions/:id — ONE scrollable session experience (no tabs):
+//   hero → who's playing → game info → what to know → venue → help,
+// with the booking action in a sticky side rail on desktop and a sticky bottom
+// bar on mobile. Data and booking/waitlist behaviour live in SessionDetailsPage.
 
 export interface SessionDetailsViewProps {
   session: SessionWithCount;
@@ -31,9 +30,7 @@ export interface SessionDetailsViewProps {
 
 export function SessionDetailsView({ session, players, settings, needsPasskey, unlocked, onUnlocked, onWaitlist, onBook, onJoinWaitlist }: SessionDetailsViewProps) {
   const { t, i18n } = useTranslation();
-  const [tab, setTab] = useState<Tab>('players');
-  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ players: null, details: null, rules: null, location: null });
-  const panelRef = useRef<HTMLDivElement>(null);
+  const railRef = useRef<HTMLDivElement>(null);
 
   const status = getSessionStatus(session, session.confirmed_count);
   const canBook = status === 'Available' || status === 'Almost Full';
@@ -42,29 +39,16 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
   const d = dateParts(session.session_date, i18n.language);
   const price = session.price > 0 ? formatCurrency(session.price) : 'TBC';
   const locked = needsPasskey && !unlocked;
+  const time = `${formatTime(session.start_time)} – ${formatTime(session.end_time)}`;
   const requiredItems = [t('sessionDetails.itemShoes'), t('sessionDetails.itemWaterBottle'), t('sessionDetails.itemAttire'), t('sessionDetails.itemTowel')];
   const rules = [t('sessionDetails.rule1'), t('sessionDetails.rule2'), t('sessionDetails.rule3'), t('sessionDetails.rule4')];
-  const tabLabel: Record<Tab, string> = {
-    players: t('v2.sessionDetails.tabPlayers'),
-    details: t('v2.sessionDetails.tabDetails'),
-    rules: t('v2.sessionDetails.tabRules'),
-    location: t('v2.sessionDetails.tabLocation'),
-  };
 
-  function onTabKeyDown(e: KeyboardEvent<HTMLButtonElement>) {
-    if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft') return;
-    const i = TABS.indexOf(tab);
-    const next = TABS[(i + (e.key === 'ArrowRight' ? 1 : TABS.length - 1)) % TABS.length];
-    setTab(next);
-    tabRefs.current[next]?.focus();
-  }
-
-  // The primary action, shared by the booking panel and the mobile sticky bar.
+  // The primary action, shared by the booking rail and the mobile sticky bar.
   function renderAction(compact = false): ReactNode {
     const size = compact ? '!py-3 text-base' : '!py-4 text-lg';
     if (locked) {
       return compact ? (
-        <button onClick={() => panelRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })} className={`v2-btn-primary w-full font-display uppercase tracking-wider ${size}`}>
+        <button onClick={() => railRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })} className={`v2-btn-primary w-full font-display uppercase tracking-wider ${size}`}>
           <Lock className="h-4 w-4" aria-hidden /> {t('v2.sessionDetails.unlockToBook')}
         </button>
       ) : <PasskeyGate sessionId={session.id} onUnlocked={onUnlocked} />;
@@ -92,181 +76,148 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
         </Link>
       </div>
 
-      {/* ===== Session hero: visual left, broadcast-style data + booking right ===== */}
-      <header className="grid border-b border-ink-600 lg:grid-cols-[minmax(0,1.4fr)_minmax(26rem,1fr)]">
-        <div className="relative min-h-[15rem] overflow-hidden sm:min-h-[20rem] lg:min-h-[36rem]">
+      {/* ===== Session hero ===== */}
+      <header className="grid border-b border-ink-600 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
+        <div className="relative min-h-[14rem] overflow-hidden sm:min-h-[18rem] lg:min-h-[28rem]">
           <img src="/brand/court-horizontal.webp" alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-ink/10" aria-hidden />
           <div className="vsb-gutter relative flex h-full min-h-[inherit] flex-col justify-between py-6 lg:py-10">
             <div className="flex flex-wrap gap-2">
               <span className={`v2-chip uppercase tracking-wider ${SKILL_LEVEL_STYLE[skill]}`}>{t(SKILL_LEVEL_KEY[skill])}</span>
-              <span className="v2-chip bg-ink text-chalk uppercase tracking-wider">
+              <span className="v2-chip bg-ink uppercase tracking-wider text-chalk">
                 {needsPasskey && <Lock className="mr-1 h-3 w-3" aria-hidden />}
                 {needsPasskey ? t('v2.session.private') : t('v2.session.public')}
               </span>
-              <span className="v2-chip bg-ink text-chalk uppercase tracking-wider">{t(SESSION_STATUS_KEY[status] || status)}</span>
+              <span className="v2-chip bg-ink uppercase tracking-wider text-chalk">{t(SESSION_STATUS_KEY[status] || status)}</span>
             </div>
-            <p className="font-display uppercase leading-none" aria-label={formatDateLocale(session.session_date, i18n.language)}>
-              <span className="block text-xl font-bold tracking-[0.25em] text-vsb-300 lg:text-2xl" aria-hidden>{d.weekday}</span>
-              <span className="block text-8xl font-extrabold text-chalk lg:text-[10rem]" aria-hidden>{d.day}</span>
-              <span className="block text-xl font-bold tracking-[0.25em] text-chalk lg:text-2xl" aria-hidden>{d.month}</span>
+            <p className="font-display uppercase leading-none" aria-hidden>
+              <span className="block text-xl font-bold tracking-[0.25em] text-vsb-300 lg:text-2xl">{d.weekday}</span>
+              <span className="block text-8xl font-extrabold text-chalk lg:text-[9rem]">{d.day}</span>
+              <span className="block text-xl font-bold tracking-[0.25em] text-chalk lg:text-2xl">{d.month}</span>
             </p>
           </div>
         </div>
-
-        <div ref={panelRef} id="booking-panel" className="vsb-gutter flex flex-col border-ink-600 bg-ink-850 py-8 lg:border-l lg:!px-10 lg:py-10">
+        <div className="vsb-gutter flex flex-col justify-end border-ink-600 bg-ink-850 py-8 lg:border-l lg:!px-10 lg:py-10">
           <p className="vsb-meta mb-3">{t('v2.sessionDetails.meta')}</p>
-          <h1 className="vsb-display text-5xl lg:text-6xl">{session.title}</h1>
-
-          <dl className="mt-8 grid grid-cols-2 gap-x-6 gap-y-5 border-t border-ink-600 pt-6">
-            <Fact label={t('sessionDetails.timeLabel')} value={`${formatTime(session.start_time)} – ${formatTime(session.end_time)}`} />
-            <Fact label={t('sessionDetails.dateLabel')} value={formatDateLocale(session.session_date, i18n.language, 'medium')} />
-            <Fact label={t('sessionDetails.venueLabel')} value={session.venue_name} />
-            <Fact label={t('sessionDetails.courtLabel')} value={session.court_number || t('common.notSpecified')} />
-          </dl>
-
-          <div className="mt-6 border-t border-ink-600 pt-6">
-            <CapacityIndicator confirmed={session.confirmed_count} max={session.maximum_capacity} />
-            {canBook && <p className={`mt-2 text-sm ${available <= 3 ? 'font-semibold text-amber-300' : 'text-slate-400'}`}>{t('v2.session.openSlots', { count: available })}</p>}
-          </div>
-
-          <div className="mt-6 flex items-end justify-between gap-4 border-t border-ink-600 pt-6">
-            <p>
-              <span className="vsb-meta block">{t('sessionDetails.pricePerPlayer')}</span>
-              <span className="font-display text-5xl font-extrabold leading-none text-chalk">{price}</span>
-            </p>
-            {session.price === 0 && <p className="max-w-[12rem] text-right text-xs text-amber-300">{t('sessionDetails.tbcNote')}</p>}
-          </div>
-
-          <div className="mt-6">{renderAction()}</div>
-
-          <div className="mt-4 space-y-0.5 text-xs text-muted">
-            <p>{t('sessionDetails.bookingDeadline', { date: session.booking_close_at ? formatDateLocale(session.booking_close_at, i18n.language, 'medium') : t('common.none') })}</p>
-            <p>{t('sessionDetails.cancellationDeadline')} · <span className="text-amber-300">{t('sessionDetails.nonRefundable')}</span></p>
-          </div>
+          <h1 className="vsb-display text-5xl lg:text-6xl xl:text-7xl">{session.title}</h1>
+          <p className="mt-5 font-display text-2xl font-bold uppercase tracking-wide text-chalk">{formatDateLocale(session.session_date, i18n.language, 'medium')} · {time}</p>
+          <p className="mt-1 text-lg text-slate-300">{[session.venue_name, session.court_number].filter(Boolean).join(' · ')}</p>
         </div>
       </header>
 
-      {/* ===== Tabs ===== */}
-      <div className="vsb-gutter sticky top-16 z-30 border-b border-ink-600 bg-ink/95 backdrop-blur-sm">
-        <div role="tablist" aria-label={session.title} className="-mb-px flex gap-5 overflow-x-auto [scrollbar-width:none] sm:gap-8">
-          {TABS.map((key) => (
-            <button
-              key={key}
-              ref={(el) => { tabRefs.current[key] = el; }}
-              role="tab"
-              id={`tab-${key}`}
-              aria-selected={tab === key}
-              aria-controls={`panel-${key}`}
-              tabIndex={tab === key ? 0 : -1}
-              onClick={() => setTab(key)}
-              onKeyDown={onTabKeyDown}
-              className="vsb-tab py-4"
-            >
-              {tabLabel[key]}
-            </button>
-          ))}
-        </div>
-      </div>
+      {/* ===== Body: content + sticky booking rail ===== */}
+      <div className="vsb-gutter grid gap-10 py-10 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-14 lg:py-14 xl:grid-cols-[minmax(0,1fr)_24rem]">
+        {/* Booking rail (first on mobile so price + action sit right under the hero) */}
+        <aside ref={railRef} id="booking-panel" aria-label={t('v2.sessionDetails.bookingLabel')} className="lg:order-2">
+          <div className="border border-ink-600 bg-ink-850 p-6 lg:sticky lg:top-24">
+            <p className="vsb-meta">{t('sessionDetails.pricePerPlayer')}</p>
+            <p className="font-display text-5xl font-extrabold leading-none text-chalk">{price}</p>
+            {session.price === 0 && <p className="mt-1 text-xs text-amber-300">{t('sessionDetails.tbcNote')}</p>}
+            <div className="mt-6 border-t border-ink-600 pt-5">
+              <CapacityIndicator confirmed={session.confirmed_count} max={session.maximum_capacity} />
+              {canBook && <p className={`mt-2 text-sm ${available <= 3 ? 'font-semibold text-amber-300' : 'text-slate-400'}`}>{t('v2.session.openSlots', { count: available })}</p>}
+            </div>
+            <div className="mt-6">{renderAction()}</div>
+            <div className="mt-4 space-y-0.5 text-xs text-muted">
+              <p>{t('sessionDetails.bookingDeadline', { date: session.booking_close_at ? formatDateLocale(session.booking_close_at, i18n.language, 'medium') : t('common.none') })}</p>
+              <p>{t('sessionDetails.cancellationDeadline')} · <span className="text-amber-300">{t('sessionDetails.nonRefundable')}</span></p>
+            </div>
+          </div>
+        </aside>
 
-      <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`} className="vsb-gutter py-10 lg:py-14">
-        {tab === 'players' && (
-          <div className="mx-auto max-w-[1500px]"><WhosPlaying players={players} capacity={session.maximum_capacity} /></div>
-        )}
+        <div className="min-w-0 space-y-16 lg:order-1">
+          {/* Who's playing — the signature feature */}
+          <WhosPlaying players={players} capacity={session.maximum_capacity} />
 
-        {tab === 'details' && (
-          <div className="grid gap-12 lg:grid-cols-[1.3fr_1fr]">
-            <div className="space-y-8">
-              {session.description && (
-                <section>
-                  <h2 className="vsb-display mb-3 text-3xl">{t('sessionDetails.aboutSession')}</h2>
-                  <p className="max-w-2xl text-lg leading-relaxed text-slate-300">{session.description}</p>
-                </section>
-              )}
-              {session.notes && (
-                <div className="flex max-w-2xl gap-3 border-l-2 border-vsb-500 pl-4">
-                  <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-vsb-300" aria-hidden />
-                  <div>
-                    <p className="vsb-meta mb-1">{t('sessionDetails.notesFromClub')}</p>
-                    <p className="text-slate-300">{session.notes}</p>
-                  </div>
+          {/* Game info */}
+          <section aria-labelledby="game-info">
+            <h2 id="game-info" className="vsb-display mb-6 text-3xl sm:text-4xl">{t('v2.sessionDetails.gameInfo')}</h2>
+            <dl className="grid grid-cols-2 gap-x-6 gap-y-6 border-t border-ink-600 pt-6 sm:grid-cols-3 xl:grid-cols-4">
+              <Fact label={t('sessionDetails.dateLabel')} value={formatDateLocale(session.session_date, i18n.language, 'medium')} />
+              <Fact label={t('sessionDetails.timeLabel')} value={time} />
+              <Fact label={t('sessionDetails.venueLabel')} value={session.venue_name} />
+              <Fact label={t('sessionDetails.courtLabel')} value={session.court_number || t('common.notSpecified')} />
+              <Fact label={t('v2.sessions.skillLevel')} value={t(SKILL_LEVEL_KEY[skill])} />
+              <Fact label={t('sessionDetails.capacityLabel')} value={`${session.confirmed_count} / ${session.maximum_capacity}`} />
+              <Fact label={t('sessionDetails.pricePerPlayer')} value={price} />
+              <Fact label={t('v2.sessionDetails.sessionType')} value={needsPasskey ? t('v2.session.private') : t('v2.session.public')} />
+            </dl>
+          </section>
+
+          {/* What to know */}
+          <section aria-labelledby="what-to-know">
+            <h2 id="what-to-know" className="vsb-display mb-6 text-3xl sm:text-4xl">{t('v2.sessionDetails.whatToKnow')}</h2>
+            {session.description && <p className="mb-6 max-w-3xl text-lg leading-relaxed text-slate-300">{session.description}</p>}
+            {session.notes && (
+              <div className="mb-8 flex max-w-3xl gap-3 border-l-2 border-vsb-500 pl-4">
+                <Info className="mt-0.5 h-5 w-5 flex-shrink-0 text-vsb-300" aria-hidden />
+                <div>
+                  <p className="vsb-meta mb-1">{t('sessionDetails.notesFromClub')}</p>
+                  <p className="text-slate-300">{session.notes}</p>
                 </div>
-              )}
-              <dl className="grid grid-cols-2 gap-x-6 gap-y-6 border-t border-ink-600 pt-6 sm:grid-cols-3">
-                <Fact label={t('sessionDetails.dateLabel')} value={formatDateLocale(session.session_date, i18n.language)} />
-                <Fact label={t('sessionDetails.timeLabel')} value={`${formatTime(session.start_time)} – ${formatTime(session.end_time)}`} />
-                <Fact label={t('v2.sessions.skillLevel')} value={t(SKILL_LEVEL_KEY[skill])} />
-                <Fact label={t('sessionDetails.venueLabel')} value={session.venue_name} />
-                <Fact label={t('sessionDetails.courtLabel')} value={session.court_number || t('common.notSpecified')} />
-                <Fact label={t('sessionDetails.capacityLabel')} value={t('sessionDetails.capacityValue', { confirmed: session.confirmed_count, max: session.maximum_capacity, available })} />
-              </dl>
-            </div>
-            <section className="self-start border-t border-ink-600 pt-6 lg:border-l lg:border-t-0 lg:pl-10 lg:pt-0">
-              <h2 className="vsb-display mb-4 text-3xl">{t('sessionDetails.needHelp')}</h2>
-              <div className="flex flex-col gap-3">
-                <a
-                  href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('sessionDetails.whatsappQuestion', { title: session.title, date: formatDateLocale(session.session_date, i18n.language) }))}
-                  target="_blank" rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 font-semibold text-green-400 hover:text-green-300"
-                >
-                  <MessageCircle className="h-5 w-5" aria-hidden />
-                  {t('sessionDetails.whatsappBtn', { number: settings?.contact_whatsapp || '0137441727' })}
-                </a>
-                {settings?.whatsapp_group_link && (
-                  <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-semibold text-green-400 hover:text-green-300">
-                    <MessageCircle className="h-5 w-5" aria-hidden />
-                    {t('sessionDetails.joinGroup')}
-                  </a>
-                )}
               </div>
-            </section>
-          </div>
-        )}
-
-        {tab === 'rules' && (
-          <div className="grid gap-12 lg:grid-cols-2">
-            <section>
-              <h2 className="vsb-display mb-5 text-3xl">{t('sessionDetails.sessionRules')}</h2>
-              <ol className="divide-y divide-ink-600 border-y border-ink-600">
-                {rules.map((rule, i) => (
-                  <li key={rule} className="flex gap-5 py-4 text-lg text-slate-200">
-                    <span className="font-display text-2xl font-extrabold text-vsb-500">{String(i + 1).padStart(2, '0')}</span>{rule}
-                  </li>
-                ))}
-              </ol>
-            </section>
-            <section>
-              <h2 className="vsb-display mb-5 text-3xl">{t('sessionDetails.whatToBring')}</h2>
-              <ul className="divide-y divide-ink-600 border-y border-ink-600">
-                {requiredItems.map((item) => <li key={item} className="py-4 text-lg text-slate-200">{item}</li>)}
-              </ul>
-            </section>
-          </div>
-        )}
-
-        {tab === 'location' && (
-          <section className="grid gap-8 lg:grid-cols-[1fr_1.2fr]">
-            <div>
-              <p className="vsb-meta mb-3">{t('sessionDetails.venueLabel')}</p>
-              <h2 className="vsb-display text-5xl">{session.venue_name}</h2>
-              {session.court_number && <p className="mt-2 font-display text-2xl font-bold uppercase tracking-wider text-vsb-300">{session.court_number}</p>}
-              <p className="mt-6 max-w-md text-lg text-slate-300">{session.venue_address || t('common.notSpecified')}</p>
-              {session.maps_link && (
-                <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="v2-btn-secondary mt-6 font-display uppercase tracking-wider">
-                  <MapPin className="h-4 w-4" aria-hidden /> {t('sessionDetails.viewOnMaps')}
-                </a>
-              )}
-            </div>
-            <div className="relative hidden overflow-hidden rounded-sm border border-ink-600 lg:block">
-              <img src="/brand/court-horizontal.webp" alt="" width={973} height={335} loading="lazy" className="h-full w-full object-cover opacity-70" />
+            )}
+            <div className="grid gap-10 md:grid-cols-2">
+              <div>
+                <h3 className="vsb-meta mb-3">{t('sessionDetails.sessionRules')}</h3>
+                <ol className="divide-y divide-ink-600 border-y border-ink-600">
+                  {rules.map((rule, i) => (
+                    <li key={rule} className="flex gap-4 py-3 text-slate-200">
+                      <span className="font-display text-xl font-extrabold text-vsb-500">{String(i + 1).padStart(2, '0')}</span>{rule}
+                    </li>
+                  ))}
+                </ol>
+              </div>
+              <div>
+                <h3 className="vsb-meta mb-3">{t('sessionDetails.whatToBring')}</h3>
+                <ul className="divide-y divide-ink-600 border-y border-ink-600">
+                  {requiredItems.map((item) => <li key={item} className="py-3 text-slate-200">{item}</li>)}
+                </ul>
+              </div>
             </div>
           </section>
-        )}
+
+          {/* Venue */}
+          <section aria-labelledby="venue" className="grid gap-6 md:grid-cols-[1fr_1fr] md:items-end">
+            <div>
+              <h2 id="venue" className="vsb-display mb-4 text-3xl sm:text-4xl">{t('v2.sessionDetails.venue')}</h2>
+              <p className="font-display text-2xl font-bold uppercase tracking-wide text-chalk">{session.venue_name}</p>
+              {session.court_number && <p className="font-display text-lg font-bold uppercase tracking-wider text-vsb-300">{session.court_number}</p>}
+              <p className="mt-3 max-w-md text-slate-300">{session.venue_address || t('common.notSpecified')}</p>
+            </div>
+            {session.maps_link && (
+              <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="v2-btn-secondary justify-self-start font-display uppercase tracking-wider md:justify-self-end">
+                <MapPin className="h-4 w-4" aria-hidden /> {t('sessionDetails.viewOnMaps')}
+              </a>
+            )}
+          </section>
+
+          {/* Help */}
+          <section aria-labelledby="help" className="border-t border-ink-600 pt-8">
+            <h2 id="help" className="vsb-display mb-4 text-3xl">{t('sessionDetails.needHelp')}</h2>
+            <div className="flex flex-wrap gap-x-8 gap-y-3">
+              <a
+                href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('sessionDetails.whatsappQuestion', { title: session.title, date: formatDateLocale(session.session_date, i18n.language) }))}
+                target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 font-semibold text-green-400 hover:text-green-300"
+              >
+                <MessageCircle className="h-5 w-5" aria-hidden />
+                {t('sessionDetails.whatsappBtn', { number: settings?.contact_whatsapp || '0137441727' })}
+              </a>
+              {settings?.whatsapp_group_link && (
+                <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 font-semibold text-green-400 hover:text-green-300">
+                  <MessageCircle className="h-5 w-5" aria-hidden />
+                  {t('sessionDetails.joinGroup')}
+                </a>
+              )}
+            </div>
+          </section>
+        </div>
       </div>
 
       {/* Mobile sticky booking bar — sits above the bottom tab bar */}
       <div className="h-20 lg:hidden" aria-hidden />
-      <div className="fixed inset-x-0 bottom-[calc(4.1rem+env(safe-area-inset-bottom))] md:bottom-0 z-40 border-t border-ink-600 bg-ink/95 backdrop-blur-sm lg:hidden">
+      <div className="fixed inset-x-0 bottom-[calc(4.1rem+env(safe-area-inset-bottom))] z-40 border-t border-ink-600 bg-ink/95 backdrop-blur-sm md:bottom-0 lg:hidden">
         <div className="vsb-gutter flex items-center gap-4 py-3">
           <p className="leading-none">
             <span className="block font-display text-2xl font-extrabold text-chalk">{price}</span>
