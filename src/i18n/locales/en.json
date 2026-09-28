@@ -610,10 +610,9 @@
       "state": {
         "confirmed": "Confirmed",
         "awaitingPayment": "Awaiting payment",
-        "attended": "Attended",
-        "missed": "Missed",
         "played": "Played",
-        "cancelled": "Cancelled"
+        "cancelled": "Cancelled",
+        "notPlayed": "Not played"
       }
     },
     "create": {

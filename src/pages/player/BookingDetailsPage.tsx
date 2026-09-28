@@ -14,7 +14,7 @@ import { Spinner } from '@/components/LoadingScreen';
 import { ReceiptUpload } from '@/components/ReceiptUpload';
 import { HoldCountdown } from '@/components/vsb/HoldCountdown';
 import { ACTIVE_BOOKING_STATUSES, MAX_COMPANIONS } from '@/lib/bookingRules';
-import type { Booking, Session, Payment, Attendance, ClubSettings } from '@/types/database';
+import type { Booking, Session, Payment, ClubSettings } from '@/types/database';
 import { vsbAssets } from '@/lib/vsbAssets';
 import { MemberPicker } from '@/components/vsb/MemberPicker';
 import type { CommunityPlayer } from '@/lib/community';
@@ -28,7 +28,6 @@ export default function BookingDetailsPage() {
   const [booking, setBooking] = useState<Booking | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [payments, setPayments] = useState<Payment[]>([]);
-  const [attendance, setAttendance] = useState<Attendance | null>(null);
   const [loading, setLoading] = useState(true);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelling, setCancelling] = useState(false);
@@ -59,8 +58,6 @@ export default function BookingDetailsPage() {
       setSession(s as Session);
       const { data: pays } = await supabase.from('payments').select('*').eq('booking_id', b.id).order('created_at', { ascending: false });
       setPayments((pays || []) as Payment[]);
-      const { data: att } = await supabase.from('attendance').select('*').eq('booking_id', b.id).maybeSingle();
-      setAttendance(att as Attendance);
       setLoading(false);
     })();
     // reload only when the booking id or profile changes
@@ -306,17 +303,6 @@ export default function BookingDetailsPage() {
               </div>
             )}
           </div>
-
-          {/* Attendance */}
-          {attendance && (
-            <div>
-              <h2 className="v2-heading text-lg mb-3">{t('bookingDetails.attendance')}</h2>
-              <div className="bg-ink-850 rounded-xl p-3 text-sm">
-                <span className="text-slate-400">{t('bookingDetails.statusLabel')} </span>
-                <span className="font-medium text-chalk">{attendance.attendance_status || t('bookingDetails.notRecorded')}</span>
-              </div>
-            </div>
-          )}
 
           {/* Cancellation info */}
           {booking.cancelled_at && (

@@ -5,9 +5,8 @@ import type { GameState } from '@/lib/myGames';
 const STYLE: Record<GameState, { dot: string; text: string; key: string }> = {
   upcoming: { dot: 'bg-green-400', text: 'text-green-300', key: 'v2.games.state.confirmed' },
   'awaiting-payment': { dot: 'bg-amber-400', text: 'text-amber-300', key: 'v2.games.state.awaitingPayment' },
-  attended: { dot: 'bg-green-400', text: 'text-green-300', key: 'v2.games.state.attended' },
-  missed: { dot: 'bg-red-400', text: 'text-red-300', key: 'v2.games.state.missed' },
-  played: { dot: 'bg-slate-400', text: 'text-slate-300', key: 'v2.games.state.played' },
+  played: { dot: 'bg-vsb-400', text: 'text-slate-200', key: 'v2.games.state.played' },
+  'not-played': { dot: 'bg-slate-500', text: 'text-muted', key: 'v2.games.state.notPlayed' },
   cancelled: { dot: 'bg-slate-500', text: 'text-muted', key: 'v2.games.state.cancelled' },
 };
 

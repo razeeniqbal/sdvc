@@ -1,23 +1,22 @@
 import { supabase } from './supabase';
-import type { AttendanceStatus, Booking, Session } from '@/types/database';
+import type { Booking, Session } from '@/types/database';
 
 // The signed-in player's games: their bookings (own + companions they booked)
-// plus places a friend booked for them (guest_user_id), each with its session
-// and any attendance mark. Shared by My VSB and My Games.
+// plus places a friend booked for them (guest_user_id), each with its session.
+// Shared by My VSB and My Games. VSB does not track attendance for players.
 
 export interface MyGame extends Booking {
   session: Session;
   /** A friend booked this place for the player (the friend pays). */
   booked_by_friend?: boolean;
-  attendance: { attendance_status: AttendanceStatus | null }[] | { attendance_status: AttendanceStatus | null } | null;
 }
 
-export type GameState = 'upcoming' | 'awaiting-payment' | 'attended' | 'missed' | 'played' | 'cancelled';
+export type GameState = 'upcoming' | 'awaiting-payment' | 'played' | 'not-played' | 'cancelled';
 
 export async function fetchMyGames(userId: string): Promise<MyGame[]> {
   const { data } = await supabase
     .from('bookings')
-    .select('*, session:sessions(*), attendance(attendance_status)')
+    .select('*, session:sessions(*)')
     .or(`user_id.eq.${userId},guest_user_id.eq.${userId}`)
     .order('created_at', { ascending: false });
   // A place a friend booked is this player's own place (not "a guest they
@@ -31,21 +30,13 @@ function localToday() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 }
 
-export function attendanceOf(g: MyGame): AttendanceStatus | null {
-  const a = Array.isArray(g.attendance) ? g.attendance[0] : g.attendance;
-  return a?.attendance_status ?? null;
-}
-
-// Derived only from stored status + date + attendance mark. "Played" = a past
-// confirmed game nobody marked; we don't claim attended or missed without a mark.
+// Derived only from the booking status and the date:
+//   played     = a past game with a Confirmed/Completed booking
+//   not-played = a past game that never became a confirmed place (unpaid, no-show)
 export function gameState(g: MyGame, today = localToday()): GameState {
   if (g.booking_status.includes('Cancelled') || g.booking_status === 'Refunded') return 'cancelled';
-  const att = attendanceOf(g);
-  if (att === 'Cancelled') return 'cancelled';
   if (g.session.session_date >= today) return g.booking_status === 'Pending Payment' ? 'awaiting-payment' : 'upcoming';
-  if (att === 'Attended' || g.booking_status === 'Completed') return 'attended';
-  if (att === 'Absent' || att === 'No Show' || g.booking_status === 'No Show') return 'missed';
-  return 'played';
+  return g.booking_status === 'Confirmed' || g.booking_status === 'Completed' ? 'played' : 'not-played';
 }
 
 export function isUpcoming(g: MyGame, today = localToday()) {

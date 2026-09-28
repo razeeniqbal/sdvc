@@ -610,10 +610,9 @@
       "state": {
         "confirmed": "Disahkan",
         "awaitingPayment": "Menunggu bayaran",
-        "attended": "Hadir",
-        "missed": "Tidak hadir",
         "played": "Dimain",
-        "cancelled": "Dibatalkan"
+        "cancelled": "Dibatalkan",
+        "notPlayed": "Tidak bermain"
       }
     },
     "create": {
