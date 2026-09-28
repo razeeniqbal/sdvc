@@ -32,9 +32,12 @@ const AdminAttendancePage = lazy(() => import('@/pages/admin/AdminAttendancePage
 const AdminWaitingListPage = lazy(() => import('@/pages/admin/AdminWaitingListPage'));
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 
+// Dev-only design review route; the import is dead-code-eliminated in production builds.
+const V2PreviewPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/V2PreviewPage')) : null;
+
 // Screens already moved onto the V2 (dark) brand. Everything else keeps the V1
 // light page background until its milestone lands.
-const V2_ROUTES = /^\/($|sessions(\/|$)|login|register|forgot-password|reset-password)/;
+const V2_ROUTES = /^\/($|sessions(\/|$)|login|register|forgot-password|reset-password|__v2-preview)/;
 
 function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
@@ -76,6 +79,7 @@ function App() {
                   <Route path="/admin/sessions/:id/attendance" element={<AdminRoute><AdminAttendancePage /></AdminRoute>} />
                   <Route path="/admin/sessions/:id/waiting-list" element={<AdminRoute><AdminWaitingListPage /></AdminRoute>} />
                   <Route path="/admin/settings" element={<AdminRoute><AdminSettingsPage /></AdminRoute>} />
+                  {V2PreviewPage && <Route path="/__v2-preview" element={<V2PreviewPage />} />}
                 </Routes>
               </Suspense>
             </main>

@@ -408,6 +408,29 @@
       "allSkillLevels": "All skill levels",
       "sessionType": "Session type",
       "clearFilters": "Clear filters"
+    },
+    "whosPlaying": {
+      "title": "Who's Playing",
+      "filterAll": "All",
+      "filterUnspecified": "Not specified",
+      "filterLabel": "Filter players by gender",
+      "viewLabel": "Roster view",
+      "courtView": "Court",
+      "listView": "List",
+      "open": "Open",
+      "openSlot": "Open slot",
+      "guest": "Guest",
+      "guestShort": "GUEST",
+      "noPosition": "Position not set",
+      "nobody": "No players match this filter yet.",
+      "notRotation": "Shows who's joining — not the match rotation."
+    },
+    "sessionDetails": {
+      "tabPlayers": "Players",
+      "tabDetails": "Details",
+      "tabRules": "Rules",
+      "tabLocation": "Location",
+      "confirmedCapacity": "{{confirmed}} / {{max}} joined"
     }
   }
 }

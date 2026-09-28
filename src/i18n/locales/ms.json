@@ -408,6 +408,29 @@
       "allSkillLevels": "Semua tahap",
       "sessionType": "Jenis sesi",
       "clearFilters": "Kosongkan penapis"
+    },
+    "whosPlaying": {
+      "title": "Siapa Bermain",
+      "filterAll": "Semua",
+      "filterUnspecified": "Tidak dinyatakan",
+      "filterLabel": "Tapis pemain mengikut jantina",
+      "viewLabel": "Paparan senarai",
+      "courtView": "Gelanggang",
+      "listView": "Senarai",
+      "open": "Kosong",
+      "openSlot": "Slot kosong",
+      "guest": "Tetamu",
+      "guestShort": "TETAMU",
+      "noPosition": "Posisi belum ditetapkan",
+      "nobody": "Belum ada pemain yang sepadan dengan penapis ini.",
+      "notRotation": "Menunjukkan siapa yang menyertai — bukan susunan giliran perlawanan."
+    },
+    "sessionDetails": {
+      "tabPlayers": "Pemain",
+      "tabDetails": "Butiran",
+      "tabRules": "Peraturan",
+      "tabLocation": "Lokasi",
+      "confirmedCapacity": "{{confirmed}} / {{max}} menyertai"
     }
   }
 }
