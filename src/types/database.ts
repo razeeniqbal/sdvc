@@ -56,6 +56,7 @@ export interface Profile {
   gender: Gender | null;
   playing_position: PlayingPosition | null;
   skill_level: SkillLevel | null;
+  show_in_community: boolean;
   role: UserRole;
   created_at: string;
   updated_at: string;

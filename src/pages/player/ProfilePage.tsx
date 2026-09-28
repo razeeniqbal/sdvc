@@ -14,7 +14,8 @@ import { PlayerCard } from '@/components/PlayerCard';
 import { GameStateLabel } from '@/components/vsb/GameStateLabel';
 import { fetchMyEntitlement, useMyAvatar, type Entitlement } from '@/lib/avatars';
 import type { PlayingPosition, SkillLevel } from '@/types/database';
-import { vsbAssets } from '@/lib/vsbAssets';
+import { fallbackCharacter, vsbAssets } from '@/lib/vsbAssets';
+import { setShowInCommunity } from '@/lib/community';
 
 // MY VSB — the player's hub. Hierarchy: identity → next game → recent games
 // → volleyball profile → account & safety. Profile/account editing is inline
@@ -42,6 +43,20 @@ export default function ProfilePage() {
   });
   const [changingPassword, setChangingPassword] = useState(false);
   const [passwordForm, setPasswordForm] = useState({ new_password: '', confirm_password: '' });
+  const [savingVisibility, setSavingVisibility] = useState(false);
+
+  async function toggleCommunity() {
+    if (!profile) return;
+    setSavingVisibility(true);
+    try {
+      await setShowInCommunity(profile.id, !profile.show_in_community);
+      await refreshProfile();
+    } catch {
+      show(t('v2.community.toggleError'), 'error');
+    } finally {
+      setSavingVisibility(false);
+    }
+  }
 
   useEffect(() => {
     if (profile) fetchMyGames(profile.id).then(setGames).catch(() => setGames([]));
@@ -116,7 +131,7 @@ export default function ProfilePage() {
       <section id="card" aria-labelledby="myvsb-name" className="vsb-gutter relative scroll-mt-16 overflow-hidden border-b border-ink-600 py-10 lg:py-16">
         <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:gap-16">
           <div className="mx-auto w-full max-w-[20rem] lg:mx-0">
-            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} gender={profile.gender} stats={stats} artSrc={avatar?.image} />
+            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} gender={profile.gender} stats={stats} artSrc={avatar?.image ?? fallbackCharacter(profile.id).sm.src} />
             {(!avatar || entitlement?.unlimited || (entitlement?.remaining ?? 0) > 0) && (
               <Link to="/profile/player" className={`mt-4 w-full font-display uppercase tracking-wider ${avatar ? 'v2-btn-secondary' : 'v2-btn-primary'}`}>
                 {avatar ? t('v2.create.regenerate') : t('v2.landing.createPlayer')} <ArrowRight className="h-4 w-4" aria-hidden />
@@ -160,6 +175,16 @@ export default function ProfilePage() {
             <div className="py-8"><Spinner className="h-6 w-6 text-vsb-500" /></div>
           ) : next ? (
             <NextGame game={next} lang={i18n.language} />
+          ) : games.length === 0 ? (
+            <div className="flex items-end gap-6 border-y border-ink-600 pt-6">
+              <img src={vsbAssets.states.welcome.sm.src} alt="" width={vsbAssets.states.welcome.sm.width} height={vsbAssets.states.welcome.sm.height}
+                loading="lazy" decoding="async" className="h-48 w-auto sm:h-56" />
+              <div className="pb-8">
+                <p className="font-display text-3xl font-extrabold uppercase leading-none text-chalk">{t('v2.myVsb.welcomeTitle')}</p>
+                <p className="mt-2 max-w-sm text-slate-300">{t('v2.myVsb.welcomeBody')}</p>
+                <Link to="/sessions" className="v2-btn-primary mt-5 !px-6 font-display uppercase tracking-wider">{t('v2.landing.findGame')} <ArrowRight className="h-4 w-4" aria-hidden /></Link>
+              </div>
+            </div>
           ) : (
             <div className="border-y border-ink-600 py-8">
               <p className="font-display text-2xl font-bold uppercase text-chalk">{t('v2.myVsb.noUpcoming')}</p>
@@ -245,6 +270,20 @@ export default function ProfilePage() {
             <Fact label={t('common.genderLabel')} value={profile.gender === 'Male' ? t('common.genderMale') : profile.gender === 'Female' ? t('common.genderFemale') : t('v2.profile.notSet')} />
           </dl>
         )}
+      </section>
+
+      {/* ===== Community visibility ===== */}
+      <section id="community" aria-labelledby="community-vis-heading" className="vsb-gutter scroll-mt-16 border-t border-ink-600 py-12">
+        <HubHeading id="community-vis-heading">{t('v2.community.visibilityTitle')}</HubHeading>
+        <div className="flex max-w-3xl items-start justify-between gap-6">
+          <p className="text-slate-300">{t('v2.community.visibilityBody')}</p>
+          <button type="button" role="switch" aria-checked={profile.show_in_community} aria-labelledby="community-vis-heading"
+            onClick={toggleCommunity} disabled={savingVisibility}
+            className={`relative inline-flex h-7 w-12 flex-shrink-0 items-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400 focus-visible:ring-offset-2 focus-visible:ring-offset-ink disabled:opacity-60 ${profile.show_in_community ? 'bg-vsb-600' : 'bg-ink-500'}`}>
+            <span className={`inline-block h-5 w-5 rounded-full bg-chalk transition-transform ${profile.show_in_community ? 'translate-x-6' : 'translate-x-1'}`} />
+          </button>
+        </div>
+        <p className="mt-2 text-sm font-semibold text-muted" aria-live="polite">{profile.show_in_community ? t('v2.community.visibleOn') : t('v2.community.visibleOff')}</p>
       </section>
 
       {/* ===== Account & safety ===== */}

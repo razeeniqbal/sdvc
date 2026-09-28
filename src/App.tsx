@@ -24,6 +24,7 @@ const MyBookingsPage = lazy(() => import('@/pages/player/MyBookingsPage'));
 const BookingDetailsPage = lazy(() => import('@/pages/player/BookingDetailsPage'));
 const ProfilePage = lazy(() => import('@/pages/player/ProfilePage'));
 const CreatePlayerPage = lazy(() => import('@/pages/player/CreatePlayerPage'));
+const CommunityPage = lazy(() => import('@/pages/community/CommunityPage'));
 
 const AdminDashboardPage = lazy(() => import('@/pages/admin/AdminDashboardPage'));
 const AdminSessionsPage = lazy(() => import('@/pages/admin/AdminSessionsPage'));
@@ -116,6 +117,7 @@ function App() {
               <Route path="/bookings/:id" element={<ProtectedRoute><BookingDetailsPage /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
               <Route path="/profile/player" element={<ProtectedRoute><CreatePlayerPage /></ProtectedRoute>} />
+              <Route path="/community" element={<ProtectedRoute><CommunityPage /></ProtectedRoute>} />
 
               {V2PreviewPage && <Route path="/__v2-preview" element={<V2PreviewPage />} />}
             </Route>

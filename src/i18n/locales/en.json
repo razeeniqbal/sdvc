@@ -499,7 +499,8 @@
       "gameInfo": "Game info",
       "whatToKnow": "What to know",
       "venue": "Venue",
-      "sessionType": "Session type"
+      "sessionType": "Session type",
+      "waitlistAuto": "We'll book you in automatically when a place opens, and let you know."
     },
     "booking": {
       "stepBook": "Book",
@@ -519,7 +520,10 @@
       "holdTitle": "Pay by {{time}}",
       "holdLeftHours": "{{hours}}h {{minutes}}m left",
       "holdLeftMinutes": "{{minutes}} min left",
-      "holdDesc": "Pay and upload your receipt before then, or your place is released to the waiting list. Uploading a receipt stops the clock."
+      "holdDesc": "Pay and upload your receipt before then, or your place is released to the waiting list. Uploading a receipt stops the clock.",
+      "payToConfirm": "Pay to confirm your spot",
+      "plusFriends_one": "+ {{count}} friend",
+      "plusFriends_other": "+ {{count}} friends"
     },
     "card": {
       "played": "Played",
@@ -553,7 +557,8 @@
       "signedInAs": "Signed in as",
       "language": "Language",
       "mobileLabel": "Primary",
-      "adminConsole": "Admin Console"
+      "adminConsole": "Admin Console",
+      "community": "Community"
     },
     "footer": {
       "tagline": "People · Play · Connect · Belong",
@@ -580,7 +585,9 @@
       "account": "Account & safety",
       "emergencyContact": "Emergency contact",
       "password": "Password",
-      "viewGame": "View game"
+      "viewGame": "View game",
+      "welcomeTitle": "Welcome to VSB",
+      "welcomeBody": "Find a game, book your spot and meet the people you play with."
     },
     "games": {
       "meta": "My VSB / Games",
@@ -654,6 +661,61 @@
         "BAD_STYLE": "Something was out of date. Refresh the page and try again.",
         "UPLOAD_FAILED": "We couldn't upload your photo. Check your connection and try again.",
         "NETWORK": "Connection problem. Your free generation was not used — try again."
+      }
+    },
+    "community": {
+      "meta": "The people of VSB",
+      "title": "Community",
+      "intro": "Everyone who plays with VSB — find teammates by position and level, and see who’s heading to a game.",
+      "statMembers": "Members",
+      "statPlayingSoon": "Playing soon",
+      "listHeading": "Members",
+      "search": "Search by name",
+      "positionFilter": "Filter by position",
+      "levelFilter": "Filter by level",
+      "allPositions": "All positions",
+      "allLevels": "All levels",
+      "showing_one": "{{count}} player",
+      "showing_other": "{{count}} players",
+      "you": "You",
+      "noPosition": "Position not set",
+      "games_one": "{{count}} game",
+      "games_other": "{{count}} games",
+      "since": "since {{date}}",
+      "next": "Next: {{title}} · {{date}}",
+      "none": "No players match those filters.",
+      "error": "Couldn’t load the community. Try again in a moment.",
+      "privacy": "Community shows only your name, player art, position, level and games. Contact details are never shown.",
+      "privacyLink": "Change your visibility",
+      "visibilityTitle": "Community",
+      "visibilityBody": "Show me on the Community page, so other members can see my name, player art, position, level and games played.",
+      "visibleOn": "You’re visible in Community.",
+      "visibleOff": "You’re hidden from Community.",
+      "toggleError": "Couldn’t update your visibility. Try again."
+    },
+    "status": {
+      "booking": {
+        "Pending Payment": "Pending payment",
+        "Confirmed": "Confirmed",
+        "Cancelled by Player": "Cancelled by player",
+        "Cancelled by Admin": "Cancelled by admin",
+        "Completed": "Completed",
+        "No Show": "No show",
+        "Refunded": "Refunded"
+      },
+      "payment": {
+        "Pending": "Pending",
+        "Paid": "Paid",
+        "Failed": "Failed",
+        "Cancelled": "Cancelled",
+        "Refunded": "Refunded",
+        "Partially Refunded": "Partially refunded",
+        "Manual Payment Pending Verification": "Awaiting verification"
+      },
+      "session": {
+        "Open": "Open",
+        "Closed": "Closed",
+        "Cancelled": "Cancelled"
       }
     }
   }

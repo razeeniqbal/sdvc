@@ -11,6 +11,7 @@ import { PasskeyGate } from '@/components/PasskeyGate';
 import { WhosPlaying } from '@/components/WhosPlaying';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
 import { sessionImage } from '@/lib/sessionMedia';
+import { vsbAssets } from '@/lib/vsbAssets';
 
 // Presentation for /sessions/:id — ONE scrollable session experience (no tabs):
 //   hero → who's playing → game info → what to know → venue → help,
@@ -59,7 +60,17 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
     }
     if (status === 'Fully Booked') {
       return onWaitlist ? (
-        <div className={`w-full rounded-md border border-amber-500/40 bg-amber-500/10 text-center font-bold text-amber-300 ${compact ? 'py-3' : 'py-4'}`}>{t('sessionDetails.onWaitlist')}</div>
+        compact ? (
+          <div className="w-full rounded-md border border-amber-500/40 bg-amber-500/10 py-3 text-center font-bold text-amber-300">{t('sessionDetails.onWaitlist')}</div>
+        ) : (
+          <div className="flex items-end gap-4 border border-amber-500/40 bg-amber-500/10 pl-2 pr-4 pt-2">
+            <img src={vsbAssets.states.waiting.sm.src} alt="" width={vsbAssets.states.waiting.sm.width} height={vsbAssets.states.waiting.sm.height} decoding="async" className="h-28 w-auto" />
+            <div className="pb-4">
+              <p className="font-display text-lg font-bold uppercase tracking-wider text-amber-300">{t('sessionDetails.onWaitlist')}</p>
+              <p className="mt-1 text-sm text-slate-300">{t('v2.sessionDetails.waitlistAuto')}</p>
+            </div>
+          </div>
+        )
       ) : (
         <button onClick={onJoinWaitlist} className={`w-full rounded-md bg-amber-500 font-display font-bold uppercase tracking-wider text-ink transition-colors hover:bg-amber-400 ${size}`}>
           {t('sessionDetails.joinWaitlist')}
@@ -80,7 +91,7 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
       {/* ===== Session hero ===== */}
       <header className="grid border-b border-ink-600 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div className="relative min-h-[14rem] overflow-hidden sm:min-h-[18rem] lg:min-h-[28rem]">
-          <img src={sessionImage(session.cover_image_path, 'lg')} alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover" />
+          <img src={sessionImage(session.cover_image_path, 'lg')} alt="" width={2128} height={739} fetchPriority="high" className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-ink/10" aria-hidden />
           <div className="vsb-gutter relative flex h-full min-h-[inherit] flex-col justify-between py-6 lg:py-10">
             <div className="flex flex-wrap gap-2">

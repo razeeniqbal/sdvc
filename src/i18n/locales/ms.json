@@ -499,7 +499,8 @@
       "gameInfo": "Info permainan",
       "whatToKnow": "Perlu tahu",
       "venue": "Tempat",
-      "sessionType": "Jenis sesi"
+      "sessionType": "Jenis sesi",
+      "waitlistAuto": "Kami akan tempah untuk anda secara automatik apabila ada slot kosong, dan memaklumkan anda."
     },
     "booking": {
       "stepBook": "Tempah",
@@ -519,7 +520,10 @@
       "holdTitle": "Bayar sebelum {{time}}",
       "holdLeftHours": "tinggal {{hours}}j {{minutes}}m",
       "holdLeftMinutes": "tinggal {{minutes}} min",
-      "holdDesc": "Bayar dan muat naik resit sebelum masa itu, atau slot anda akan dilepaskan kepada senarai menunggu. Muat naik resit akan menghentikan kiraan masa."
+      "holdDesc": "Bayar dan muat naik resit sebelum masa itu, atau slot anda akan dilepaskan kepada senarai menunggu. Muat naik resit akan menghentikan kiraan masa.",
+      "payToConfirm": "Bayar untuk sahkan slot anda",
+      "plusFriends_one": "+ {{count}} kawan",
+      "plusFriends_other": "+ {{count}} kawan"
     },
     "card": {
       "played": "Dimain",
@@ -553,7 +557,8 @@
       "signedInAs": "Log masuk sebagai",
       "language": "Bahasa",
       "mobileLabel": "Utama",
-      "adminConsole": "Konsol Admin"
+      "adminConsole": "Konsol Admin",
+      "community": "Komuniti"
     },
     "footer": {
       "tagline": "Kenal · Main · Hubung · Bersama",
@@ -580,7 +585,9 @@
       "account": "Akaun & keselamatan",
       "emergencyContact": "Kenalan kecemasan",
       "password": "Kata laluan",
-      "viewGame": "Lihat permainan"
+      "viewGame": "Lihat permainan",
+      "welcomeTitle": "Selamat datang ke VSB",
+      "welcomeBody": "Cari permainan, tempah slot anda dan kenali pemain lain."
     },
     "games": {
       "meta": "VSB Saya / Permainan",
@@ -654,6 +661,61 @@
         "BAD_STYLE": "Ada sesuatu yang lapuk. Muat semula halaman dan cuba lagi.",
         "UPLOAD_FAILED": "Foto tidak dapat dimuat naik. Semak sambungan dan cuba lagi.",
         "NETWORK": "Masalah sambungan. Penjanaan percuma anda tidak digunakan — cuba lagi."
+      }
+    },
+    "community": {
+      "meta": "Warga VSB",
+      "title": "Komuniti",
+      "intro": "Semua yang bermain bersama VSB — cari rakan sepasukan mengikut posisi dan tahap, dan lihat siapa yang akan bermain.",
+      "statMembers": "Ahli",
+      "statPlayingSoon": "Akan bermain",
+      "listHeading": "Ahli",
+      "search": "Cari nama",
+      "positionFilter": "Tapis mengikut posisi",
+      "levelFilter": "Tapis mengikut tahap",
+      "allPositions": "Semua posisi",
+      "allLevels": "Semua tahap",
+      "showing_one": "{{count}} pemain",
+      "showing_other": "{{count}} pemain",
+      "you": "Anda",
+      "noPosition": "Posisi belum ditetapkan",
+      "games_one": "{{count}} permainan",
+      "games_other": "{{count}} permainan",
+      "since": "sejak {{date}}",
+      "next": "Seterusnya: {{title}} · {{date}}",
+      "none": "Tiada pemain sepadan dengan tapisan itu.",
+      "error": "Tidak dapat memuatkan komuniti. Cuba sebentar lagi.",
+      "privacy": "Komuniti hanya menunjukkan nama, gambar pemain, posisi, tahap dan jumlah permainan anda. Butiran hubungan tidak pernah ditunjukkan.",
+      "privacyLink": "Tukar keterlihatan anda",
+      "visibilityTitle": "Komuniti",
+      "visibilityBody": "Tunjukkan saya di halaman Komuniti, supaya ahli lain boleh melihat nama, gambar pemain, posisi, tahap dan jumlah permainan saya.",
+      "visibleOn": "Anda kelihatan dalam Komuniti.",
+      "visibleOff": "Anda disembunyikan daripada Komuniti.",
+      "toggleError": "Tidak dapat mengemas kini keterlihatan. Cuba lagi."
+    },
+    "status": {
+      "booking": {
+        "Pending Payment": "Menunggu bayaran",
+        "Confirmed": "Disahkan",
+        "Cancelled by Player": "Dibatalkan oleh pemain",
+        "Cancelled by Admin": "Dibatalkan oleh admin",
+        "Completed": "Selesai",
+        "No Show": "Tidak hadir",
+        "Refunded": "Dipulangkan"
+      },
+      "payment": {
+        "Pending": "Belum selesai",
+        "Paid": "Dibayar",
+        "Failed": "Gagal",
+        "Cancelled": "Dibatalkan",
+        "Refunded": "Dipulangkan",
+        "Partially Refunded": "Dipulangkan sebahagian",
+        "Manual Payment Pending Verification": "Menunggu pengesahan"
+      },
+      "session": {
+        "Open": "Dibuka",
+        "Closed": "Ditutup",
+        "Cancelled": "Dibatalkan"
       }
     }
   }

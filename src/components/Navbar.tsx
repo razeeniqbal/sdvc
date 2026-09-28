@@ -1,7 +1,7 @@
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { useTranslation } from 'react-i18next';
-import { CalendarDays, User as UserIcon, LogOut, ChevronDown, ShieldCheck, type LucideIcon } from 'lucide-react';
+import { CalendarDays, User as UserIcon, Users, LogOut, ChevronDown, ShieldCheck, type LucideIcon } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { VsbLogo } from '@/components/VsbLogo';
@@ -9,7 +9,7 @@ import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { useMyAvatar } from '@/lib/avatars';
 
 // VSB Play navigation. Primary areas only — routes are not navigation.
-//   SESSIONS  ·  (COMMUNITY, once player visibility exists)  ·  MY VSB (avatar)
+//   SESSIONS  ·  COMMUNITY  ·  MY VSB (avatar menu)
 // My Games, profile, card and account all live under My VSB; the logo is Home.
 
 interface NavItem { to: string; label: string; icon: LucideIcon; end?: boolean }
@@ -58,6 +58,8 @@ export function Navbar() {
         {profile && (
           <div className="hidden h-full items-center gap-10 md:flex">
             <NavLink to="/sessions" className={topLink}>{t('nav.sessions')}</NavLink>
+            <NavLink to="/community" className={topLink}>{t('v2.nav.community')}</NavLink>
+            <NavLink to="/profile" className={({ isActive }) => topLink({ isActive: isActive || /^\/(bookings|confirmation)/.test(location.pathname) })}>{t('v2.nav.myVsb')}</NavLink>
           </div>
         )}
 
@@ -121,6 +123,7 @@ export function PlayerTabBar() {
 
   const links: NavItem[] = [
     { to: '/sessions', label: t('nav.sessions'), icon: CalendarDays },
+    { to: '/community', label: t('v2.nav.community'), icon: Users },
     { to: '/profile', label: t('v2.nav.myVsb'), icon: UserIcon },
   ];
 

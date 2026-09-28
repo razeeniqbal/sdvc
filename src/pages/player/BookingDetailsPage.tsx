@@ -414,7 +414,7 @@ export default function BookingDetailsPage() {
       {/* Cancel dialog */}
       {showCancelDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setShowCancelDialog(false)}>
-          <div className="bg-ink-800 border border-ink-600 rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-ink-800 border border-ink-600 max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3 mb-4">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/15 text-red-400 flex-shrink-0">
                 <AlertTriangle className="h-5 w-5" />

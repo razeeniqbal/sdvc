@@ -1,67 +1,67 @@
+import { useTranslation } from 'react-i18next';
 import type { BookingStatus, PaymentStatus, SessionStatus, Gender } from '@/types/database';
 
+// Status is always stated in words; colour only reinforces it. Semantic
+// colours only (green / amber / red / slate) — never brand colours.
+const GREEN = 'border-green-500/40 bg-green-500/10 text-green-300';
+const AMBER = 'border-amber-500/40 bg-amber-500/10 text-amber-300';
+const RED = 'border-red-500/40 bg-red-500/10 text-red-300';
+const SLATE = 'border-ink-500 bg-ink-700 text-slate-300';
+
 const bookingStatusStyles: Record<BookingStatus, string> = {
-  'Pending Payment': 'bg-amber-100 text-amber-800 border-amber-200',
-  Confirmed: 'bg-green-100 text-green-800 border-green-200',
-  'Cancelled by Player': 'bg-red-100 text-red-700 border-red-200',
-  'Cancelled by Admin': 'bg-red-100 text-red-700 border-red-200',
-  Completed: 'bg-blue-100 text-blue-700 border-blue-200',
-  'No Show': 'bg-slate-100 text-slate-600 border-slate-200',
-  Refunded: 'bg-purple-100 text-purple-700 border-purple-200',
+  'Pending Payment': AMBER,
+  Confirmed: GREEN,
+  'Cancelled by Player': RED,
+  'Cancelled by Admin': RED,
+  Completed: SLATE,
+  'No Show': SLATE,
+  Refunded: SLATE,
 };
 
 const paymentStatusStyles: Record<PaymentStatus, string> = {
-  Pending: 'bg-amber-100 text-amber-800 border-amber-200',
-  Paid: 'bg-green-100 text-green-800 border-green-200',
-  Failed: 'bg-red-100 text-red-700 border-red-200',
-  Cancelled: 'bg-slate-100 text-slate-600 border-slate-200',
-  Refunded: 'bg-purple-100 text-purple-700 border-purple-200',
-  'Partially Refunded': 'bg-purple-100 text-purple-700 border-purple-200',
-  'Manual Payment Pending Verification': 'bg-amber-100 text-amber-800 border-amber-200',
+  Pending: AMBER,
+  Paid: GREEN,
+  Failed: RED,
+  Cancelled: SLATE,
+  Refunded: SLATE,
+  'Partially Refunded': SLATE,
+  'Manual Payment Pending Verification': AMBER,
 };
 
 const sessionStatusStyles: Record<SessionStatus, string> = {
-  Open: 'bg-green-100 text-green-800 border-green-200',
-  Closed: 'bg-slate-100 text-slate-600 border-slate-200',
-  Cancelled: 'bg-red-100 text-red-700 border-red-200',
+  Open: GREEN,
+  Closed: SLATE,
+  Cancelled: RED,
 };
 
+const base = 'inline-flex items-center whitespace-nowrap rounded-sm border px-2 py-0.5 text-xs font-semibold';
+
 export function StatusBadge({ status }: { status: BookingStatus }) {
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${bookingStatusStyles[status]}`}>
-      {status}
-    </span>
-  );
+  const { t } = useTranslation();
+  return <span className={`${base} ${bookingStatusStyles[status] ?? SLATE}`}>{t(`v2.status.booking.${status}`, { defaultValue: status })}</span>;
 }
 
 export function PaymentStatusBadge({ status }: { status: PaymentStatus }) {
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${paymentStatusStyles[status]}`}>
-      {status}
-    </span>
-  );
+  const { t } = useTranslation();
+  return <span className={`${base} ${paymentStatusStyles[status] ?? SLATE}`}>{t(`v2.status.payment.${status}`, { defaultValue: status })}</span>;
 }
 
 export function SessionStatusBadge({ status }: { status: SessionStatus }) {
-  return (
-    <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${sessionStatusStyles[status]}`}>
-      {status}
-    </span>
-  );
+  const { t } = useTranslation();
+  return <span className={`${base} ${sessionStatusStyles[status] ?? SLATE}`}>{t(`v2.status.session.${status}`, { defaultValue: status })}</span>;
 }
 
-const genderStyles: Record<Gender, string> = {
-  Male: 'bg-blue-100 text-blue-700 border-blue-200',
-  Female: 'bg-pink-100 text-pink-700 border-pink-200',
-};
-
 // Renders nothing when gender is unset — an unlabeled player shouldn't show an
-// empty/placeholder badge in a list full of labeled ones.
+// empty/placeholder badge in a list full of labeled ones. Neutral styling; the
+// letter carries the meaning (with a full-word label for screen readers).
 export function GenderBadge({ gender }: { gender: Gender | null | undefined }) {
+  const { t } = useTranslation();
   if (!gender) return null;
+  const label = gender === 'Male' ? t('common.genderMale') : t('common.genderFemale');
   return (
-    <span className={`inline-flex items-center justify-center rounded-full border h-5 w-5 text-[10px] font-bold flex-shrink-0 ${genderStyles[gender]}`}>
-      {gender === 'Male' ? 'M' : 'F'}
+    <span title={label} className="inline-flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full border border-ink-500 bg-ink-700 text-[10px] font-bold text-slate-200">
+      <span aria-hidden>{gender === 'Male' ? 'M' : 'F'}</span>
+      <span className="sr-only">{label}</span>
     </span>
   );
 }

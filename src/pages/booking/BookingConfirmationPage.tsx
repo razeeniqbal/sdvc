@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { CheckCircle2, Clock as ClockPending, Calendar, Clock, MapPin, Ticket, ArrowRight, CalendarPlus, MessageCircle } from 'lucide-react';
+import { useMyAvatar } from '@/lib/avatars';
+import { HoldCountdown } from '@/components/vsb/HoldCountdown';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { bookingDisplayName, formatCurrency, formatDate, formatTime } from '@/lib/format';
@@ -25,6 +27,7 @@ export default function BookingConfirmationPage() {
   const [payment, setPayment] = useState<Payment | null>(null);
   const [settings, setSettings] = useState<ClubSettings | null>(null);
   const [loading, setLoading] = useState(true);
+  const myAvatar = useMyAvatar(profile?.id);
 
   useEffect(() => {
     fetchClubSettings().then(setSettings);
@@ -73,157 +76,122 @@ export default function BookingConfirmationPage() {
   }
 
   const isConfirmed = booking.booking_status === 'Confirmed';
+  const verifying = !isConfirmed && !!booking.receipt_path;
   const allBookings = groupBookings.length > 0 ? groupBookings : [booking];
   const totalAmount = allBookings.reduce((sum, b) => sum + (b.payment_status !== 'Paid' ? session.price : Number(b.total_amount)), 0);
+  // celebrate: confirmed, or the spot was just locked · waiting: receipt being verified
+  const art = verifying ? vsbAssets.states.waiting : vsbAssets.states.celebrate;
+  const displayName = profile?.short_name || profile?.full_name || '';
 
   return (
-    <div className="max-w-2xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <div className="v2-surface overflow-hidden">
-        {/* Success header — rewarding, not game-like (PRD §11). The player's VSB
-            identity sits front and centre; state is always stated in text. */}
-        <div className="relative overflow-hidden border-b border-ink-600 p-6 sm:p-8">
-          <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-25" />
-          <div className="relative flex flex-col items-center text-center">
+    <div className="bg-ink text-chalk">
+      {/* ===== Success: you're on court (state always in words, not just art) ===== */}
+      <section className="relative overflow-hidden border-b border-ink-600">
+        <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-15" />
+        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" aria-hidden />
+        <div className="vsb-gutter relative grid items-end gap-6 pt-8 md:grid-cols-[minmax(0,1fr)_auto] md:pt-10">
+          <div className="pb-10 md:pb-14">
             <BookingSteps current={isConfirmed ? 3 : 2} />
-            <div className="relative mt-6">
-              <PlayerAvatar name={profile?.short_name || profile?.full_name || '?'} size="lg" />
-              <span className={`absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center rounded-full ring-4 ring-ink-800 ${isConfirmed ? 'bg-green-500' : 'bg-amber-500'}`}>
-                {isConfirmed ? <CheckCircle2 className="h-5 w-5 text-white" aria-hidden /> : <ClockPending className="h-5 w-5 text-ink" aria-hidden />}
-              </span>
-            </div>
-            <h1 className="mt-4 font-display text-4xl font-extrabold uppercase leading-none tracking-tight text-chalk sm:text-5xl">
+            <p className={`mt-8 inline-flex items-center gap-2 font-display text-lg font-bold uppercase tracking-wider ${isConfirmed ? 'text-green-400' : 'text-amber-300'}`}>
+              {isConfirmed ? <CheckCircle2 className="h-5 w-5" aria-hidden /> : <ClockPending className="h-5 w-5" aria-hidden />}
+              {isConfirmed ? t('bookingConfirmation.bookingConfirmed') : verifying ? t('bookingConfirmation.pendingVerification') : t('v2.booking.payToConfirm')}
+            </p>
+            <h1 className="vsb-display mt-2 text-5xl sm:text-6xl lg:text-7xl">
               {isConfirmed ? t('v2.booking.onCourt') : t('bookingConfirmation.slotLocked')}
             </h1>
-            <p className={`mt-2 text-sm font-semibold ${isConfirmed ? 'text-green-400' : 'text-amber-300'}`}>
-              {isConfirmed ? t('bookingConfirmation.bookingConfirmed') : t('bookingConfirmation.pendingVerification')}
+
+            <div className="mt-6 flex items-center gap-3">
+              <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} seed={profile?.id} size="md" />
+              <p className="font-semibold text-chalk">
+                {displayName}
+                {allBookings.length > 1 && <span className="text-slate-400"> {t('v2.booking.plusFriends', { count: allBookings.length - 1 })}</span>}
+              </p>
+            </div>
+
+            <p className="mt-6 font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-4xl">{session.title}</p>
+            <p className="mt-3 flex flex-wrap gap-x-6 gap-y-1 text-lg text-slate-200">
+              <span className="inline-flex items-center gap-2"><Calendar className="h-4 w-4 text-vsb-400" aria-hidden />{formatDate(session.session_date)}</span>
+              <span className="inline-flex items-center gap-2"><Clock className="h-4 w-4 text-vsb-400" aria-hidden />{formatTime(session.start_time)} – {formatTime(session.end_time)}</span>
             </p>
-            <p className="mt-1 max-w-sm text-sm text-slate-300">
-              {isConfirmed ? t('bookingConfirmation.slotReserved') : t('bookingConfirmation.awaitingConfirmation')}
+            <p className="mt-1 inline-flex items-center gap-2 text-slate-300">
+              <MapPin className="h-4 w-4 text-vsb-400" aria-hidden />{[session.venue_name, session.court_number].filter(Boolean).join(' · ')}
             </p>
           </div>
+          <img src={art.full.src} alt="" width={art.full.width} height={art.full.height} decoding="async"
+            className="hidden h-[22rem] w-auto self-end md:block lg:h-[26rem]" />
         </div>
+      </section>
 
-        <div className="p-6 sm:p-8 space-y-6">
-          {/* Booking reference */}
-          <div className="text-center bg-ink-850 rounded-xl p-4">
-            <p className="text-xs text-slate-400 mb-1">{t('bookingConfirmation.bookingReference')}</p>
-            <p className="text-2xl font-mono font-bold tracking-wider text-chalk">{booking.booking_reference}</p>
-          </div>
-
-          {/* Session info */}
-          <div>
-            <h2 className="v2-heading text-lg mb-3">{t('bookingConfirmation.sessionInformation')}</h2>
-            <div className="space-y-2 text-sm">
-              <div className="flex items-center gap-2 text-slate-300">
-                <Ticket className="h-4 w-4 text-slate-400" />
-                <span className="font-medium text-chalk">{session.title}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <Calendar className="h-4 w-4 text-slate-400" />
-                <span>{formatDate(session.session_date)}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <Clock className="h-4 w-4 text-slate-400" />
-                <span>{formatTime(session.start_time)} - {formatTime(session.end_time)}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-300">
-                <MapPin className="h-4 w-4 text-slate-400" />
-                <span>{session.venue_name} {session.court_number && `· ${session.court_number}`}</span>
-              </div>
+      {/* ===== Reference, payment, actions ===== */}
+      <div className="vsb-gutter grid gap-12 py-10 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)] lg:gap-16 lg:py-14">
+        <div className="space-y-8">
+          <dl className="grid grid-cols-2 gap-6 border-b border-ink-600 pb-6">
+            <div>
+              <dt className="vsb-meta mb-1">{t('bookingConfirmation.bookingReference')}</dt>
+              <dd className="font-mono text-2xl font-bold tracking-wider text-chalk">{booking.booking_reference}</dd>
             </div>
-          </div>
-
-          {/* Player info */}
-          <div>
-            <h2 className="v2-heading text-lg mb-3">
-              {allBookings.length > 1 ? `${t('bookingConfirmation.playerInformation')} (${allBookings.length})` : t('bookingConfirmation.playerInformation')}
-            </h2>
-            {allBookings.length > 1 ? (
-              <div className="space-y-1.5">
-                {allBookings.map((b) => (
-                  <div key={b.id} className="flex items-center justify-between gap-2 bg-ink-850 rounded-lg px-3 py-2 text-sm">
-                    <span className="flex items-center gap-1.5 font-medium text-chalk truncate">
-                      {bookingDisplayName(b, profile)}
-                      <GenderBadge gender={b.is_guest ? b.guest_gender : profile?.gender} />
-                    </span>
-                    <StatusBadge status={b.booking_status} />
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="space-y-1 text-sm text-slate-300">
-                <p><span className="text-slate-400">{t('bookingConfirmation.nameLabel')}</span> <span className="font-medium text-chalk">{profile?.full_name}</span></p>
-                <p><span className="text-slate-400">{t('bookingConfirmation.phoneLabel')}</span> <span className="font-medium text-chalk">{profile?.phone_number || t('common.na')}</span></p>
-              </div>
-            )}
-          </div>
-
-          {/* Payment info */}
-          <div>
-            <h2 className="v2-heading text-lg mb-3">{t('bookingConfirmation.paymentInformation')}</h2>
-            <div className="bg-ink-850 rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-slate-400">{t('bookingConfirmation.statusLabel')}</span>
-                <span className={`font-semibold ${isConfirmed ? 'text-green-400' : 'text-amber-400'}`}>
-                  {isConfirmed ? t('bookingConfirmation.paid') : t('bookingConfirmation.pendingVerification')}
-                </span>
-              </div>
-              {isConfirmed && (
-                <>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">{t('bookingConfirmation.methodLabel')}</span>
-                    <span className="font-medium text-chalk">{payment?.payment_method || t('common.na')}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-400">{t('bookingConfirmation.referenceLabel')}</span>
-                    <span className="font-mono text-chalk">{payment?.transaction_reference || t('common.na')}</span>
-                  </div>
-                </>
-              )}
-              {allBookings.length > 1 && (
-                <div className="flex justify-between">
-                  <span className="text-slate-400">{t('checkout.totalPlayers')}</span>
-                  <span className="font-medium text-chalk">{allBookings.length}</span>
+            <div>
+              <dt className="vsb-meta mb-1">{isConfirmed ? t('bookingConfirmation.amountPaid') : t('bookingConfirmation.amountDue')}</dt>
+              <dd className={`font-display text-3xl font-extrabold ${isConfirmed ? 'text-green-400' : 'text-amber-300'}`}>{formatCurrency(totalAmount)}</dd>
+            </div>
+            {isConfirmed && (
+              <>
+                <div>
+                  <dt className="vsb-meta mb-1">{t('bookingConfirmation.methodLabel')}</dt>
+                  <dd className="font-semibold text-chalk">{payment?.payment_method || t('common.na')}</dd>
                 </div>
-              )}
-              <div className="flex justify-between pt-2 border-t border-ink-600">
-                <span className="font-bold text-chalk">{isConfirmed ? t('bookingConfirmation.amountPaid') : t('bookingConfirmation.amountDue')}</span>
-                <span className={`text-lg font-bold ${isConfirmed ? 'text-green-400' : 'text-amber-400'}`}>{formatCurrency(totalAmount)}</span>
-              </div>
-            </div>
-          </div>
+                <div>
+                  <dt className="vsb-meta mb-1">{t('bookingConfirmation.referenceLabel')}</dt>
+                  <dd className="font-mono text-chalk">{payment?.transaction_reference || t('common.na')}</dd>
+                </div>
+              </>
+            )}
+          </dl>
 
-          {/* Payment receipt upload */}
+          {!isConfirmed && !booking.receipt_path && booking.reserved_until && <HoldCountdown reservedUntil={booking.reserved_until} />}
+
           {!isConfirmed && profile && (
             <ReceiptUpload booking={booking} session={session} profile={profile} qrUrl={settings?.payment_qr_url} groupBookings={groupBookings} onUploaded={(path) => setBooking({ ...booking, receipt_path: path })} />
           )}
 
-          {/* Actions */}
+          {allBookings.length > 1 && (
+            <div>
+              <h2 className="vsb-meta mb-3">{t('bookingConfirmation.playerInformation')} ({allBookings.length})</h2>
+              <ul className="divide-y divide-ink-700 border-y border-ink-600">
+                {allBookings.map((b) => (
+                  <li key={b.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
+                    <span className="flex min-w-0 items-center gap-2 font-medium text-chalk">
+                      <PlayerAvatar name={bookingDisplayName(b, profile)} src={b.is_guest ? null : myAvatar?.thumb} seed={b.is_guest ? null : profile?.id} guest={b.is_guest} size="xs" />
+                      <span className="truncate">{bookingDisplayName(b, profile)}</span>
+                      <GenderBadge gender={b.is_guest ? b.guest_gender : profile?.gender} />
+                    </span>
+                    <StatusBadge status={b.booking_status} />
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4">
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-            <Link to={`/bookings/${booking.id}`} className="v2-btn-primary !py-3">
+            <Link to={`/bookings/${booking.id}`} className="v2-btn-primary !py-3 font-display uppercase tracking-wider">
               <Ticket className="h-5 w-5" aria-hidden />
               {t('v2.booking.viewBooking')}
-            </Link>
-            <Link to={`/sessions/${session.id}`} className="v2-btn-secondary !py-3">
-              {t('v2.booking.viewSession')}
             </Link>
             <button onClick={handleAddToCalendar} className="v2-btn-secondary !py-3">
               <CalendarPlus className="h-5 w-5" aria-hidden />
               {t('bookingConfirmation.addToCalendar')}
             </button>
-            <Link to="/bookings" className="v2-btn-secondary !py-3">
-              {t('bookingConfirmation.viewMyBookings')}
-            </Link>
+            <Link to={`/sessions/${session.id}`} className="v2-btn-secondary !py-3">{t('v2.booking.viewSession')}</Link>
+            <Link to="/bookings" className="v2-btn-secondary !py-3">{t('bookingConfirmation.viewMyBookings')}</Link>
           </div>
-
-          <Link to="/sessions" className="flex items-center justify-center gap-1.5 text-sm text-vsb-400 font-semibold hover:underline">
-            {t('bookingConfirmation.bookAnotherSession')}
-            <ArrowRight className="h-4 w-4" />
+          <Link to="/sessions" className="inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300">
+            {t('bookingConfirmation.bookAnotherSession')} <ArrowRight className="h-4 w-4" aria-hidden />
           </Link>
-
           {settings?.whatsapp_group_link && (
-            <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-1.5 text-sm text-green-400 font-semibold hover:underline">
-              <MessageCircle className="h-4 w-4" />
+            <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1.5 text-sm font-semibold text-green-400 hover:underline">
+              <MessageCircle className="h-4 w-4" aria-hidden />
               {t('bookingConfirmation.joinWhatsappGroup')}
             </a>
           )}
