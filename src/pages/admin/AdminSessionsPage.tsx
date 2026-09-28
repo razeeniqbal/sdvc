@@ -81,6 +81,7 @@ export default function AdminSessionsPage() {
       venue_address: session.venue_address,
       maps_link: session.maps_link,
       court_number: session.court_number,
+      cover_image_path: session.cover_image_path,
       skill_level: session.skill_level,
       price: session.price,
       maximum_capacity: session.maximum_capacity,

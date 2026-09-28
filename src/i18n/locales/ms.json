@@ -508,7 +508,10 @@
       "pricePerPlayer": "Harga seorang",
       "onCourt": "Jumpa di gelanggang.",
       "viewBooking": "Lihat Tempahan",
-      "viewSession": "Lihat Sesi"
+      "viewSession": "Lihat Sesi",
+      "addFriend": "+ Bawa seorang kawan",
+      "companionLimit_one": "Anda boleh bawa {{count}} kawan bagi setiap tempahan.",
+      "companionLimit_other": "Anda boleh bawa sehingga {{count}} kawan bagi setiap tempahan."
     },
     "card": {
       "played": "Dimain",

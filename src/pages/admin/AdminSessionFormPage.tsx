@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
 import type { Session, SessionStatus, SkillLevel } from '@/types/database';
 import { SKILL_LEVELS } from '@/lib/volleyball';
+import { sessionImage, uploadSessionCover } from '@/lib/sessionMedia';
 import { Spinner } from '@/components/LoadingScreen';
 
 export default function AdminSessionFormPage() {
@@ -28,6 +29,7 @@ export default function AdminSessionFormPage() {
     venue_address: '',
     maps_link: '',
     court_number: '',
+    cover_image_path: '',
     skill_level: 'Open Level' as SkillLevel,
     price: '20',
     maximum_capacity: '18',
@@ -60,6 +62,7 @@ export default function AdminSessionFormPage() {
             venue_address: s.venue_address || '',
             maps_link: s.maps_link || '',
             court_number: s.court_number || '',
+            cover_image_path: s.cover_image_path || '',
             skill_level: s.skill_level || 'Open Level',
             price: s.price.toString(),
             maximum_capacity: s.maximum_capacity.toString(),
@@ -93,6 +96,7 @@ export default function AdminSessionFormPage() {
           venue_address: s.venue_address || '',
           maps_link: s.maps_link || '',
           court_number: s.court_number || '',
+          cover_image_path: s.cover_image_path || '',
           skill_level: s.skill_level || 'Open Level',
           price: s.price.toString(),
           maximum_capacity: s.maximum_capacity.toString(),
@@ -116,6 +120,20 @@ export default function AdminSessionFormPage() {
     return error?.message ?? null;
   }
 
+  const [uploadingCover, setUploadingCover] = useState(false);
+  async function handleCover(file: File | undefined) {
+    if (!file || !profile) return;
+    setUploadingCover(true);
+    try {
+      const path = await uploadSessionCover(file, { userId: profile.id, isAdmin: profile.role === 'admin' });
+      setForm((f) => ({ ...f, cover_image_path: path }));
+    } catch (err) {
+      show(`Photo upload failed: ${(err as Error).message}`, 'error');
+    } finally {
+      setUploadingCover(false);
+    }
+  }
+
   async function handleSubmit(e: FormEvent) {
     e.preventDefault();
     if (!profile) return;
@@ -131,6 +149,7 @@ export default function AdminSessionFormPage() {
       venue_address: form.venue_address || null,
       maps_link: form.maps_link || null,
       court_number: form.court_number || null,
+      cover_image_path: form.cover_image_path || null,
       skill_level: form.skill_level,
       price: parseFloat(form.price) || 0,
       maximum_capacity: parseInt(form.maximum_capacity) || 18,
@@ -272,6 +291,23 @@ export default function AdminSessionFormPage() {
                 {SKILL_LEVELS.map((level) => <option key={level} value={level}>{level}</option>)}
               </select>
             </div>
+          </div>
+
+          <div>
+            <span className={labelClass}>Court photo (optional)</span>
+            <div className="flex flex-wrap items-end gap-4">
+              <img src={sessionImage(form.cover_image_path)} alt={form.cover_image_path ? 'Court photo preview' : 'Default VSB court artwork'} className="h-28 w-48 border border-ink-600 object-cover" />
+              <div className="flex flex-wrap gap-2">
+                <label className="adm-btn cursor-pointer !py-2">
+                  {uploadingCover ? 'Uploading…' : form.cover_image_path ? 'Replace photo' : 'Upload photo'}
+                  <input type="file" accept="image/*" className="sr-only" disabled={uploadingCover} onChange={(e) => handleCover(e.target.files?.[0])} />
+                </label>
+                {form.cover_image_path && (
+                  <button type="button" onClick={() => setForm({ ...form, cover_image_path: '' })} className="adm-btn !py-2">Use VSB court art</button>
+                )}
+              </div>
+            </div>
+            <p className="mt-1 text-xs text-slate-400">Shown on the session card and page. Without a photo, the VSB court artwork is used.</p>
           </div>
 
           <div>

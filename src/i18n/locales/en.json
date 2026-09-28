@@ -508,7 +508,10 @@
       "pricePerPlayer": "Price per player",
       "onCourt": "You're on court.",
       "viewBooking": "View Booking",
-      "viewSession": "View Session"
+      "viewSession": "View Session",
+      "addFriend": "+ Bring a friend",
+      "companionLimit_one": "You can bring {{count}} friend per booking.",
+      "companionLimit_other": "You can bring up to {{count}} friends per booking."
     },
     "card": {
       "played": "Played",

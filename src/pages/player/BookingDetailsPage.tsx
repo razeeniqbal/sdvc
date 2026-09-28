@@ -12,6 +12,7 @@ import { fetchClubSettings } from '@/lib/settings';
 import { StatusBadge, PaymentStatusBadge, GenderBadge } from '@/components/StatusBadge';
 import { Spinner } from '@/components/LoadingScreen';
 import { ReceiptUpload } from '@/components/ReceiptUpload';
+import { ACTIVE_BOOKING_STATUSES, MAX_COMPANIONS } from '@/lib/bookingRules';
 import type { Booking, Session, Payment, Attendance, ClubSettings } from '@/types/database';
 
 export default function BookingDetailsPage() {
@@ -191,7 +192,8 @@ export default function BookingDetailsPage() {
   // Only the original booker (not a companion looking at their own row) can add
   // someone else, and only while the booking is still active and the session hasn't
   // happened yet or closed.
-  const canAddFriend = !booking.is_guest && ['Pending Payment', 'Confirmed'].includes(booking.booking_status) && !isPast && session.status === 'Open';
+  const activeCompanions = groupBookings.filter((b) => b.is_guest && ACTIVE_BOOKING_STATUSES.includes(b.booking_status)).length;
+  const canAddFriend = !booking.is_guest && ['Pending Payment', 'Confirmed'].includes(booking.booking_status) && !isPast && session.status === 'Open' && activeCompanions < MAX_COMPANIONS;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">

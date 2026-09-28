@@ -10,6 +10,7 @@ import type { ClubSettings } from '@/types/database';
 import { PasskeyGate } from '@/components/PasskeyGate';
 import { WhosPlaying } from '@/components/WhosPlaying';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
+import { sessionImage } from '@/lib/sessionMedia';
 
 // Presentation for /sessions/:id — ONE scrollable session experience (no tabs):
 //   hero → who's playing → game info → what to know → venue → help,
@@ -79,7 +80,7 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
       {/* ===== Session hero ===== */}
       <header className="grid border-b border-ink-600 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
         <div className="relative min-h-[14rem] overflow-hidden sm:min-h-[18rem] lg:min-h-[28rem]">
-          <img src="/brand/court-horizontal.webp" alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover" />
+          <img src={sessionImage(session.cover_image_path)} alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover" />
           <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/30 to-ink/10" aria-hidden />
           <div className="vsb-gutter relative flex h-full min-h-[inherit] flex-col justify-between py-6 lg:py-10">
             <div className="flex flex-wrap gap-2">

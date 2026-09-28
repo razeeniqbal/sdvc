@@ -72,6 +72,7 @@ export interface Session {
   venue_address: string | null;
   maps_link: string | null;
   court_number: string | null;
+  cover_image_path: string | null;
   skill_level: SkillLevel;
   price: number;
   maximum_capacity: number;

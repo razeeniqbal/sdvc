@@ -6,6 +6,7 @@ import { dateParts, formatCurrency, formatTime } from '@/lib/format';
 import { SKILL_LEVEL_KEY, SKILL_LEVEL_STYLE } from '@/lib/volleyball';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
+import { sessionImage } from '@/lib/sessionMedia';
 
 const MAX_FACES = 5;
 
@@ -35,7 +36,7 @@ export function SessionCard({ session, to, roster, isPrivate }: SessionCardProps
     >
       {/* Place */}
       <div className="relative h-36 overflow-hidden bg-ink-700">
-        <img src="/brand/court-horizontal.webp" alt="" loading="lazy" width={973} height={335}
+        <img src={sessionImage(session.cover_image_path)} alt="" loading="lazy" width={973} height={335}
           className="absolute inset-0 h-full w-full object-cover opacity-80 transition-transform duration-500 group-hover:scale-[1.03]" />
         <div className="absolute inset-0 bg-ink/40" aria-hidden />
         <div className="relative flex h-full items-end justify-between p-4">

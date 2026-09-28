@@ -12,6 +12,7 @@ import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import type { Session, Booking } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 import { PasskeyGate } from '@/components/PasskeyGate';
+import { MAX_COMPANIONS } from '@/lib/bookingRules';
 import { BookingSteps } from '@/components/BookingSteps';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 
@@ -72,6 +73,7 @@ export default function CheckoutPage() {
   }, [sessionId, profile]);
 
   function addCompanion() {
+    if (companions.length >= MAX_COMPANIONS) return;
     setCompanions([...companions, { name: '', phone: '', gender: '' }]);
   }
 
@@ -322,14 +324,18 @@ export default function CheckoutPage() {
                 </div>
               ))}
             </div>
-            <button
-              type="button"
-              onClick={addCompanion}
-              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300"
-            >
-              <UserPlus className="h-4 w-4" />
-              {t('checkout.addCompanion')}
-            </button>
+            {companions.length < MAX_COMPANIONS ? (
+              <button
+                type="button"
+                onClick={addCompanion}
+                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300"
+              >
+                <UserPlus className="h-4 w-4" />
+                {t('v2.booking.addFriend')}
+              </button>
+            ) : (
+              <p className="mt-3 text-xs text-muted">{t('v2.booking.companionLimit', { count: MAX_COMPANIONS })}</p>
+            )}
           </div>
         </div>
 

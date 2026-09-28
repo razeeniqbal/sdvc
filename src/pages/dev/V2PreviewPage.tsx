@@ -23,7 +23,7 @@ const roster: CourtPlayer[] = [
 
 const base: Omit<SessionWithCount, 'id' | 'title' | 'skill_level' | 'confirmed_count' | 'maximum_capacity'> = {
   description: 'Friendly Friday games for players who can rally and want a steady pace.', session_date: '2026-10-02', start_time: '20:00:00', end_time: '22:00:00',
-  venue_name: 'The Challenger Sports Centre', venue_address: 'Jalan Example 1, Kuala Lumpur', maps_link: 'https://maps.google.com', court_number: 'Court 3',
+  venue_name: 'The Challenger Sports Centre', venue_address: 'Jalan Example 1, Kuala Lumpur', maps_link: 'https://maps.google.com', court_number: 'Court 3', cover_image_path: null,
   price: 25, booking_open_at: null, booking_close_at: null, cancellation_deadline: null, status: 'Open',
   notes: 'Bring both light and dark shirts.', created_by: null, created_at: '', updated_at: '',
 };
