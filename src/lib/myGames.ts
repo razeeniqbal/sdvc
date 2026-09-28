@@ -1,12 +1,14 @@
 import { supabase } from './supabase';
 import type { AttendanceStatus, Booking, Session } from '@/types/database';
 
-// The signed-in player's games: their bookings (own + companions they booked),
-// each with its session and any attendance mark. RLS limits every row to the
-// player's own bookings. Shared by My VSB and My Games.
+// The signed-in player's games: their bookings (own + companions they booked)
+// plus places a friend booked for them (guest_user_id), each with its session
+// and any attendance mark. Shared by My VSB and My Games.
 
 export interface MyGame extends Booking {
   session: Session;
+  /** A friend booked this place for the player (the friend pays). */
+  booked_by_friend?: boolean;
   attendance: { attendance_status: AttendanceStatus | null }[] | { attendance_status: AttendanceStatus | null } | null;
 }
 
@@ -16,9 +18,12 @@ export async function fetchMyGames(userId: string): Promise<MyGame[]> {
   const { data } = await supabase
     .from('bookings')
     .select('*, session:sessions(*), attendance(attendance_status)')
-    .eq('user_id', userId)
+    .or(`user_id.eq.${userId},guest_user_id.eq.${userId}`)
     .order('created_at', { ascending: false });
-  return (data || []) as unknown as MyGame[];
+  // A place a friend booked is this player's own place (not "a guest they
+  // brought"), so it counts in their games and stats.
+  return ((data || []) as unknown as MyGame[]).map((g) =>
+    g.guest_user_id === userId ? { ...g, is_guest: false, booked_by_friend: true } : g);
 }
 
 function localToday() {

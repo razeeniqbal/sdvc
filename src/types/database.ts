@@ -106,6 +106,8 @@ export interface Booking {
   guest_name: string | null;
   guest_phone: string | null;
   guest_gender: Gender | null;
+  /** Set when the companion is a registered member (they see it as their own game). */
+  guest_user_id?: string | null;
   booking_group_id: string | null;
   receipt_path: string | null;
   receipt_uploaded_at: string | null;

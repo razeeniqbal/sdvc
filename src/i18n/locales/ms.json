@@ -737,6 +737,24 @@
       "youAre": "Anda seorang penganjur. Cipta permainan, sahkan bayaran dan rekod kehadiran dalam Konsol Penganjur.",
       "noQr": "Tambah QR pembayaran anda supaya pemain boleh membayar anda. Sehingga itu, mereka melihat QR kelab.",
       "paymentQr": "QR pembayaran"
+    },
+    "friend": {
+      "addMember": "Tambah pemain VSB",
+      "addGuest": "Tambah tetamu",
+      "tabMember": "Pemain VSB",
+      "tabGuest": "Tetamu",
+      "search": "Cari pemain mengikut nama",
+      "results": "Pemain",
+      "noMatch": "Tiada pemain dijumpai. Mereka mungkin disembunyikan daripada Komuniti, atau tambah sebagai tetamu.",
+      "pickerNote": "Hanya pemain yang dipaparkan dalam Komuniti boleh ditambah. Anda membayar untuk slot mereka; mereka akan dimaklumkan.",
+      "memberNote": "Pemain VSB · anda bayar, mereka dimaklumkan",
+      "change": "Tukar",
+      "pickFirst": "Pilih pemain yang anda bawa, atau buang baris itu.",
+      "addedBy": "Ditambah oleh {{name}}",
+      "hostPays": "{{name}} menambah anda ke permainan ini dan menguruskan bayaran untuk slot anda.",
+      "leave": "Keluarkan saya dari permainan ini",
+      "leaveConfirm": "Keluar dari permainan ini? Rakan anda akan dimaklumkan.",
+      "left": "Anda telah keluar. Rakan anda telah dimaklumkan."
     }
   }
 }

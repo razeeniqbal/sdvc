@@ -16,6 +16,8 @@ import { HoldCountdown } from '@/components/vsb/HoldCountdown';
 import { ACTIVE_BOOKING_STATUSES, MAX_COMPANIONS } from '@/lib/bookingRules';
 import type { Booking, Session, Payment, Attendance, ClubSettings } from '@/types/database';
 import { vsbAssets } from '@/lib/vsbAssets';
+import { MemberPicker } from '@/components/vsb/MemberPicker';
+import type { CommunityPlayer } from '@/lib/community';
 
 export default function BookingDetailsPage() {
   const { t } = useTranslation();
@@ -34,6 +36,9 @@ export default function BookingDetailsPage() {
   const [groupBookings, setGroupBookings] = useState<Booking[]>([]);
   const [showAddFriend, setShowAddFriend] = useState(false);
   const [friendForm, setFriendForm] = useState({ name: '', phone: '', gender: '' });
+  const [friendKind, setFriendKind] = useState<'member' | 'guest'>('member');
+  const [host, setHost] = useState<string | null>(null);
+  const [leaving, setLeaving] = useState(false);
   const [addingFriend, setAddingFriend] = useState(false);
 
   useEffect(() => {
@@ -104,15 +109,29 @@ export default function BookingDetailsPage() {
     navigate('/bookings');
   }
 
-  async function handleAddFriend(e: FormEvent) {
-    e.preventDefault();
-    if (!booking || !session || !friendForm.name.trim()) {
-      show(t('checkout.errorCompanionName'), 'error');
-      return;
-    }
-    if (!friendForm.gender) {
-      show(t('common.errorGenderRequired'), 'error');
-      return;
+  // Friend view: who booked this place, and removing yourself from it.
+  useEffect(() => {
+    if (!booking?.id || !profile || booking.guest_user_id !== profile.id) return;
+    supabase.rpc('friend_booking_host', { p_booking_id: booking.id }).then(({ data }) => setHost((data as string | null) ?? null));
+  }, [booking?.id, booking?.guest_user_id, profile]);
+
+  async function leaveGame() {
+    if (!booking || !window.confirm(t('v2.friend.leaveConfirm'))) return;
+    setLeaving(true);
+    const { error } = await supabase.rpc('leave_friend_booking', { p_booking_id: booking.id });
+    setLeaving(false);
+    if (error) { show(error.message, 'error'); return; }
+    show(t('v2.friend.left'), 'success');
+    navigate('/bookings');
+  }
+
+  // A member friend (picked) or a typed-in guest (form).
+  async function handleAddFriend(e: FormEvent | null, member?: CommunityPlayer) {
+    e?.preventDefault();
+    if (!booking || !session) return;
+    if (!member) {
+      if (!friendForm.name.trim()) { show(t('checkout.errorCompanionName'), 'error'); return; }
+      if (!friendForm.gender) { show(t('common.errorGenderRequired'), 'error'); return; }
     }
     setAddingFriend(true);
 
@@ -151,9 +170,11 @@ export default function BookingDetailsPage() {
       total_amount: session.price,
       booking_group_id: groupId,
       is_guest: true,
-      guest_name: friendForm.name.trim(),
-      guest_phone: friendForm.phone.trim() || null,
-      guest_gender: friendForm.gender || null,
+      // Member friends: name/gender are filled from their profile server-side.
+      guest_name: member ? member.display_name : friendForm.name.trim(),
+      guest_phone: member ? null : friendForm.phone.trim() || null,
+      guest_gender: member ? null : friendForm.gender || null,
+      guest_user_id: member ? member.user_id : null,
     });
 
     if (error) {
@@ -183,9 +204,12 @@ export default function BookingDetailsPage() {
     );
   }
 
+  // Opened by a member whose friend booked this place for them.
+  const friendView = !!profile && booking.guest_user_id === profile.id;
+
   const sessionDate = new Date(`${session.session_date}T${session.start_time}`);
   const hoursBefore = (sessionDate.getTime() - Date.now()) / (1000 * 60 * 60);
-  const canCancel = ['Confirmed', 'Pending Payment'].includes(booking.booking_status) && hoursBefore > 24;
+  const canCancel = !friendView && ['Confirmed', 'Pending Payment'].includes(booking.booking_status) && hoursBefore > 24;
   const isPast = sessionDate < new Date();
   const awaitingConfirmation = booking.booking_status === 'Pending Payment';
   // A friend added after this booking was already confirmed still needs to be paid
@@ -195,7 +219,7 @@ export default function BookingDetailsPage() {
   // someone else, and only while the booking is still active and the session hasn't
   // happened yet or closed.
   const activeCompanions = groupBookings.filter((b) => b.is_guest && ACTIVE_BOOKING_STATUSES.includes(b.booking_status)).length;
-  const canAddFriend = !booking.is_guest && ['Pending Payment', 'Confirmed'].includes(booking.booking_status) && !isPast && session.status === 'Open' && activeCompanions < MAX_COMPANIONS;
+  const canAddFriend = !friendView && !booking.is_guest && ['Pending Payment', 'Confirmed'].includes(booking.booking_status) && !isPast && session.status === 'Open' && activeCompanions < MAX_COMPANIONS;
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
@@ -212,7 +236,9 @@ export default function BookingDetailsPage() {
             <div>
               <h1 className="font-display text-3xl font-extrabold uppercase leading-none tracking-tight text-chalk">{session.title}</h1>
               <p className="font-mono text-sm text-slate-400 mt-1">{booking.booking_reference}</p>
-              {booking.is_guest && (
+              {friendView ? (
+                <p className="text-sm text-slate-300 mt-1">{t('v2.friend.addedBy', { name: host ?? '…' })}</p>
+              ) : booking.is_guest && (
                 <p className="text-sm text-slate-300 mt-1">{t('myBookings.bookingFor', { name: booking.guest_name })}</p>
               )}
               {groupBookings.length > 1 && (
@@ -307,7 +333,7 @@ export default function BookingDetailsPage() {
           )}
 
           {/* Pay-by deadline (12-hour hold); a receipt upload stops the clock */}
-          {awaitingConfirmation && !booking.receipt_path && booking.reserved_until && (
+          {!friendView && awaitingConfirmation && !booking.receipt_path && booking.reserved_until && (
             <HoldCountdown reservedUntil={booking.reserved_until} />
           )}
 
@@ -323,7 +349,18 @@ export default function BookingDetailsPage() {
           )}
 
           {/* Payment receipt upload */}
-          {groupHasPendingPayment && profile && (
+          {friendView && (
+            <div className="border-l-2 border-vsb-500 pl-4">
+              <p className="text-sm text-slate-300">{t('v2.friend.hostPays', { name: host ?? '…' })}</p>
+              {['Pending Payment', 'Confirmed'].includes(booking.booking_status) && !isPast && (
+                <button type="button" disabled={leaving} onClick={leaveGame} className="mt-3 text-sm font-semibold text-red-400 hover:text-red-300 disabled:opacity-60">
+                  {t('v2.friend.leave')}
+                </button>
+              )}
+            </div>
+          )}
+
+          {!friendView && groupHasPendingPayment && profile && (
             <ReceiptUpload booking={booking} session={session} profile={profile} qrUrl={settings?.payment_qr_url} groupBookings={groupBookings} onUploaded={(path) => setBooking({ ...booking, receipt_path: path })} />
           )}
 
@@ -340,9 +377,19 @@ export default function BookingDetailsPage() {
                   {t('bookingDetails.addFriend')}
                 </button>
               ) : (
-                <form onSubmit={handleAddFriend}>
+                <form onSubmit={(e) => handleAddFriend(e)}>
                   <p className="font-semibold text-chalk text-sm mb-1">{t('bookingDetails.addFriend')}</p>
                   <p className="text-xs text-slate-400 mb-3">{t('bookingDetails.addFriendDesc')}</p>
+                  <div className="mb-3 flex gap-6 border-b border-ink-600" role="group" aria-label={t('bookingDetails.addFriend')}>
+                    <button type="button" onClick={() => setFriendKind('member')} aria-pressed={friendKind === 'member'} className="vsb-tab">{t('v2.friend.tabMember')}</button>
+                    <button type="button" onClick={() => setFriendKind('guest')} aria-pressed={friendKind === 'guest'} className="vsb-tab">{t('v2.friend.tabGuest')}</button>
+                  </div>
+                  {friendKind === 'member' ? (
+                    <MemberPicker
+                      excludeIds={[profile?.id ?? '', ...groupBookings.map((b) => b.guest_user_id ?? '')]}
+                      onPick={(m) => { if (!addingFriend) handleAddFriend(null, m); }}
+                    />
+                  ) : (
                   <div className="grid sm:grid-cols-3 gap-2">
                     <input
                       className="v2-input"
@@ -370,6 +417,7 @@ export default function BookingDetailsPage() {
                       <option value="Female">{t('common.genderFemale')}</option>
                     </select>
                   </div>
+                  )}
                   <div className="flex gap-2 mt-3">
                     <button
                       type="button"
@@ -378,13 +426,13 @@ export default function BookingDetailsPage() {
                     >
                       {t('bookingDetails.cancelAddFriend')}
                     </button>
-                    <button
+                    {friendKind === 'guest' && <button
                       type="submit"
                       disabled={addingFriend}
                       className="px-4 py-2 bg-vsb-600 hover:bg-vsb-700 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
                     >
                       {addingFriend ? t('bookingDetails.addingFriend') : t('bookingDetails.saveFriend')}
-                    </button>
+                    </button>}
                   </div>
                 </form>
               )}

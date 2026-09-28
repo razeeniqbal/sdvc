@@ -15,8 +15,13 @@ import { PasskeyGate } from '@/components/PasskeyGate';
 import { MAX_COMPANIONS } from '@/lib/bookingRules';
 import { BookingSteps } from '@/components/BookingSteps';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
+import { MemberPicker } from '@/components/vsb/MemberPicker';
 
+// A friend is either a registered VSB member (memberId) or a typed-in guest.
 interface Companion {
+  kind: 'member' | 'guest';
+  memberId?: string;
+  avatarUrl?: string | null;
   name: string;
   phone: string;
   gender: string;
@@ -72,9 +77,9 @@ export default function CheckoutPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId, profile]);
 
-  function addCompanion() {
+  function addCompanion(kind: Companion['kind']) {
     if (companions.length >= MAX_COMPANIONS) return;
-    setCompanions([...companions, { name: '', phone: '', gender: '' }]);
+    setCompanions([...companions, { kind, name: '', phone: '', gender: '' }]);
   }
 
   function updateCompanion(i: number, field: keyof Companion, value: string) {
@@ -91,11 +96,11 @@ export default function CheckoutPage() {
       show(t('checkout.errorAgree'), 'error');
       return;
     }
-    if (companions.some((c) => !c.name.trim())) {
-      show(t('checkout.errorCompanionName'), 'error');
+    if (companions.some((c) => (c.kind === 'member' ? !c.memberId : !c.name.trim()))) {
+      show(companions.some((c) => c.kind === 'member' && !c.memberId) ? t('v2.friend.pickFirst') : t('checkout.errorCompanionName'), 'error');
       return;
     }
-    if (!form.gender || companions.some((c) => !c.gender)) {
+    if (!form.gender || companions.some((c) => c.kind === 'guest' && !c.gender)) {
       show(t('common.errorGenderRequired'), 'error');
       return;
     }
@@ -168,15 +173,18 @@ export default function CheckoutPage() {
       guest_name: null as string | null,
       guest_phone: null as string | null,
       guest_gender: null as string | null,
+      guest_user_id: null as string | null,
     };
     const rows = [
       baseRow,
       ...companions.map((c) => ({
         ...baseRow,
         is_guest: true,
+        // Member friends: name/gender are filled from their profile server-side.
         guest_name: c.name.trim(),
-        guest_phone: c.phone.trim() || null,
-        guest_gender: c.gender || null,
+        guest_phone: c.kind === 'member' ? null : c.phone.trim() || null,
+        guest_gender: c.kind === 'member' ? null : c.gender || null,
+        guest_user_id: c.kind === 'member' ? c.memberId ?? null : null,
       })),
     ];
 
@@ -283,7 +291,37 @@ export default function CheckoutPage() {
             <h3 className="font-semibold text-chalk text-sm">{t('checkout.companionsTitle')}</h3>
             <p className="text-xs text-slate-400 mb-3">{t('checkout.companionsSubtitle')}</p>
             <div className="space-y-3">
-              {companions.map((c, i) => (
+              {companions.map((c, i) => c.kind === 'member' ? (
+                <div key={i} className="flex items-start gap-2">
+                  <div className="flex-1">
+                    {c.memberId ? (
+                      <div className="flex items-center gap-3 border border-ink-600 bg-ink-850 px-3 py-2">
+                        <PlayerAvatar name={c.name} src={c.avatarUrl} size="sm" />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate font-semibold text-chalk">{c.name}</span>
+                          <span className="block text-xs text-muted">{t('v2.friend.memberNote')}</span>
+                        </span>
+                        <button type="button" onClick={() => setCompanions(companions.map((x, idx) => (idx === i ? { ...x, memberId: undefined, name: '', avatarUrl: null } : x)))}
+                          className="text-sm font-semibold text-vsb-400 hover:text-vsb-300">{t('v2.friend.change')}</button>
+                      </div>
+                    ) : (
+                      <MemberPicker
+                        excludeIds={[profile?.id ?? '', ...companions.map((x) => x.memberId ?? '')]}
+                        onPick={(m) => setCompanions(companions.map((x, idx) => (idx === i ? { ...x, memberId: m.user_id, name: m.display_name, avatarUrl: m.avatar_url } : x)))}
+                      />
+                    )}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => removeCompanion(i)}
+                    title={t('checkout.removeCompanion')}
+                    aria-label={t('checkout.removeCompanion')}
+                    className="mt-2.5 p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors flex-shrink-0"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ) : (
                 <div key={i} className="flex items-start gap-2">
                   <div className="grid sm:grid-cols-3 gap-2 flex-1">
                     <input
@@ -325,14 +363,16 @@ export default function CheckoutPage() {
               ))}
             </div>
             {companions.length < MAX_COMPANIONS ? (
-              <button
-                type="button"
-                onClick={addCompanion}
-                className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300"
-              >
-                <UserPlus className="h-4 w-4" />
-                {t('v2.booking.addFriend')}
-              </button>
+              <div className="mt-3 flex flex-wrap gap-x-6 gap-y-2">
+                <button type="button" onClick={() => addCompanion('member')} className="inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300">
+                  <UserPlus className="h-4 w-4" aria-hidden />
+                  {t('v2.friend.addMember')}
+                </button>
+                <button type="button" onClick={() => addCompanion('guest')} className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-300 hover:text-white">
+                  <UserPlus className="h-4 w-4" aria-hidden />
+                  {t('v2.friend.addGuest')}
+                </button>
+              </div>
             ) : (
               <p className="mt-3 text-xs text-muted">{t('v2.booking.companionLimit', { count: MAX_COMPANIONS })}</p>
             )}
@@ -366,7 +406,7 @@ export default function CheckoutPage() {
                   </li>
                   {companions.map((c, i) => (
                     <li key={i} className="flex items-center gap-2">
-                      <PlayerAvatar name={c.name || '?'} guest size="xs" />
+                      <PlayerAvatar name={c.name || '?'} src={c.avatarUrl} guest={c.kind === 'guest'} size="xs" />
                       <span className="truncate text-slate-300">{c.name.trim() || t('v2.booking.companionN', { n: i + 1 })}</span>
                     </li>
                   ))}

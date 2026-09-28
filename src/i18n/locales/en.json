@@ -737,6 +737,24 @@
       "youAre": "You are an organizer. Create games, confirm payments and take attendance in the Organizer Console.",
       "noQr": "Add your payment QR so players can pay you. Until then they see the club's QR.",
       "paymentQr": "Payment QR"
+    },
+    "friend": {
+      "addMember": "Add a VSB player",
+      "addGuest": "Add a guest",
+      "tabMember": "VSB player",
+      "tabGuest": "Guest",
+      "search": "Search players by name",
+      "results": "Players",
+      "noMatch": "No players found. They may be hidden from Community, or add them as a guest.",
+      "pickerNote": "Only players shown in Community can be added. You pay for their place; they get a notification.",
+      "memberNote": "VSB player · you pay, they get notified",
+      "change": "Change",
+      "pickFirst": "Pick the player you are bringing, or remove that row.",
+      "addedBy": "Added by {{name}}",
+      "hostPays": "{{name}} added you to this game and handles the payment for your place.",
+      "leave": "Remove me from this game",
+      "leaveConfirm": "Remove yourself from this game? Your friend will be notified.",
+      "left": "You left the game. Your friend was notified."
     }
   }
 }
