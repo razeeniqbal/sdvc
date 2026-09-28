@@ -89,8 +89,9 @@ export class GenerationError extends Error {
 
 // The approved style reference ships with the app; the edge function verifies
 // its SHA-256, so it can't be swapped for a different image.
-// VSB style master (production Player #10). Pinned by SHA-256 in generate-avatar.
-const STYLE_REFERENCE_URL = '/brand/avatar-style-v2.webp';
+// VSB style master: lossless production Player #10 on the 1024x1536 output
+// canvas. Pinned by SHA-256 in generate-avatar; change both together.
+const STYLE_REFERENCE_URL = '/brand/avatar-style-v3.png';
 
 // Uploads the cropped photo + style reference to the player's private folder,
 // then asks the edge function to generate. One idempotency key per attempt:
@@ -98,14 +99,14 @@ const STYLE_REFERENCE_URL = '/brand/avatar-style-v2.webp';
 export async function generateMyAvatar(userId: string, photo: Blob): Promise<void> {
   const key = crypto.randomUUID();
   const sourcePath = `${userId}/${key}.jpg`;
-  const stylePath = `${userId}/${key}-style.webp`;
+  const stylePath = `${userId}/${key}-style.png`;
 
   const styleBlob = await fetch(STYLE_REFERENCE_URL).then((r) => (r.ok ? r.blob() : Promise.reject()))
     .catch(() => { throw new GenerationError('BAD_STYLE', 'Style reference unavailable'); });
 
   const [up1, up2] = await Promise.all([
     supabase.storage.from('player-sources').upload(sourcePath, photo, { contentType: 'image/jpeg', upsert: false }),
-    supabase.storage.from('player-sources').upload(stylePath, styleBlob, { contentType: 'image/webp', upsert: false }),
+    supabase.storage.from('player-sources').upload(stylePath, styleBlob, { contentType: 'image/png', upsert: false }),
   ]);
   if (up1.error || up2.error) {
     await supabase.storage.from('player-sources').remove([sourcePath, stylePath]);
