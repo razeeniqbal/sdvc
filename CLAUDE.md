@@ -22,9 +22,21 @@ light, data-dense layout with VSB Blue accents.
 - **No schema changes for V2.** Work within the current Supabase schema/RLS
   (e.g. roster comes from `session_player_list`; players can only read their
   own profile).
+- **Full-width layout.** Player screens run edge to edge: sections use
+  `.vsb-gutter` / `.vsb-section` (`padding-inline: clamp(20px, 3vw, 64px)`) and
+  `FullWidthSection` / `SectionHeader` (src/components/layout/Section.tsx) —
+  not a centred `max-w-* mx-auto` page container. Readable widths go on text
+  blocks inside sections. Cards only for real objects (session, ticket, player
+  card); otherwise thin `border-ink-600` rules and typography.
+- **Type scale.** Root is 16px for player screens; `html.admin-scale` (toggled
+  by the App shell on /admin) keeps admin at its original 82.5%. Display type
+  uses `.vsb-display` / `.vsb-meta`.
 - **Primitives** (src/index.css): `.v2-surface`, `.v2-btn-primary`,
-  `.v2-btn-secondary`, `.v2-chip`, `.v2-input`, `.v2-heading`. Headings use
+  `.v2-btn-secondary`, `.v2-chip`, `.v2-input`, `.v2-heading`, `.vsb-tab`
+  (underline tabs/filters — not pills). Court geometry: `<CourtLines />`. Headings use
   the condensed display face (`font-display`, Barlow Condensed), uppercase.
+- **Marketing characters** (`public/brand/players/`) are illustrative art for
+  landing/marketing only — never presented as a real member's avatar.
 - **Logo**: `<VsbLogo />` only — sliced from the approved artwork in
   `public/brand/`. Never redraw the logo in CSS/SVG or reuse `/logo.jpg`.
 - **Artwork carries no data.** Names, positions, counts, prices, dates are

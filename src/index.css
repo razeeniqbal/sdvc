@@ -2,50 +2,80 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== VSB V2 primitives =====
-   Shared by the V2 (dark) player screens. Kept as a handful of classes rather
-   than a component library so pages can still compose plain Tailwind. */
+/* ===== VSB V2 design system =====
+   Player-facing screens are full-width: sections run edge to edge and use the
+   .vsb-gutter safe area instead of a centred max-w container. Readable widths
+   are applied to text blocks *inside* sections, not to the page. */
 @layer components {
-  .v2-surface { @apply bg-ink-800 border border-ink-600 rounded-2xl; }
+  /* Layout */
+  .vsb-gutter { padding-inline: clamp(20px, 3vw, 64px); }
+  .vsb-section { @apply vsb-gutter py-14 sm:py-20; }
+
+  /* Type */
+  .vsb-meta { @apply text-xs font-semibold uppercase tracking-[0.2em] text-muted; }
+  .vsb-display { @apply font-display font-extrabold uppercase leading-[0.9] tracking-tight text-chalk; }
+  .v2-heading { @apply font-display font-bold uppercase tracking-wide text-chalk; }
+
+  /* Surfaces — only for things that genuinely are objects (session, ticket, card). */
+  .v2-surface { @apply bg-ink-800 border border-ink-600 rounded-md; }
+
+  /* Controls */
   .v2-btn-primary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-vsb-600 px-5 py-2.5 font-semibold text-white transition-colors
+    @apply inline-flex items-center justify-center gap-2 rounded-md bg-vsb-600 px-5 py-2.5 font-semibold text-white transition-colors
       hover:bg-vsb-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink
       disabled:cursor-not-allowed disabled:bg-ink-600 disabled:text-muted;
   }
   .v2-btn-secondary {
-    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-ink-500 bg-transparent px-5 py-2.5 font-semibold text-chalk transition-colors
-      hover:border-vsb-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink;
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-ink-500 bg-transparent px-5 py-2.5 font-semibold text-chalk transition-colors
+      hover:border-chalk hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink;
   }
-  .v2-chip { @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold; }
+  .v2-chip { @apply inline-flex items-center rounded-sm px-2 py-0.5 text-xs font-semibold; }
   .v2-input {
-    @apply w-full rounded-lg border border-ink-500 bg-ink-850 px-3 py-2 text-sm text-chalk placeholder:text-muted
+    @apply w-full rounded-md border border-ink-500 bg-ink-850 px-3 py-2 text-sm text-chalk placeholder:text-muted
       focus:border-vsb-500 focus:outline-none focus:ring-2 focus:ring-vsb-500/30;
   }
-  .v2-heading { @apply font-display font-bold uppercase tracking-wide text-chalk; }
+  /* Filter / segmented control item: text + underline, not a pill. */
+  .vsb-tab {
+    @apply relative whitespace-nowrap py-2 text-sm font-semibold uppercase tracking-wider text-muted transition-colors hover:text-chalk
+      focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400;
+  }
+  .vsb-tab[aria-pressed='true'], .vsb-tab[aria-selected='true'] { @apply text-chalk; }
+  .vsb-tab[aria-pressed='true']::after, .vsb-tab[aria-selected='true']::after {
+    content: ''; @apply absolute inset-x-0 -bottom-px h-0.5 bg-vsb-500;
+  }
 }
 
 @keyframes slide-up {
   from { transform: translateY(1rem); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
 }
-
 .animate-slide-up { animation: slide-up 0.3s ease-out; }
 
+/* State-carrying motion only: a player marker arriving on court, a revealed panel.
+   Scale only — content is never hidden waiting for an animation to run
+   (background tabs and throttled pages may never play it). */
+@keyframes vsb-pop {
+  from { transform: scale(0.88); }
+  to { transform: scale(1); }
+}
+.animate-pop { animation: vsb-pop 0.25s ease-out; }
+
 @media (prefers-reduced-motion: reduce) {
-  .animate-slide-up { animation: none; }
+  .animate-slide-up, .animate-pop { animation: none; }
   html { scroll-behavior: auto; }
+  * { transition-duration: 0.01ms !important; }
 }
 
 html {
   scroll-behavior: smooth;
-  /* Scales every rem-based size in the app at once (text, icons, spacing,
-     radii) since Tailwind's defaults are all rem-based off this root size. */
-  font-size: 82.5%;
 }
+/* Admin keeps its original compact scale (its dense tables were built for it).
+   Player screens use the full 16px root and an intentional type scale. */
+html.admin-scale { font-size: 82.5%; }
 
 body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: #F5F5F7;
+  background-color: #0A0D12;
 }

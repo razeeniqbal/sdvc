@@ -391,7 +391,44 @@
       "seeHowItWorks": "See How It Works",
       "upcomingSessions": "Upcoming Sessions",
       "howVsbWorks": "How VSB Works",
-      "finalTitle": "Your next game is waiting"
+      "finalTitle": "Your next game is waiting",
+      "heroSub1": "Book volleyball sessions.",
+      "heroSub2": "Meet real players.",
+      "heroSub3": "Become part of VSB.",
+      "seeWhosPlaying": "See Who's Playing",
+      "pillarPeople": "People",
+      "pillarPlay": "Play",
+      "pillarConnect": "Connect",
+      "pillarBelong": "Belong",
+      "nextMeta": "Upcoming",
+      "nextOnCourt": "Next on court",
+      "allSessions_one": "All {{count}} session",
+      "allSessions_other": "All {{count}} sessions",
+      "noSessionsTitle": "Court’s quiet right now",
+      "howMeta": "How it works",
+      "step1Title": "Find your game",
+      "step1Desc": "Browse upcoming sessions by date, level and venue — and see who’s already in before you join.",
+      "step2Title": "Meet your people",
+      "step2Desc": "Book yourself and bring friends. Every session shows the real players on court.",
+      "step3Title": "Play together",
+      "step3Desc": "Pay by QR, upload your receipt, and turn up. The admin confirms your spot.",
+      "identityMeta": "VSB player identity",
+      "identityLine1": "Your player.",
+      "identityLine2": "Your VSB identity.",
+      "identityBody": "Every member gets a VSB player card that grows with every game — built from your real sessions, not made-up ratings.",
+      "identityPoint1": "Your position, level and games played, always up to date",
+      "identityPoint2": "The same identity on your profile, session rosters and bookings",
+      "identityPoint3": "Personal VSB chibi artwork is on the way",
+      "createPlayer": "Create your player",
+      "cardName": "Your name",
+      "communityMeta": "The community",
+      "communityLine1": "The people",
+      "communityLine2": "make the game.",
+      "communityBody": "First-timers and regulars, setters and liberos, every level on the same court. VSB is where Malaysia’s social volleyball players find each other.",
+      "everyPosition": "Every position",
+      "everyLevel": "Every level",
+      "goodToKnow": "Good to know",
+      "cardSub": "Position · Level"
     },
     "session": {
       "public": "Public",
@@ -401,13 +438,28 @@
       "confirmedOfCapacity": "{{confirmed}} / {{max}}",
       "openSlots_one": "{{count}} open slot",
       "openSlots_other": "{{count}} open slots",
-      "beFirst": "Be the first to join"
+      "beFirst": "Be the first to join",
+      "playersJoined_one": "{{count}} player joined",
+      "playersJoined_other": "{{count}} players joined",
+      "signInToSee": "Sign in to see who’s in"
     },
     "sessions": {
       "skillLevel": "Skill level",
       "allSkillLevels": "All skill levels",
       "sessionType": "Session type",
-      "clearFilters": "Clear filters"
+      "clearFilters": "Clear filters",
+      "meta": "Sessions / VSB",
+      "titleLine1": "Find your",
+      "titleLine2": "next game.",
+      "upcomingCount_one": "upcoming session",
+      "upcomingCount_other": "upcoming sessions",
+      "quickLabel": "Quick filters",
+      "quickAll": "All",
+      "quickToday": "Today",
+      "quickWeek": "This week",
+      "moreFilters": "Filters",
+      "showing_one": "Showing {{count}} session",
+      "showing_other": "Showing {{count}} sessions"
     },
     "whosPlaying": {
       "title": "Who's Playing",
@@ -423,14 +475,22 @@
       "guestShort": "GUEST",
       "noPosition": "Position not set",
       "nobody": "No players match this filter yet.",
-      "notRotation": "Shows who's joining — not the match rotation."
+      "notRotation": "Shows who's joining — not the match rotation.",
+      "meta": "The roster",
+      "closePreview": "Close player preview",
+      "tapHint": "Tap a player for details.",
+      "openCount_one": "{{count}} spot open",
+      "openCount_other": "{{count}} spots open"
     },
     "sessionDetails": {
       "tabPlayers": "Players",
       "tabDetails": "Details",
       "tabRules": "Rules",
       "tabLocation": "Location",
-      "confirmedCapacity": "{{confirmed}} / {{max}} joined"
+      "confirmedCapacity": "{{confirmed}} / {{max}} joined",
+      "meta": "Session / VSB",
+      "unlockToBook": "Unlock to book",
+      "bookMySpot": "Book my spot"
     },
     "booking": {
       "stepBook": "Book",
@@ -458,6 +518,27 @@
       "position": "Position",
       "notSet": "Not set",
       "cardNote": "Your card updates automatically from your bookings."
+    },
+    "capacity": {
+      "players": "players"
+    },
+    "nav": {
+      "myVsb": "My VSB",
+      "myPlayerCard": "My Player Card",
+      "myGames": "My Games",
+      "profileSettings": "Profile Settings",
+      "playerSite": "Player site",
+      "adminTools": "Admin tools",
+      "primaryLabel": "Main",
+      "playerMenu": "Player menu for {{name}}",
+      "signedInAs": "Signed in as",
+      "language": "Language",
+      "mobileLabel": "Primary"
+    },
+    "footer": {
+      "tagline": "People · Play · Connect · Belong",
+      "builtFor": "Built for the volleyball community.",
+      "navLabel": "Footer"
     }
   }
 }

@@ -391,7 +391,44 @@
       "seeHowItWorks": "Cara Ia Berfungsi",
       "upcomingSessions": "Sesi Akan Datang",
       "howVsbWorks": "Cara VSB Berfungsi",
-      "finalTitle": "Permainan seterusnya menanti anda"
+      "finalTitle": "Permainan seterusnya menanti anda",
+      "heroSub1": "Tempah sesi bola tampar.",
+      "heroSub2": "Kenali pemain sebenar.",
+      "heroSub3": "Jadi sebahagian daripada VSB.",
+      "seeWhosPlaying": "Lihat Siapa Bermain",
+      "pillarPeople": "Kenal",
+      "pillarPlay": "Main",
+      "pillarConnect": "Hubung",
+      "pillarBelong": "Bersama",
+      "nextMeta": "Akan datang",
+      "nextOnCourt": "Seterusnya di gelanggang",
+      "allSessions_one": "Semua {{count}} sesi",
+      "allSessions_other": "Semua {{count}} sesi",
+      "noSessionsTitle": "Gelanggang sunyi buat masa ini",
+      "howMeta": "Cara ia berfungsi",
+      "step1Title": "Cari permainan",
+      "step1Desc": "Lihat sesi akan datang mengikut tarikh, tahap dan tempat — dan siapa yang sudah menyertai sebelum anda masuk.",
+      "step2Title": "Kenali rakan",
+      "step2Desc": "Tempah untuk diri sendiri dan bawa kawan. Setiap sesi menunjukkan pemain sebenar di gelanggang.",
+      "step3Title": "Main bersama",
+      "step3Desc": "Bayar dengan QR, muat naik resit, dan datang. Admin akan mengesahkan slot anda.",
+      "identityMeta": "Identiti pemain VSB",
+      "identityLine1": "Pemain anda.",
+      "identityLine2": "Identiti VSB anda.",
+      "identityBody": "Setiap ahli mendapat kad pemain VSB yang berkembang dengan setiap permainan — dibina daripada sesi sebenar anda, bukan penarafan rekaan.",
+      "identityPoint1": "Posisi, tahap dan jumlah permainan anda, sentiasa terkini",
+      "identityPoint2": "Identiti yang sama di profil, senarai pemain sesi dan tempahan",
+      "identityPoint3": "Seni chibi VSB peribadi akan datang",
+      "createPlayer": "Cipta pemain anda",
+      "cardName": "Nama anda",
+      "communityMeta": "Komuniti",
+      "communityLine1": "Orangnya",
+      "communityLine2": "yang buat permainan.",
+      "communityBody": "Pemain baharu dan tetap, setter dan libero, semua tahap di gelanggang yang sama. VSB tempat pemain bola tampar santai Malaysia bertemu.",
+      "everyPosition": "Semua posisi",
+      "everyLevel": "Semua tahap",
+      "goodToKnow": "Perlu tahu",
+      "cardSub": "Posisi · Tahap"
     },
     "session": {
       "public": "Awam",
@@ -401,13 +438,28 @@
       "confirmedOfCapacity": "{{confirmed}} / {{max}}",
       "openSlots_one": "{{count}} slot kosong",
       "openSlots_other": "{{count}} slot kosong",
-      "beFirst": "Jadi yang pertama sertai"
+      "beFirst": "Jadi yang pertama sertai",
+      "playersJoined_one": "{{count}} pemain menyertai",
+      "playersJoined_other": "{{count}} pemain menyertai",
+      "signInToSee": "Log masuk untuk lihat siapa bermain"
     },
     "sessions": {
       "skillLevel": "Tahap kemahiran",
       "allSkillLevels": "Semua tahap",
       "sessionType": "Jenis sesi",
-      "clearFilters": "Kosongkan penapis"
+      "clearFilters": "Kosongkan penapis",
+      "meta": "Sesi / VSB",
+      "titleLine1": "Cari permainan",
+      "titleLine2": "seterusnya.",
+      "upcomingCount_one": "sesi akan datang",
+      "upcomingCount_other": "sesi akan datang",
+      "quickLabel": "Penapis pantas",
+      "quickAll": "Semua",
+      "quickToday": "Hari ini",
+      "quickWeek": "Minggu ini",
+      "moreFilters": "Penapis",
+      "showing_one": "Menunjukkan {{count}} sesi",
+      "showing_other": "Menunjukkan {{count}} sesi"
     },
     "whosPlaying": {
       "title": "Siapa Bermain",
@@ -423,14 +475,22 @@
       "guestShort": "TETAMU",
       "noPosition": "Posisi belum ditetapkan",
       "nobody": "Belum ada pemain yang sepadan dengan penapis ini.",
-      "notRotation": "Menunjukkan siapa yang menyertai — bukan susunan giliran perlawanan."
+      "notRotation": "Menunjukkan siapa yang menyertai — bukan susunan giliran perlawanan.",
+      "meta": "Senarai pemain",
+      "closePreview": "Tutup pratonton pemain",
+      "tapHint": "Ketik pemain untuk butiran.",
+      "openCount_one": "{{count}} slot kosong",
+      "openCount_other": "{{count}} slot kosong"
     },
     "sessionDetails": {
       "tabPlayers": "Pemain",
       "tabDetails": "Butiran",
       "tabRules": "Peraturan",
       "tabLocation": "Lokasi",
-      "confirmedCapacity": "{{confirmed}} / {{max}} menyertai"
+      "confirmedCapacity": "{{confirmed}} / {{max}} menyertai",
+      "meta": "Sesi / VSB",
+      "unlockToBook": "Buka untuk tempah",
+      "bookMySpot": "Tempah slot saya"
     },
     "booking": {
       "stepBook": "Tempah",
@@ -458,6 +518,27 @@
       "position": "Posisi",
       "notSet": "Belum ditetapkan",
       "cardNote": "Kad anda dikemas kini secara automatik daripada tempahan anda."
+    },
+    "capacity": {
+      "players": "pemain"
+    },
+    "nav": {
+      "myVsb": "VSB Saya",
+      "myPlayerCard": "Kad Pemain Saya",
+      "myGames": "Permainan Saya",
+      "profileSettings": "Tetapan Profil",
+      "playerSite": "Laman pemain",
+      "adminTools": "Alatan admin",
+      "primaryLabel": "Utama",
+      "playerMenu": "Menu pemain untuk {{name}}",
+      "signedInAs": "Log masuk sebagai",
+      "language": "Bahasa",
+      "mobileLabel": "Utama"
+    },
+    "footer": {
+      "tagline": "Kenal · Main · Hubung · Bersama",
+      "builtFor": "Dibina untuk komuniti bola tampar.",
+      "navLabel": "Pengaki"
     }
   }
 }

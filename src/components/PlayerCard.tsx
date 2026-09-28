@@ -19,22 +19,24 @@ interface PlayerCardProps {
   position: PlayingPosition | null;
   skill: SkillLevel | null;
   gender: Gender | null;
-  joinedAt: string;
+  joinedAt: string | null;
   stats: PlayerCardStats | null;
   artSrc?: string | null;
+  // Overrides the position · level · gender line (e.g. a sample card).
+  subtitle?: string;
 }
 
 // Angular sports-card silhouette: clipped corners top, shield point at the bottom.
 const FRAME = 'polygon(8% 0, 92% 0, 100% 5%, 100% 86%, 50% 100%, 0 86%, 0 5%)';
 
-export function PlayerCard({ name, position, skill, gender, joinedAt, stats, artSrc }: PlayerCardProps) {
+export function PlayerCard({ name, position, skill, gender, joinedAt, stats, artSrc, subtitle }: PlayerCardProps) {
   const { t } = useTranslation();
   const pos = position ? POSITION_ABBR[position] : '—';
 
   const statItems = [
     { label: t('v2.card.played'), value: stats?.played },
     { label: t('v2.card.upcoming'), value: stats?.upcoming },
-    { label: t('v2.card.memberSince'), value: formatDateShort(joinedAt).replace(/^\d+\s/, '') },
+    { label: t('v2.card.memberSince'), value: joinedAt ? formatDateShort(joinedAt).replace(/^\d+\s/, '') : undefined },
   ];
 
   return (
@@ -61,7 +63,7 @@ export function PlayerCard({ name, position, skill, gender, joinedAt, stats, art
         {/* Character art slot */}
         <div className="relative mx-5 mt-2 flex flex-1 items-end justify-center overflow-hidden rounded-t-lg bg-vsb-900/30">
           {artSrc ? (
-            <img src={artSrc} alt="" className="h-full w-auto object-contain object-bottom" />
+            <img src={artSrc} alt="" className="absolute inset-x-0 bottom-0 mx-auto h-[112%] w-auto max-w-none object-contain object-bottom" />
           ) : (
             <span className="mb-2 font-display text-[7rem] font-extrabold leading-none text-vsb-500/80" aria-hidden>
               {name.trim().charAt(0).toUpperCase() || '?'}
@@ -72,9 +74,9 @@ export function PlayerCard({ name, position, skill, gender, joinedAt, stats, art
         <div className="relative -mt-3 border-y border-vsb-500/40 bg-ink px-4 py-2 text-center">
           <figcaption className="truncate font-display text-2xl font-extrabold uppercase tracking-wide text-chalk">{name}</figcaption>
           <p className="text-xs text-slate-300">
-            {position ? t(POSITION_KEY[position]) : t('v2.whosPlaying.noPosition')}
+            {subtitle ?? <>{position ? t(POSITION_KEY[position]) : t('v2.whosPlaying.noPosition')}
             {skill && <> · {t(SKILL_LEVEL_KEY[skill])}</>}
-            {gender && <> · {gender === 'Male' ? t('common.genderMale') : t('common.genderFemale')}</>}
+            {gender && <> · {gender === 'Male' ? t('common.genderMale') : t('common.genderFemale')}</>}</>}
           </p>
         </div>
 

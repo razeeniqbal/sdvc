@@ -1,6 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
-import type { ReactNode } from 'react';
+import { useEffect, type ReactNode } from 'react';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
 import { Navbar, PlayerTabBar } from '@/components/Navbar';
@@ -39,7 +39,11 @@ const V2PreviewPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/V2Pre
 // data-dense background by design (PRD §21).
 function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
-  const bg = pathname.startsWith('/admin') ? 'bg-slate-50' : 'bg-ink';
+  const isAdmin = pathname.startsWith('/admin');
+  const bg = isAdmin ? 'bg-slate-50' : 'bg-ink';
+  useEffect(() => {
+    document.documentElement.classList.toggle('admin-scale', isAdmin);
+  }, [isAdmin]);
   return <div className={`min-h-screen flex flex-col ${bg}`}>{children}</div>;
 }
 
