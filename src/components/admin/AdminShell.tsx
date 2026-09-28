@@ -18,8 +18,8 @@ const GROUPS: { heading?: string; items: Item[] }[] = [
     items: [
       { to: '/admin/sessions', label: 'Sessions', icon: CalendarDays },
       { to: '/admin/bookings', label: 'Bookings', icon: Ticket },
-      { to: '/admin/payments', label: 'Payments', icon: CreditCard, soon: true },
-      { to: '/admin/players', label: 'Players', icon: Users, soon: true },
+      { to: '/admin/payments', label: 'Payments', icon: CreditCard },
+      { to: '/admin/players', label: 'Players', icon: Users },
     ],
   },
   { heading: 'System', items: [{ to: '/admin/settings', label: 'Club Settings', icon: Settings }] },

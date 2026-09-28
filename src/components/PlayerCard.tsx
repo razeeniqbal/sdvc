@@ -1,17 +1,17 @@
 import { useTranslation } from 'react-i18next';
 import type { Gender, PlayingPosition, SkillLevel } from '@/types/database';
 import { POSITION_ABBR, POSITION_KEY, SKILL_LEVEL_KEY } from '@/lib/volleyball';
-import { formatDateShort } from '@/lib/format';
 import { VsbLogo } from '@/components/VsbLogo';
 
 // Collectible VSB player card (PRD §14): CSS frame + character art + live data.
-// Every number here comes from real booking data — no ratings, no "overall".
+// Every number here comes from real booking + attendance data — no ratings, no "overall".
 // Until generated chibi art exists (Milestone 6) the art slot shows the same
 // deterministic initial used everywhere else, so the card never looks broken.
 
 export interface PlayerCardStats {
   played: number;
-  upcoming: number;
+  attended: number;
+  attendancePct: number | null; // null until at least one game has an attendance mark
 }
 
 interface PlayerCardProps {
@@ -19,7 +19,6 @@ interface PlayerCardProps {
   position: PlayingPosition | null;
   skill: SkillLevel | null;
   gender: Gender | null;
-  joinedAt: string | null;
   stats: PlayerCardStats | null;
   artSrc?: string | null;
   // Overrides the position · level · gender line (e.g. a sample card).
@@ -29,14 +28,14 @@ interface PlayerCardProps {
 // Angular sports-card silhouette: clipped corners top, shield point at the bottom.
 const FRAME = 'polygon(8% 0, 92% 0, 100% 5%, 100% 86%, 50% 100%, 0 86%, 0 5%)';
 
-export function PlayerCard({ name, position, skill, gender, joinedAt, stats, artSrc, subtitle }: PlayerCardProps) {
+export function PlayerCard({ name, position, skill, gender, stats, artSrc, subtitle }: PlayerCardProps) {
   const { t } = useTranslation();
   const pos = position ? POSITION_ABBR[position] : '—';
 
   const statItems = [
-    { label: t('v2.card.played'), value: stats?.played },
-    { label: t('v2.card.upcoming'), value: stats?.upcoming },
-    { label: t('v2.card.memberSince'), value: joinedAt ? formatDateShort(joinedAt).replace(/^\d+\s/, '') : undefined },
+    { label: t('v2.card.games'), value: stats?.played },
+    { label: t('v2.card.attended'), value: stats?.attended },
+    { label: t('v2.card.attendance'), value: stats?.attendancePct != null ? `${stats.attendancePct}%` : undefined },
   ];
 
   return (

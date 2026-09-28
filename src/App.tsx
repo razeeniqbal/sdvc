@@ -34,6 +34,8 @@ const AdminBookingsPage = lazy(() => import('@/pages/admin/AdminBookingsPage'));
 const AdminAttendancePage = lazy(() => import('@/pages/admin/AdminAttendancePage'));
 const AdminWaitingListPage = lazy(() => import('@/pages/admin/AdminWaitingListPage'));
 const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
+const AdminPaymentsPage = lazy(() => import('@/pages/admin/AdminPaymentsPage'));
+const AdminPlayersPage = lazy(() => import('@/pages/admin/AdminPlayersPage'));
 
 // Dev-only design review route; the import is dead-code-eliminated in production builds.
 const V2PreviewPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/V2PreviewPage')) : null;
@@ -81,6 +83,8 @@ function adminRoutes(base: string) {
         <Route path="waiting-list" element={<Lazy><AdminWaitingListPage /></Lazy>} />
       </Route>
       <Route path="bookings" element={<Lazy><AdminBookingsPage /></Lazy>} />
+      <Route path="payments" element={<Lazy><AdminPaymentsPage /></Lazy>} />
+      <Route path="players" element={<Lazy><AdminPlayersPage /></Lazy>} />
       <Route path="settings" element={<Lazy><AdminSettingsPage /></Lazy>} />
       <Route path="*" element={<Navigate to={base} replace />} />
     </>

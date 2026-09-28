@@ -515,7 +515,10 @@
       "upcoming": "Akan Datang",
       "memberSince": "Sejak",
       "tagline": "Lebih dari permainan",
-      "ariaLabel": "Kad pemain VSB untuk {{name}}"
+      "ariaLabel": "Kad pemain VSB untuk {{name}}",
+      "games": "Permainan",
+      "attended": "Hadir",
+      "attendance": "Kehadiran"
     },
     "profile": {
       "title": "Pemain VSB Saya",
@@ -545,6 +548,47 @@
       "tagline": "Kenal · Main · Hubung · Bersama",
       "builtFor": "Dibina untuk komuniti bola tampar.",
       "navLabel": "Pengaki"
+    },
+    "myVsb": {
+      "meta": "VSB Saya",
+      "cancel": "Batal",
+      "setPosition": "Tetapkan posisi & tahap anda",
+      "memberSince": "Ahli sejak {{date}}",
+      "statsNote": "Permainan dan kehadiran dikira daripada tempahan anda sendiri. % kehadiran mengira permainan yang telah ditanda oleh penganjur.",
+      "completeNow": "Lengkapkan sekarang",
+      "nextOnCourt": "Seterusnya di gelanggang",
+      "allGames": "Permainan saya",
+      "noUpcoming": "Belum ada permainan ditempah",
+      "moreUpcoming_one": "+{{count}} lagi permainan ditempah",
+      "moreUpcoming_other": "+{{count}} lagi permainan ditempah",
+      "recent": "Permainan terkini",
+      "viewAllGames": "Lihat semua permainan",
+      "noRecent": "Belum ada permainan lepas.",
+      "edit": "Sunting",
+      "manage": "Urus",
+      "account": "Akaun & keselamatan",
+      "emergencyContact": "Kenalan kecemasan",
+      "password": "Kata laluan",
+      "viewGame": "Lihat permainan"
+    },
+    "games": {
+      "meta": "VSB Saya / Permainan",
+      "title": "Permainan saya",
+      "viewLabel": "Tunjuk permainan",
+      "upcoming": "Akan datang",
+      "past": "Lepas",
+      "later": "Turut ditempah",
+      "search": "Cari sesi atau rujukan",
+      "showCancelled": "Tunjuk yang dibatalkan",
+      "payHint": "Menunggu bayaran ({{amount}}) — buka permainan untuk bayar dan muat naik resit.",
+      "state": {
+        "confirmed": "Disahkan",
+        "awaitingPayment": "Menunggu bayaran",
+        "attended": "Hadir",
+        "missed": "Tidak hadir",
+        "played": "Dimain",
+        "cancelled": "Dibatalkan"
+      }
     }
   }
 }

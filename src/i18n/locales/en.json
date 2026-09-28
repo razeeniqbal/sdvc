@@ -515,7 +515,10 @@
       "upcoming": "Upcoming",
       "memberSince": "Since",
       "tagline": "More than a game",
-      "ariaLabel": "VSB player card for {{name}}"
+      "ariaLabel": "VSB player card for {{name}}",
+      "games": "Games",
+      "attended": "Attended",
+      "attendance": "Attendance"
     },
     "profile": {
       "title": "My VSB Player",
@@ -545,6 +548,47 @@
       "tagline": "People · Play · Connect · Belong",
       "builtFor": "Built for the volleyball community.",
       "navLabel": "Footer"
+    },
+    "myVsb": {
+      "meta": "My VSB",
+      "cancel": "Cancel",
+      "setPosition": "Set your position & level",
+      "memberSince": "Member since {{date}}",
+      "statsNote": "Games and attendance come from your own bookings. Attendance % counts games the organiser has marked.",
+      "completeNow": "Complete now",
+      "nextOnCourt": "Next on court",
+      "allGames": "My games",
+      "noUpcoming": "No games booked yet",
+      "moreUpcoming_one": "+{{count}} more game booked",
+      "moreUpcoming_other": "+{{count}} more games booked",
+      "recent": "Recent games",
+      "viewAllGames": "View all games",
+      "noRecent": "No past games yet.",
+      "edit": "Edit",
+      "manage": "Manage",
+      "account": "Account & safety",
+      "emergencyContact": "Emergency contact",
+      "password": "Password",
+      "viewGame": "View game"
+    },
+    "games": {
+      "meta": "My VSB / Games",
+      "title": "My games",
+      "viewLabel": "Show games",
+      "upcoming": "Upcoming",
+      "past": "Past",
+      "later": "Also booked",
+      "search": "Search session or reference",
+      "showCancelled": "Show cancelled",
+      "payHint": "Awaiting payment ({{amount}}) — open the game to pay and upload your receipt.",
+      "state": {
+        "confirmed": "Confirmed",
+        "awaitingPayment": "Awaiting payment",
+        "attended": "Attended",
+        "missed": "Missed",
+        "played": "Played",
+        "cancelled": "Cancelled"
+      }
     }
   }
 }

@@ -72,7 +72,7 @@ export default function V2PreviewPage() {
 
       <section className="vsb-section grid items-start gap-10 border-t border-ink-600 md:grid-cols-2">
         <div className="w-[19rem]">
-          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" gender="Male" joinedAt="2026-03-01T00:00:00Z" stats={{ played: 24, upcoming: 2 }} />
+          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" gender="Male" stats={{ played: 24, attended: 22, attendancePct: 92 }} />
         </div>
         <div className="space-y-6">
           <BookingSteps current={1} />

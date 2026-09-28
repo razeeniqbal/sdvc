@@ -18,7 +18,12 @@ Two experiences, one design system:
   navbar/footer. Attendance and the waiting list live inside the session
   workspace (/admin/sessions/:id/…), never in global admin nav. Admin uses
   `.adm-*` primitives and `AdminUI` (Stat, OpsBadge, SectionTitle); don't reuse
-  player components like SessionCard there.
+  player components like SessionCard there. Booking/payment actions live once
+  in `lib/adminBookings.ts` and the shared `BookingDetailSheet` — Bookings,
+  Payments and the session workspace all use them; never re-implement them.
+- **Player stats** come from `lib/myGames.ts`: games = past non-cancelled own
+  bookings, attended = marked present, attendance % = attended ÷ marked games
+  (shown as "–" until something is marked). Never estimate unmarked games.
 - Player session details is one scrollable page (no tabs); tabs are for
   operational context switching (admin session workspace).
 

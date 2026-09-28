@@ -206,11 +206,12 @@ export default function AdminSessionFormPage() {
         Back to sessions
       </Link>
 
-      <h1 className="text-xl sm:text-2xl font-semibold text-chalk mb-6">{isEdit ? 'Edit Session' : 'Create Session'}</h1>
+      <p className="adm-label mb-2">Operations / Sessions</p>
+      <h1 className="adm-title mb-8">{isEdit ? 'Edit session' : 'Create session'}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-5">
-        <div className="v2-surface p-6 space-y-4">
-          <h2 className="font-bold text-chalk">Session Details</h2>
+        <div className="border-t border-ink-600 py-6 space-y-4">
+          <h2 className="font-display text-lg font-bold uppercase tracking-[0.12em] text-chalk">Session Details</h2>
 
           <div>
             <label className={labelClass}>Session Title *</label>
@@ -253,8 +254,8 @@ export default function AdminSessionFormPage() {
           </div>
         </div>
 
-        <div className="v2-surface p-6 space-y-4">
-          <h2 className="font-bold text-chalk">Venue Information</h2>
+        <div className="border-t border-ink-600 py-6 space-y-4">
+          <h2 className="font-display text-lg font-bold uppercase tracking-[0.12em] text-chalk">Venue Information</h2>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -284,8 +285,8 @@ export default function AdminSessionFormPage() {
           </div>
         </div>
 
-        <div className="v2-surface p-6 space-y-4">
-          <h2 className="font-bold text-chalk">Pricing & Capacity</h2>
+        <div className="border-t border-ink-600 py-6 space-y-4">
+          <h2 className="font-display text-lg font-bold uppercase tracking-[0.12em] text-chalk">Pricing & Capacity</h2>
 
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
@@ -315,14 +316,14 @@ export default function AdminSessionFormPage() {
           </div>
         </div>
 
-        <div className="v2-surface p-6 space-y-4">
-          <h2 className="font-bold text-chalk">Notes for Players</h2>
+        <div className="border-t border-ink-600 py-6 space-y-4">
+          <h2 className="font-display text-lg font-bold uppercase tracking-[0.12em] text-chalk">Notes for Players</h2>
           <textarea className={inputClass} rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes visible to players" />
         </div>
 
         {/* Recurring sessions */}
         {!isEdit && (
-          <div className="v2-surface p-6 space-y-4">
+          <div className="border-t border-ink-600 py-6 space-y-4">
             <button type="button" onClick={() => setShowRecurring(!showRecurring)} className="flex items-center gap-2 font-bold text-chalk">
               <Repeat className="h-5 w-5 text-vsb-400" />
               Recurring Sessions

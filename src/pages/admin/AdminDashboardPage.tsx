@@ -67,13 +67,13 @@ export default function AdminDashboardPage() {
   const tbcWithPlayers = upcoming.filter((s) => s.price === 0 && s.active_count > 0);
 
   const attention: AttentionItem[] = [];
-  if (receiptsToVerify.length) attention.push({ key: 'receipts', tone: 'attention', count: receiptsToVerify.length, title: 'Receipts to verify', detail: 'Players uploaded payment receipts and are waiting for confirmation.', to: '/admin/bookings', action: 'Review' });
+  if (receiptsToVerify.length) attention.push({ key: 'receipts', tone: 'attention', count: receiptsToVerify.length, title: 'Receipts to verify', detail: 'Players uploaded payment receipts and are waiting for confirmation.', to: '/admin/payments', action: 'Review' });
   if (waitingUpcoming.length) {
     const [sid] = [...waitingBySession.entries()].sort((a, b) => b[1] - a[1])[0];
     attention.push({ key: 'waitlist', tone: 'attention', count: waitingUpcoming.length, title: 'On waiting lists', detail: `Across ${waitingBySession.size} upcoming session${waitingBySession.size > 1 ? 's' : ''}.`, to: `/admin/sessions/${sid}/waiting-list`, action: 'Open queue' });
   }
   if (tbcWithPlayers.length) attention.push({ key: 'tbc', tone: 'attention', count: tbcWithPlayers.length, title: 'Price still TBC', detail: 'Sessions with players booked but no final price set.', to: `/admin/sessions/${tbcWithPlayers[0].id}/edit`, action: 'Set price' });
-  if (unpaidNoReceipt.length) attention.push({ key: 'unpaid', tone: 'neutral', count: unpaidNoReceipt.length, title: 'Unpaid, no receipt yet', detail: 'Booked slots awaiting payment from the player.', to: '/admin/bookings', action: 'View' });
+  if (unpaidNoReceipt.length) attention.push({ key: 'unpaid', tone: 'neutral', count: unpaidNoReceipt.length, title: 'Unpaid, no receipt yet', detail: 'Booked slots awaiting payment from the player.', to: '/admin/payments?queue=awaiting', action: 'View' });
   almostFull.slice(0, 3).forEach((s) => attention.push({ key: `af-${s.id}`, tone: 'info', count: s.maximum_capacity - s.active_count, title: `Spots left · ${s.title}`, detail: 'Almost full — consider a Telegram blast or a second court.', to: `/admin/sessions/${s.id}`, action: 'Manage' }));
 
   // ---- Booking activity: last 14 days ----

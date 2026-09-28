@@ -187,7 +187,7 @@ export default function LandingPage() {
             <img src="/brand/players/player-01.webp" alt="" width={274} height={542} loading="lazy"
               className="hidden h-[26rem] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:block lg:h-[32rem]" />
             <div className="w-[17rem] sm:w-[19rem]">
-              <PlayerCard name={t('v2.landing.cardName')} position={null} skill={null} gender={null} joinedAt={null}
+              <PlayerCard name={t('v2.landing.cardName')} position={null} skill={null} gender={null}
                 stats={null} artSrc="/brand/players/player-01.webp" subtitle={t('v2.landing.cardSub')} />
             </div>
           </div>
