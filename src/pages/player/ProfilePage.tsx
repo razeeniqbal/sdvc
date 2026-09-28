@@ -157,8 +157,8 @@ export default function ProfilePage() {
     <div className="bg-ink text-chalk">
       {/* ===== Identity ===== */}
       <section id="card" aria-labelledby="myvsb-name" className="vsb-gutter relative scroll-mt-16 overflow-hidden border-b border-ink-600 py-10 lg:py-16">
-        <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,24rem)_minmax(0,1fr)] xl:gap-16">
-          <div className="mx-auto w-full max-w-[24rem] lg:mx-0">
+        <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,26rem)_minmax(0,1fr)] xl:grid-cols-[minmax(0,28rem)_minmax(0,1fr)] xl:gap-16">
+          <div className="mx-auto w-full max-w-[24rem] lg:mx-0 lg:max-w-none">
             <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level}
               games={activity ? activity.games : null} tags={cardTags} artSrc={avatar?.image} />
             {!avatar && (
@@ -170,9 +170,6 @@ export default function ProfilePage() {
           <div>
             <p className="vsb-meta mb-3">{t('v2.myVsb.meta')}</p>
             <h1 id="myvsb-name" className="vsb-display text-5xl sm:text-6xl lg:text-7xl">{displayName}</h1>
-            <p className="mt-3 font-display text-2xl font-bold uppercase tracking-wide text-vsb-300">
-              {[profile.playing_position && t(POSITION_KEY[profile.playing_position]), profile.skill_level && t(SKILL_LEVEL_KEY[profile.skill_level])].filter(Boolean).join(' · ') || t('v2.myVsb.setPosition')}
-            </p>
             <p className="vsb-meta mt-2">{t('v2.myVsb.vsbMember', { date: memberSince.toUpperCase() })}</p>
 
             <dl className="mt-8 grid max-w-xl grid-cols-3 gap-6 border-t border-ink-600 pt-6">

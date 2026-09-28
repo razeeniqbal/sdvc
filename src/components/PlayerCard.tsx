@@ -34,6 +34,13 @@ interface PlayerCardProps {
 // Sports-card silhouette: clipped top corners, shield point at the bottom.
 const FRAME = 'polygon(9% 0, 91% 0, 100% 6%, 100% 84%, 50% 100%, 0 84%, 0 6%)';
 const PLATE = 'polygon(3% 0, 97% 0, 100% 50%, 97% 100%, 3% 100%, 0 50%)';
+// Where the character sits (relative to the card inside its 3px border).
+// Generated art keeps transparent margins, so the box starts above the card:
+// the head rises past the top edge; the legs fade out behind the panel.
+const ART_BOX = 'absolute -top-[9%] bottom-[12%] left-[20%] right-[-12%] flex items-end justify-center';
+// The pop-out copy shows only this band, so the head overlaps the frame while
+// everything lower stays inside the card.
+const POP_BAND = 'polygon(0 -25%, 100% -25%, 100% 18%, 0 18%)';
 
 export function PlayerCard({ name, position, skill, games, tags = [], artSrc, subtitle }: PlayerCardProps) {
   const { t } = useTranslation();
@@ -43,10 +50,10 @@ export function PlayerCard({ name, position, skill, games, tags = [], artSrc, su
 
   return (
     <figure
-      className="relative mx-auto aspect-[5/7] w-full max-w-[380px] bg-gradient-to-b from-vsb-400 via-vsb-600 to-[#C9A36A] p-[3px] drop-shadow-[0_14px_34px_rgba(22,139,255,0.28)] [container-type:inline-size]"
-      style={{ clipPath: FRAME }}
+      className={`relative mx-auto aspect-[5/7] w-full max-w-[440px] [container-type:inline-size] ${artSrc ? 'mt-[8%]' : ''}`}
       aria-label={t('v2.card.ariaLabel', { name })}
     >
+      <div className="absolute inset-0 bg-gradient-to-b from-vsb-400 via-vsb-600 to-[#C9A36A] p-[3px] drop-shadow-[0_14px_34px_rgba(22,139,255,0.28)]" style={{ clipPath: FRAME }}>
       <div className="relative h-full overflow-hidden bg-ink" style={{ clipPath: FRAME }}>
         {/* ---- HERO ---- */}
         <img src={vsbAssets.hero.cardArena.src} alt="" width={vsbAssets.hero.cardArena.width} height={vsbAssets.hero.cardArena.height}
@@ -55,10 +62,7 @@ export function PlayerCard({ name, position, skill, games, tags = [], artSrc, su
         <div className="pointer-events-none absolute inset-[5px] border border-[#C9A36A]/35" style={{ clipPath: FRAME }} aria-hidden />
 
         {artSrc ? (
-          // Generated art keeps transparent margins; the box runs from above
-          // the frame to well below the identity panel so the character fills
-          // the hero region and its legs fade out behind the panel.
-          <div className="absolute -top-[2%] bottom-[5%] left-[20%] right-[-12%] z-10 flex items-end justify-center">
+          <div className={`${ART_BOX} z-10`}>
             <img src={artSrc} alt="" decoding="async" className="h-full w-auto max-w-none object-contain object-bottom drop-shadow-[0_12px_20px_rgba(0,0,0,0.55)]" />
           </div>
         ) : (
@@ -123,6 +127,17 @@ export function PlayerCard({ name, position, skill, games, tags = [], artSrc, su
           {t('v2.card.tagline')}
         </p>
       </div>
+      </div>
+
+      {/* Pop-out: the same art, aligned pixel for pixel with the copy inside,
+          shown only in the head band so the head breaks over the top edge. */}
+      {artSrc && (
+        <div className="pointer-events-none absolute inset-[3px] z-30" style={{ clipPath: POP_BAND }} aria-hidden>
+          <div className={ART_BOX}>
+            <img src={artSrc} alt="" decoding="async" className="h-full w-auto max-w-none object-contain object-bottom" />
+          </div>
+        </div>
+      )}
     </figure>
   );
 }
