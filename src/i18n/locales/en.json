@@ -431,6 +431,33 @@
       "tabRules": "Rules",
       "tabLocation": "Location",
       "confirmedCapacity": "{{confirmed}} / {{max}} joined"
+    },
+    "booking": {
+      "stepBook": "Book",
+      "stepPayment": "Payment",
+      "stepConfirm": "Confirm",
+      "stepDone": "done",
+      "progressLabel": "Booking progress",
+      "players": "Players",
+      "companionN": "Player {{n}}",
+      "pricePerPlayer": "Price per player",
+      "onCourt": "You're on court.",
+      "viewBooking": "View Booking",
+      "viewSession": "View Session"
+    },
+    "card": {
+      "played": "Played",
+      "upcoming": "Upcoming",
+      "memberSince": "Since",
+      "tagline": "More than a game",
+      "ariaLabel": "VSB player card for {{name}}"
+    },
+    "profile": {
+      "title": "My VSB Player",
+      "volleyballProfile": "Volleyball profile",
+      "position": "Position",
+      "notSet": "Not set",
+      "cardNote": "Your card updates automatically from your bookings."
     }
   }
 }

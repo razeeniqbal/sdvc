@@ -35,13 +35,11 @@ const AdminSettingsPage = lazy(() => import('@/pages/admin/AdminSettingsPage'));
 // Dev-only design review route; the import is dead-code-eliminated in production builds.
 const V2PreviewPage = import.meta.env.DEV ? lazy(() => import('@/pages/dev/V2PreviewPage')) : null;
 
-// Screens already moved onto the V2 (dark) brand. Everything else keeps the V1
-// light page background until its milestone lands.
-const V2_ROUTES = /^\/($|sessions(\/|$)|login|register|forgot-password|reset-password|__v2-preview)/;
-
+// Every player-facing screen is on the V2 (dark) brand. Admin stays on a light,
+// data-dense background by design (PRD §21).
 function Shell({ children }: { children: ReactNode }) {
   const { pathname } = useLocation();
-  const bg = V2_ROUTES.test(pathname) ? 'bg-ink' : 'bg-slate-50';
+  const bg = pathname.startsWith('/admin') ? 'bg-slate-50' : 'bg-ink';
   return <div className={`min-h-screen flex flex-col ${bg}`}>{children}</div>;
 }
 

@@ -89,7 +89,7 @@ export default function AdminAttendancePage() {
   if (loading || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-600" />
       </div>
     );
   }
@@ -132,7 +132,7 @@ export default function AdminAttendancePage() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
         <input
           placeholder="Search by name or booking reference..."
-          className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
+          className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
         />
@@ -154,7 +154,7 @@ export default function AdminAttendancePage() {
               <div key={b.id} className="bg-white rounded-xl border border-slate-200 shadow-sm p-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-navy-100 text-navy-700 font-bold text-sm">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-vsb-100 text-vsb-600 font-bold text-sm">
                       {bookingDisplayName(b, b.profile).charAt(0).toUpperCase()}
                     </div>
                     <div>

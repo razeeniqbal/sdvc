@@ -145,7 +145,7 @@ export default function AdminSessionsPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-600" />
       </div>
     );
   }
@@ -157,7 +157,7 @@ export default function AdminSessionsPage() {
           <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Session Management</h1>
           <p className="text-slate-500 text-sm mt-1">Create, edit, and manage volleyball sessions</p>
         </div>
-        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all">
+        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all">
           <Plus className="h-5 w-5" />
           Create Session
         </Link>
@@ -168,7 +168,7 @@ export default function AdminSessionsPage() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
           <input
             placeholder="Search by title or venue..."
-            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
+            className="w-full pl-10 pr-4 py-2.5 rounded-lg border border-slate-200 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -200,7 +200,7 @@ export default function AdminSessionsPage() {
             {timeFilter === 'past' ? 'Sessions move here automatically once their date has passed.' : 'Create your first volleyball session.'}
           </p>
           {timeFilter !== 'past' && (
-            <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all">
+            <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all">
               <Plus className="h-5 w-5" />
               Create Session
             </Link>
@@ -241,7 +241,7 @@ export default function AdminSessionsPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-1">
-                      <Link to={`/admin/sessions/${s.id}/edit`} className="p-2 text-slate-400 hover:text-navy-700 rounded-lg hover:bg-navy-50 transition-colors" title="Edit">
+                      <Link to={`/admin/sessions/${s.id}/edit`} className="p-2 text-slate-400 hover:text-vsb-600 rounded-lg hover:bg-vsb-50 transition-colors" title="Edit">
                         <Edit className="h-4 w-4" />
                       </Link>
                       <button onClick={() => setDeleteId(s.id)} className="p-2 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors" title="Delete">

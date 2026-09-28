@@ -235,12 +235,12 @@ export default function AdminBookingsPage() {
   if (loading && bookings.length === 0) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-600" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none';
+  const inputClass = 'w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none';
   // Editable while unpaid so it can be corrected if the session price changed after
   // booking; the input defaults to the session's current price, not the stale snapshot
   // taken when the booking was created.
@@ -285,7 +285,7 @@ export default function AdminBookingsPage() {
             type="checkbox"
             checked={hideCancelled}
             onChange={(e) => { setPage(0); setHideCancelled(e.target.checked); }}
-            className="h-4 w-4 rounded border-slate-300 text-navy-600 focus:ring-navy-500"
+            className="h-4 w-4 rounded border-slate-300 text-vsb-600 focus:ring-vsb-500"
           />
           Hide cancelled bookings
         </label>
@@ -303,7 +303,7 @@ export default function AdminBookingsPage() {
             <button
               key={b.id}
               onClick={() => { setSelected(b); setAmountInput((b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toString()); }}
-              className="w-full text-left bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover:border-navy-300 hover:shadow-md transition-all"
+              className="w-full text-left bg-white rounded-2xl border border-slate-200 shadow-sm p-4 hover:border-vsb-300 hover:shadow-md transition-all"
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -362,7 +362,7 @@ export default function AdminBookingsPage() {
                   </td>
                   <td className="px-4 py-3 text-right text-sm font-bold text-slate-900">{formatCurrency(b.payment_status !== 'Paid' ? b.session.price : b.total_amount)}</td>
                   <td className="px-4 py-3 text-right">
-                    <button onClick={() => { setSelected(b); setAmountInput((b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toString()); }} className="p-2 text-slate-400 hover:text-navy-700 rounded-lg hover:bg-navy-50 transition-colors">
+                    <button onClick={() => { setSelected(b); setAmountInput((b.payment_status !== 'Paid' ? b.session.price : b.total_amount).toString()); }} className="p-2 text-slate-400 hover:text-vsb-600 rounded-lg hover:bg-vsb-50 transition-colors">
                       <Eye className="h-4 w-4" />
                     </button>
                   </td>
@@ -449,7 +449,7 @@ export default function AdminBookingsPage() {
                       <span className="text-slate-500">Final Amount (RM)</span>
                       <input
                         type="number" step="0.01" min="0"
-                        className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
+                        className="w-28 rounded-lg border border-slate-300 px-2 py-1 text-right text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none"
                         value={amountInput}
                         onChange={(e) => setAmountInput(e.target.value)}
                       />
@@ -556,7 +556,7 @@ function AdminNotes({ booking, onUpdate }: { booking: AdminBooking; onUpdate: ()
     <div>
       <h3 className="font-bold text-slate-900 mb-2 text-sm">Admin Notes</h3>
       <textarea
-        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
+        className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none"
         rows={2}
         value={notes}
         onChange={(e) => setNotes(e.target.value)}

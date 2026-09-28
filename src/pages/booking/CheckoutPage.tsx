@@ -12,6 +12,8 @@ import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import type { Session, Booking } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 import { PasskeyGate } from '@/components/PasskeyGate';
+import { BookingSteps } from '@/components/BookingSteps';
+import { PlayerAvatar } from '@/components/PlayerAvatar';
 
 interface Companion {
   name: string;
@@ -207,7 +209,7 @@ export default function CheckoutPage() {
   if (loading || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-500" />
       </div>
     );
   }
@@ -215,7 +217,7 @@ export default function CheckoutPage() {
   if (needsPasskey && !unlocked) {
     return (
       <div className="max-w-md mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4">
+        <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-4">
           <ArrowLeft className="h-4 w-4" />
           {t('checkout.backToSession')}
         </Link>
@@ -224,18 +226,21 @@ export default function CheckoutPage() {
     );
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none transition-colors';
-  const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
+  const inputClass = 'v2-input !py-2.5 !text-base';
+  const labelClass = 'block text-sm font-medium text-slate-200 mb-1.5';
   const totalPlayers = 1 + companions.length;
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4">
+      <Link to={`/sessions/${session.id}`} className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-4">
         <ArrowLeft className="h-4 w-4" />
         {t('checkout.backToSession')}
       </Link>
 
-      <h1 className="text-xl sm:text-2xl font-semibold text-slate-900 mb-6">{t('checkout.title')}</h1>
+      <div className="mb-6 space-y-4">
+        <BookingSteps current={1} />
+        <h1 className="v2-heading text-3xl sm:text-4xl">{t('checkout.title')}</h1>
+      </div>
 
       {/* A single <form> acts as the grid container so `order` can resequence the three
           sections independently of the DOM: on mobile that puts the summary between the
@@ -244,8 +249,11 @@ export default function CheckoutPage() {
           into place as fields+policy stacked on the left and summary spanning the right. */}
       <form onSubmit={handleSubmit} className="grid lg:grid-cols-3 gap-6">
         {/* Player details (order 1) */}
-        <div className="lg:col-span-2 order-1 bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
-          <h2 className="font-bold text-slate-900 mb-4">{t('checkout.playerDetails')}</h2>
+        <div className="lg:col-span-2 order-1 v2-surface p-6">
+          <div className="mb-4 flex items-center gap-3">
+            <PlayerAvatar name={form.short_name || profile?.full_name || '?'} size="md" />
+            <h2 className="v2-heading text-xl">{t('checkout.playerDetails')}</h2>
+          </div>
           <div className="grid sm:grid-cols-2 gap-4">
             <div>
               <label className={labelClass}>{t('checkout.displayName')}</label>
@@ -269,9 +277,9 @@ export default function CheckoutPage() {
           </div>
 
           {/* Companions */}
-          <div className="border-t border-slate-200 pt-4 mt-4">
-            <h3 className="font-semibold text-slate-900 text-sm">{t('checkout.companionsTitle')}</h3>
-            <p className="text-xs text-slate-500 mb-3">{t('checkout.companionsSubtitle')}</p>
+          <div className="border-t border-ink-600 pt-4 mt-4">
+            <h3 className="font-semibold text-chalk text-sm">{t('checkout.companionsTitle')}</h3>
+            <p className="text-xs text-slate-400 mb-3">{t('checkout.companionsSubtitle')}</p>
             <div className="space-y-3">
               {companions.map((c, i) => (
                 <div key={i} className="flex items-start gap-2">
@@ -303,7 +311,7 @@ export default function CheckoutPage() {
                     type="button"
                     onClick={() => removeCompanion(i)}
                     title={t('checkout.removeCompanion')}
-                    className="mt-2.5 p-1.5 text-slate-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors flex-shrink-0"
+                    className="mt-2.5 p-1.5 text-slate-400 hover:text-red-400 rounded-lg hover:bg-red-500/10 transition-colors flex-shrink-0"
                   >
                     <X className="h-4 w-4" />
                   </button>
@@ -313,7 +321,7 @@ export default function CheckoutPage() {
             <button
               type="button"
               onClick={addCompanion}
-              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 hover:text-navy-800"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300"
             >
               <UserPlus className="h-4 w-4" />
               {t('checkout.addCompanion')}
@@ -323,49 +331,70 @@ export default function CheckoutPage() {
 
         {/* Summary (order 2 on mobile; spans both rows on the right on desktop) */}
         <div className="order-2 lg:row-span-2">
-          <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 lg:sticky lg:top-20">
-            <h2 className="font-bold text-slate-900 mb-4">{t('checkout.bookingSummary')}</h2>
+          <div className="v2-surface p-6 lg:sticky lg:top-20">
+            <h2 className="v2-heading text-xl mb-4">{t('checkout.bookingSummary')}</h2>
             <div className="space-y-3 text-sm">
               <div>
-                <p className="text-slate-500">{t('checkout.sessionLabel')}</p>
-                <p className="font-semibold text-slate-900">{session.title}</p>
+                <p className="text-slate-400">{t('checkout.sessionLabel')}</p>
+                <p className="font-semibold text-chalk">{session.title}</p>
               </div>
               <div>
-                <p className="text-slate-500">{t('checkout.dateTimeLabel')}</p>
-                <p className="font-medium text-slate-900">{formatDate(session.session_date)}</p>
-                <p className="text-slate-600">{formatTime(session.start_time)} - {formatTime(session.end_time)}</p>
+                <p className="text-slate-400">{t('checkout.dateTimeLabel')}</p>
+                <p className="font-medium text-chalk">{formatDate(session.session_date)}</p>
+                <p className="text-slate-300">{formatTime(session.start_time)} - {formatTime(session.end_time)}</p>
               </div>
               <div>
-                <p className="text-slate-500">{t('checkout.venueLabel')}</p>
-                <p className="font-medium text-slate-900">{session.venue_name}</p>
+                <p className="text-slate-400">{t('checkout.venueLabel')}</p>
+                <p className="font-medium text-chalk">{session.venue_name}</p>
               </div>
-              <div className="flex justify-between pt-3 border-t border-slate-200">
-                <span className="text-slate-500">{t('checkout.totalPlayers')}</span>
-                <span className="font-semibold text-slate-900">{totalPlayers}</span>
+              <div className="pt-3 border-t border-ink-600">
+                <p className="text-slate-400 mb-2">{t('v2.booking.players')}</p>
+                <ul className="space-y-1.5">
+                  <li className="flex items-center gap-2">
+                    <PlayerAvatar name={form.short_name || '?'} size="xs" />
+                    <span className="font-medium text-chalk truncate">{form.short_name || profile?.full_name}</span>
+                  </li>
+                  {companions.map((c, i) => (
+                    <li key={i} className="flex items-center gap-2">
+                      <PlayerAvatar name={c.name || '?'} guest size="xs" />
+                      <span className="truncate text-slate-300">{c.name.trim() || t('v2.booking.companionN', { n: i + 1 })}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-400">{t('checkout.totalPlayers')}</span>
+                <span className="font-semibold text-chalk">{totalPlayers}</span>
               </div>
               {session.price > 0 && (
                 <div className="flex justify-between">
-                  <span className="text-slate-500">{t('bookingConfirmation.amountDue')}</span>
-                  <span className="font-bold text-slate-900">{formatCurrency(session.price * totalPlayers)}</span>
+                  <span className="text-slate-400">{t('v2.booking.pricePerPlayer')}</span>
+                  <span className="text-chalk">{formatCurrency(session.price)}</span>
+                </div>
+              )}
+              {session.price > 0 && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">{t('bookingConfirmation.amountDue')}</span>
+                  <span className="font-display text-2xl font-bold text-chalk">{formatCurrency(session.price * totalPlayers)}</span>
                 </div>
               )}
             </div>
-            <div className="mt-4 flex items-center gap-2 text-xs text-slate-500 bg-slate-50 rounded-lg p-3">
-              <Clock className="h-4 w-4 text-navy-500 flex-shrink-0" />
+            <div className="mt-4 flex items-center gap-2 text-xs text-slate-400 bg-ink-850 rounded-lg p-3">
+              <Clock className="h-4 w-4 text-vsb-400 flex-shrink-0" />
               {t('checkout.lockedNotice')}
             </div>
           </div>
         </div>
 
         {/* Policy + submit (order 3) */}
-        <div className="lg:col-span-2 order-3 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+        <div className="lg:col-span-2 order-3 v2-surface p-6 space-y-4">
           {/* Cancellation policy */}
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+          <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-4">
             <div className="flex items-start gap-2 mb-3">
-              <ShieldCheck className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
+              <ShieldCheck className="h-5 w-5 text-amber-400 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-amber-900 text-sm mb-1">{t('checkout.policyTitle')}</p>
-                <ul className="text-xs text-amber-800 space-y-1">
+                <p className="font-semibold text-amber-200 text-sm mb-1">{t('checkout.policyTitle')}</p>
+                <ul className="text-xs text-amber-300 space-y-1">
                   <li>• {t('checkout.policyRule1')}</li>
                   <li>• {t('checkout.policyRule2')}</li>
                   <li>• {t('checkout.policyRule3')}</li>
@@ -374,17 +403,17 @@ export default function CheckoutPage() {
               </div>
             </div>
             <label className="flex items-start gap-2 cursor-pointer">
-              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-slate-300 text-navy-600 focus:ring-navy-500" />
-              <span className="text-sm text-amber-900">{t('checkout.agreeLabel')}</span>
+              <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 rounded border-ink-500 accent-[#168BFF] bg-ink-850" />
+              <span className="text-sm text-amber-200">{t('checkout.agreeLabel')}</span>
             </label>
           </div>
 
-          <p className="text-xs text-slate-500 text-center">{t('checkout.noPaymentYetNote')}</p>
+          <p className="text-xs text-slate-400 text-center">{t('checkout.noPaymentYetNote')}</p>
 
           <button
             type="submit"
             disabled={submitting || !agreed}
-            className="w-full py-3.5 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2"
+            className="v2-btn-primary w-full !py-3.5 text-lg"
           >
             {submitting && <Spinner className="h-5 w-5" />}
             {submitting ? t('checkout.lockingSlot') : totalPlayers > 1 ? t('checkout.lockSlotsButton', { count: totalPlayers }) : t('checkout.lockMySlot')}

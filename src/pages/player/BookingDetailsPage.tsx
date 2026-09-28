@@ -175,7 +175,7 @@ export default function BookingDetailsPage() {
   if (loading || !booking || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-500" />
       </div>
     );
   }
@@ -195,16 +195,18 @@ export default function BookingDetailsPage() {
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-      <Link to="/bookings" className="inline-flex items-center gap-1.5 text-sm text-slate-500 hover:text-slate-700 mb-4">
+      <Link to="/bookings" className="inline-flex items-center gap-1.5 text-sm text-slate-400 hover:text-white mb-4">
         <ArrowLeft className="h-4 w-4" />
         {t('bookingDetails.backToBookings')}
       </Link>
 
-      <div className="bg-white border border-slate-200 shadow-sm rounded-2xl overflow-hidden">
-        <div className="bg-navy-900 p-6">
+      <div className="v2-surface overflow-hidden">
+        <div className="relative overflow-hidden border-b border-ink-600 p-6">
+          <img src="/brand/court-horizontal.webp" alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+          <div className="relative">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-xl font-bold text-white">{session.title}</h1>
+              <h1 className="font-display text-3xl font-extrabold uppercase leading-none tracking-tight text-chalk">{session.title}</h1>
               <p className="font-mono text-sm text-slate-400 mt-1">{booking.booking_reference}</p>
               {booking.is_guest && (
                 <p className="text-sm text-slate-300 mt-1">{t('myBookings.bookingFor', { name: booking.guest_name })}</p>
@@ -225,12 +227,13 @@ export default function BookingDetailsPage() {
               <StatusBadge status={booking.booking_status} />
             </div>
           </div>
+          </div>
         </div>
 
         <div className="p-6 space-y-6">
           {/* Session info */}
           <div>
-            <h2 className="font-bold text-slate-900 mb-3">{t('bookingDetails.sessionDetails')}</h2>
+            <h2 className="v2-heading text-lg mb-3">{t('bookingDetails.sessionDetails')}</h2>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <InfoItem icon={Calendar} label={t('bookingDetails.dateLabel')} value={formatDate(session.session_date)} />
               <InfoItem icon={Clock} label={t('bookingDetails.timeLabel')} value={`${formatTime(session.start_time)} - ${formatTime(session.end_time)}`} />
@@ -239,7 +242,7 @@ export default function BookingDetailsPage() {
               <InfoItem icon={Users} label={t('sessionDetails.capacityLabel')} value={t('bookingDetails.capacityValue', { count: session.maximum_capacity })} />
             </div>
             {session.maps_link && (
-              <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-navy-700 font-medium text-sm mt-3 hover:underline">
+              <a href={session.maps_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1.5 text-vsb-400 font-medium text-sm mt-3 hover:underline">
                 <MapPin className="h-4 w-4" />
                 {t('bookingDetails.viewOnMaps')}
               </a>
@@ -248,25 +251,25 @@ export default function BookingDetailsPage() {
 
           {/* Payment info */}
           <div>
-            <h2 className="font-bold text-slate-900 mb-3">{t('bookingDetails.paymentDetails')}</h2>
-            <div className="bg-slate-50 rounded-xl p-4 space-y-2 text-sm">
-              <div className="flex justify-between"><span className="text-slate-500">{t('bookingDetails.sessionFee')}</span><span className="font-medium">{formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.subtotal)}</span></div>
-              {booking.processing_fee > 0 && <div className="flex justify-between"><span className="text-slate-500">{t('bookingDetails.processingFee')}</span><span className="font-medium">{formatCurrency(booking.processing_fee)}</span></div>}
-              {booking.discount_amount > 0 && <div className="flex justify-between text-green-600"><span>{t('bookingDetails.discount')}</span><span>-{formatCurrency(booking.discount_amount)}</span></div>}
-              <div className="flex justify-between pt-2 border-t border-slate-200"><span className="font-bold text-slate-900">{t('bookingDetails.total')}</span><span className="text-lg font-bold text-navy-800">{formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.total_amount)}</span></div>
+            <h2 className="v2-heading text-lg mb-3">{t('bookingDetails.paymentDetails')}</h2>
+            <div className="bg-ink-850 rounded-xl p-4 space-y-2 text-sm">
+              <div className="flex justify-between"><span className="text-slate-400">{t('bookingDetails.sessionFee')}</span><span className="font-medium">{formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.subtotal)}</span></div>
+              {booking.processing_fee > 0 && <div className="flex justify-between"><span className="text-slate-400">{t('bookingDetails.processingFee')}</span><span className="font-medium">{formatCurrency(booking.processing_fee)}</span></div>}
+              {booking.discount_amount > 0 && <div className="flex justify-between text-green-400"><span>{t('bookingDetails.discount')}</span><span>-{formatCurrency(booking.discount_amount)}</span></div>}
+              <div className="flex justify-between pt-2 border-t border-ink-600"><span className="font-bold text-chalk">{t('bookingDetails.total')}</span><span className="text-lg font-bold text-chalk">{formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.total_amount)}</span></div>
             </div>
             {payments.length > 0 && (
               <div className="mt-3 space-y-2">
                 {payments.map((p) => (
-                  <div key={p.id} className="flex items-center justify-between text-sm bg-slate-50 rounded-lg p-3">
+                  <div key={p.id} className="flex items-center justify-between text-sm bg-ink-850 rounded-lg p-3">
                     <div className="flex items-center gap-2">
-                      <CreditCard className="h-4 w-4 text-slate-500" />
-                      <span className="text-slate-600">{p.payment_method || t('bookingDetails.paymentFallback')}</span>
-                      <span className="font-mono text-xs text-slate-500">{p.transaction_reference}</span>
+                      <CreditCard className="h-4 w-4 text-slate-400" />
+                      <span className="text-slate-300">{p.payment_method || t('bookingDetails.paymentFallback')}</span>
+                      <span className="font-mono text-xs text-slate-400">{p.transaction_reference}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <PaymentStatusBadge status={p.payment_status} />
-                      <span className="text-slate-900 font-medium">{formatCurrency(p.amount)}</span>
+                      <span className="text-chalk font-medium">{formatCurrency(p.amount)}</span>
                     </div>
                   </div>
                 ))}
@@ -277,23 +280,23 @@ export default function BookingDetailsPage() {
           {/* Attendance */}
           {attendance && (
             <div>
-              <h2 className="font-bold text-slate-900 mb-3">{t('bookingDetails.attendance')}</h2>
-              <div className="bg-slate-50 rounded-xl p-3 text-sm">
-                <span className="text-slate-500">{t('bookingDetails.statusLabel')} </span>
-                <span className="font-medium text-slate-900">{attendance.attendance_status || t('bookingDetails.notRecorded')}</span>
+              <h2 className="v2-heading text-lg mb-3">{t('bookingDetails.attendance')}</h2>
+              <div className="bg-ink-850 rounded-xl p-3 text-sm">
+                <span className="text-slate-400">{t('bookingDetails.statusLabel')} </span>
+                <span className="font-medium text-chalk">{attendance.attendance_status || t('bookingDetails.notRecorded')}</span>
               </div>
             </div>
           )}
 
           {/* Cancellation info */}
           {booking.cancelled_at && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4">
+            <div className="bg-red-500/10 border border-red-500/40 rounded-xl p-4">
               <div className="flex items-start gap-2">
                 <XCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
                 <div>
-                  <p className="font-semibold text-red-900 text-sm">{t('bookingDetails.bookingCancelled')}</p>
-                  <p className="text-red-700 text-sm mt-0.5">{booking.cancellation_reason}</p>
-                  <p className="text-red-600 text-xs mt-1">{t('bookingDetails.cancelledOn', { date: formatDateTime(booking.cancelled_at) })}</p>
+                  <p className="font-semibold text-red-200 text-sm">{t('bookingDetails.bookingCancelled')}</p>
+                  <p className="text-red-300 text-sm mt-0.5">{booking.cancellation_reason}</p>
+                  <p className="text-red-400 text-xs mt-1">{t('bookingDetails.cancelledOn', { date: formatDateTime(booking.cancelled_at) })}</p>
                 </div>
               </div>
             </div>
@@ -301,11 +304,11 @@ export default function BookingDetailsPage() {
 
           {/* Awaiting confirmation notice */}
           {awaitingConfirmation && (
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 flex items-start gap-2">
+            <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-4 flex items-start gap-2">
               <AlertTriangle className="h-5 w-5 text-amber-500 flex-shrink-0 mt-0.5" />
               <div>
-                <p className="font-semibold text-amber-900 text-sm">{t('bookingDetails.awaitingAdminConfirmation')}</p>
-                <p className="text-amber-700 text-sm mt-0.5">{t('bookingDetails.awaitingAdminConfirmationDesc')}</p>
+                <p className="font-semibold text-amber-200 text-sm">{t('bookingDetails.awaitingAdminConfirmation')}</p>
+                <p className="text-amber-300 text-sm mt-0.5">{t('bookingDetails.awaitingAdminConfirmationDesc')}</p>
               </div>
             </div>
           )}
@@ -317,35 +320,35 @@ export default function BookingDetailsPage() {
 
           {/* Add a friend */}
           {canAddFriend && (
-            <div className="bg-slate-50 border border-slate-200 rounded-xl p-4">
+            <div className="bg-ink-850 border border-ink-600 rounded-xl p-4">
               {!showAddFriend ? (
                 <button
                   type="button"
                   onClick={() => setShowAddFriend(true)}
-                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-navy-700 hover:text-navy-800"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300"
                 >
                   <UserPlus className="h-4 w-4" />
                   {t('bookingDetails.addFriend')}
                 </button>
               ) : (
                 <form onSubmit={handleAddFriend}>
-                  <p className="font-semibold text-slate-900 text-sm mb-1">{t('bookingDetails.addFriend')}</p>
-                  <p className="text-xs text-slate-500 mb-3">{t('bookingDetails.addFriendDesc')}</p>
+                  <p className="font-semibold text-chalk text-sm mb-1">{t('bookingDetails.addFriend')}</p>
+                  <p className="text-xs text-slate-400 mb-3">{t('bookingDetails.addFriendDesc')}</p>
                   <div className="grid sm:grid-cols-3 gap-2">
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
+                      className="v2-input"
                       placeholder={t('checkout.companionNamePlaceholder')}
                       value={friendForm.name}
                       onChange={(e) => setFriendForm({ ...friendForm, name: e.target.value })}
                     />
                     <input
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
+                      className="v2-input"
                       placeholder={t('checkout.companionPhone')}
                       value={friendForm.phone}
                       onChange={(e) => setFriendForm({ ...friendForm, phone: e.target.value })}
                     />
                     <select
-                      className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none"
+                      className="v2-input"
                       value={friendForm.gender}
                       onChange={(e) => setFriendForm({ ...friendForm, gender: e.target.value })}
                       required
@@ -359,14 +362,14 @@ export default function BookingDetailsPage() {
                     <button
                       type="button"
                       onClick={() => { setShowAddFriend(false); setFriendForm({ name: '', phone: '', gender: '' }); }}
-                      className="px-4 py-2 bg-white hover:bg-slate-100 text-slate-700 text-sm font-semibold rounded-lg border border-slate-300 transition-colors"
+                      className="px-4 py-2 bg-ink-800 hover:bg-ink-700 text-slate-200 text-sm font-semibold rounded-lg border border-ink-500 transition-colors"
                     >
                       {t('bookingDetails.cancelAddFriend')}
                     </button>
                     <button
                       type="submit"
                       disabled={addingFriend}
-                      className="px-4 py-2 bg-navy-700 hover:bg-navy-800 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
+                      className="px-4 py-2 bg-vsb-500 hover:bg-vsb-400 text-white text-sm font-semibold rounded-lg transition-colors disabled:opacity-60"
                     >
                       {addingFriend ? t('bookingDetails.addingFriend') : t('bookingDetails.saveFriend')}
                     </button>
@@ -381,13 +384,13 @@ export default function BookingDetailsPage() {
             {canCancel && (
               <button
                 onClick={() => setShowCancelDialog(true)}
-                className="flex-1 py-3 bg-red-50 hover:bg-red-100 text-red-600 font-bold rounded-xl border border-red-200 transition-colors"
+                className="flex-1 py-3 bg-red-500/10 hover:bg-red-500/20 text-red-400 font-bold rounded-xl border border-red-500/40 transition-colors"
               >
                 {t('bookingDetails.cancelBooking')}
               </button>
             )}
             {!canCancel && !isPast && booking.booking_status === 'Confirmed' && (
-              <div className="flex-1 py-3 bg-amber-50 text-amber-700 text-sm font-medium rounded-xl border border-amber-200 text-center flex items-center justify-center gap-2">
+              <div className="flex-1 py-3 bg-amber-500/10 text-amber-300 text-sm font-medium rounded-xl border border-amber-500/40 text-center flex items-center justify-center gap-2">
                 <AlertTriangle className="h-4 w-4" />
                 {t('bookingDetails.cancellationPeriodPassed')}
               </div>
@@ -399,20 +402,20 @@ export default function BookingDetailsPage() {
       {/* Cancel dialog */}
       {showCancelDialog && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4" onClick={() => setShowCancelDialog(false)}>
-          <div className="bg-white rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-ink-800 border border-ink-600 rounded-2xl max-w-md w-full p-6" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start gap-3 mb-4">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-100 text-red-600 flex-shrink-0">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-red-500/15 text-red-400 flex-shrink-0">
                 <AlertTriangle className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="font-bold text-slate-900">{t('bookingDetails.cancelDialogTitle')}</h3>
-                <p className="text-sm text-slate-500 mt-1">
+                <h3 className="font-bold text-chalk">{t('bookingDetails.cancelDialogTitle')}</h3>
+                <p className="text-sm text-slate-400 mt-1">
                   <Trans i18nKey="bookingDetails.cancelDialogDesc" components={{ strong: <strong /> }} />
                 </p>
               </div>
             </div>
             <div className="flex gap-3">
-              <button onClick={() => setShowCancelDialog(false)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">
+              <button onClick={() => setShowCancelDialog(false)} className="flex-1 py-2.5 bg-ink-700 hover:bg-ink-600 text-slate-200 font-semibold rounded-lg transition-colors">
                 {t('bookingDetails.keepBooking')}
               </button>
               <button onClick={handleCancel} disabled={cancelling} className="flex-1 py-2.5 bg-red-500 hover:bg-red-600 text-white font-bold rounded-lg transition-colors disabled:opacity-60">
@@ -429,10 +432,10 @@ export default function BookingDetailsPage() {
 function InfoItem({ icon: Icon, label, value }: { icon: LucideIcon; label: string; value: string }) {
   return (
     <div className="flex items-start gap-2.5">
-      <Icon className="h-4 w-4 text-slate-500 flex-shrink-0 mt-0.5" />
+      <Icon className="h-4 w-4 text-slate-400 flex-shrink-0 mt-0.5" />
       <div>
-        <p className="text-xs text-slate-500">{label}</p>
-        <p className="text-sm font-medium text-slate-900">{value}</p>
+        <p className="text-xs text-slate-400">{label}</p>
+        <p className="text-sm font-medium text-chalk">{value}</p>
       </div>
     </div>
   );

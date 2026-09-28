@@ -68,7 +68,7 @@ export default function AdminWaitingListPage() {
   if (loading || !session) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-600" />
       </div>
     );
   }

@@ -67,7 +67,7 @@ export default function AdminDashboardPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-600" />
       </div>
     );
   }
@@ -84,7 +84,7 @@ export default function AdminDashboardPage() {
           <h1 className="text-xl sm:text-2xl font-semibold text-slate-900">Admin Dashboard</h1>
           <p className="text-slate-500 text-sm mt-1">Overview of club activity and performance</p>
         </div>
-        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all">
+        <Link to="/admin/sessions/new" className="inline-flex items-center gap-2 px-5 py-2.5 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all">
           <Plus className="h-5 w-5" />
           Create Session
         </Link>
@@ -92,7 +92,7 @@ export default function AdminDashboardPage() {
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-        <SummaryCard icon={CalendarDays} label="Upcoming Sessions" value={sessions.length.toString()} color="bg-navy-100 text-navy-700" />
+        <SummaryCard icon={CalendarDays} label="Upcoming Sessions" value={sessions.length.toString()} color="bg-vsb-100 text-vsb-600" />
         <SummaryCard icon={Ticket} label="Confirmed Bookings" value={totalConfirmed.toString()} color="bg-green-100 text-green-600" />
         <SummaryCard icon={AlertCircle} label="Awaiting Confirmation" value={awaitingConfirmation.toString()} color="bg-amber-100 text-amber-600" />
         <SummaryCard icon={DollarSign} label="Total Revenue" value={formatCurrency(revenue)} color="bg-green-100 text-green-600" />
@@ -113,7 +113,7 @@ export default function AdminDashboardPage() {
                 <span className="text-xs font-semibold text-slate-700 h-4">{day.count > 0 ? day.count : ''}</span>
                 <div className="relative w-full flex-1 min-h-0 bg-slate-100 rounded-md overflow-hidden flex items-end">
                   <div
-                    className="w-full bg-navy-600 rounded-md transition-colors hover:bg-navy-700"
+                    className="w-full bg-vsb-600 rounded-md transition-colors hover:bg-vsb-600"
                     style={{ height: day.count > 0 ? `${(day.count / maxWeekly) * 100}%` : 0 }}
                   />
                 </div>

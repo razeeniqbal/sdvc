@@ -431,6 +431,33 @@
       "tabRules": "Peraturan",
       "tabLocation": "Lokasi",
       "confirmedCapacity": "{{confirmed}} / {{max}} menyertai"
+    },
+    "booking": {
+      "stepBook": "Tempah",
+      "stepPayment": "Bayaran",
+      "stepConfirm": "Sahkan",
+      "stepDone": "selesai",
+      "progressLabel": "Kemajuan tempahan",
+      "players": "Pemain",
+      "companionN": "Pemain {{n}}",
+      "pricePerPlayer": "Harga seorang",
+      "onCourt": "Jumpa di gelanggang.",
+      "viewBooking": "Lihat Tempahan",
+      "viewSession": "Lihat Sesi"
+    },
+    "card": {
+      "played": "Dimain",
+      "upcoming": "Akan Datang",
+      "memberSince": "Sejak",
+      "tagline": "Lebih dari permainan",
+      "ariaLabel": "Kad pemain VSB untuk {{name}}"
+    },
+    "profile": {
+      "title": "Pemain VSB Saya",
+      "volleyballProfile": "Profil bola tampar",
+      "position": "Posisi",
+      "notSet": "Belum ditetapkan",
+      "cardNote": "Kad anda dikemas kini secara automatik daripada tempahan anda."
     }
   }
 }

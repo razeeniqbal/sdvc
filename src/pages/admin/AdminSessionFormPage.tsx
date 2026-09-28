@@ -191,12 +191,12 @@ export default function AdminSessionFormPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-600" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-navy-500 focus:ring-2 focus:ring-navy-500/20 outline-none transition-colors';
+  const inputClass = 'w-full rounded-lg border border-slate-300 px-4 py-2.5 text-slate-900 focus:border-vsb-500 focus:ring-2 focus:ring-vsb-500/20 outline-none transition-colors';
   const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
 
   return (
@@ -324,13 +324,13 @@ export default function AdminSessionFormPage() {
         {!isEdit && (
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
             <button type="button" onClick={() => setShowRecurring(!showRecurring)} className="flex items-center gap-2 font-bold text-slate-900">
-              <Repeat className="h-5 w-5 text-navy-600" />
+              <Repeat className="h-5 w-5 text-vsb-600" />
               Recurring Sessions
             </button>
             {showRecurring && (
               <div className="space-y-3">
                 <label className="flex items-center gap-2 cursor-pointer">
-                  <input type="checkbox" checked={recurring.enabled} onChange={(e) => setRecurring({ ...recurring, enabled: e.target.checked })} className="h-4 w-4 rounded border-slate-300 text-navy-600 focus:ring-navy-500" />
+                  <input type="checkbox" checked={recurring.enabled} onChange={(e) => setRecurring({ ...recurring, enabled: e.target.checked })} className="h-4 w-4 rounded border-slate-300 text-vsb-600 focus:ring-vsb-500" />
                   <span className="text-sm text-slate-600">Repeat weekly on the same day and time</span>
                 </label>
                 {recurring.enabled && (
@@ -349,7 +349,7 @@ export default function AdminSessionFormPage() {
           <Link to="/admin/sessions" className="flex-1 py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-center transition-colors">
             Cancel
           </Link>
-          <button type="submit" disabled={saving} className="flex-1 py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2">
+          <button type="submit" disabled={saving} className="flex-1 py-3 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all disabled:opacity-60 flex items-center justify-center gap-2">
             {saving ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
             {saving ? 'Saving...' : isEdit ? 'Update Session' : 'Create Session'}
           </button>

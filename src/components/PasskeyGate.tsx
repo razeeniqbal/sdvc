@@ -33,16 +33,16 @@ export function PasskeyGate({ sessionId, onUnlocked }: PasskeyGateProps) {
   }
 
   return (
-    <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+    <div className="bg-amber-500/10 border border-amber-500/40 rounded-xl p-4">
       <form onSubmit={handleSubmit} className="space-y-3">
         <div className="flex items-center gap-2">
-          <Lock className="h-5 w-5 text-amber-600 flex-shrink-0" />
-          <p className="font-semibold text-amber-900 text-sm">{t('passkey.title')}</p>
+          <Lock className="h-5 w-5 text-amber-400 flex-shrink-0" />
+          <p className="font-semibold text-amber-200 text-sm">{t('passkey.title')}</p>
         </div>
-        <p className="text-xs text-amber-800">{t('passkey.subtitle')}</p>
+        <p className="text-xs text-amber-300">{t('passkey.subtitle')}</p>
         <div className="flex gap-2">
           <input
-            className="flex-1 rounded-lg border border-amber-300 px-3 py-2 text-sm text-slate-900 focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none"
+            className="flex-1 rounded-lg border border-amber-500/50 px-3 py-2 text-sm text-chalk focus:border-amber-500 focus:ring-2 focus:ring-amber-500/20 outline-none"
             value={value}
             onChange={(e) => { setValue(e.target.value); setError(false); }}
             placeholder={t('passkey.placeholder')}
@@ -57,7 +57,7 @@ export function PasskeyGate({ sessionId, onUnlocked }: PasskeyGateProps) {
             {t('passkey.unlock')}
           </button>
         </div>
-        {error && <p className="text-xs text-red-600">{t('passkey.error')}</p>}
+        {error && <p className="text-xs text-red-400">{t('passkey.error')}</p>}
       </form>
     </div>
   );

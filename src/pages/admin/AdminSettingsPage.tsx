@@ -210,12 +210,12 @@ export default function AdminSettingsPage() {
   if (loading) {
     return (
       <div className="min-h-[60vh] flex items-center justify-center">
-        <Spinner className="h-8 w-8 text-navy-600" />
+        <Spinner className="h-8 w-8 text-vsb-600" />
       </div>
     );
   }
 
-  const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none transition-all bg-white';
+  const inputClass = 'w-full rounded-xl border border-slate-200 px-4 py-2.5 text-slate-900 focus:border-vsb-400 focus:ring-2 focus:ring-vsb-400/20 outline-none transition-all bg-white';
   const labelClass = 'block text-sm font-medium text-slate-600 mb-1.5';
 
   const tabs: { key: Tab; label: string }[] = [
@@ -281,7 +281,7 @@ export default function AdminSettingsPage() {
             </label>
           </div>
 
-          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-xl transition-all disabled:opacity-60">
+          <button type="submit" disabled={saving} className="inline-flex items-center gap-2 px-6 py-3 bg-vsb-600 hover:bg-vsb-700 text-white font-semibold rounded-xl transition-all disabled:opacity-60">
             {saving ? <Spinner className="h-5 w-5" /> : <Save className="h-5 w-5" />}
             {saving ? 'Saving...' : 'Save Settings'}
           </button>
@@ -328,7 +328,7 @@ export default function AdminSettingsPage() {
           {resetRequests.length > 0 && (
             <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
               <h2 className="font-bold text-slate-900 flex items-center gap-2 mb-1">
-                <KeyRound className="h-5 w-5 text-navy-600" />
+                <KeyRound className="h-5 w-5 text-vsb-600" />
                 Password Reset Requests
               </h2>
               <p className="text-sm text-slate-500 mb-4">A player requested a password reset below. Send them the link on WhatsApp, they'll tap it to set a new password themselves.</p>
@@ -360,7 +360,7 @@ export default function AdminSettingsPage() {
           <div className="bg-white rounded-2xl border border-slate-200 shadow-sm p-6">
             <div className="flex items-center justify-between mb-1 gap-3">
               <h2 className="font-bold text-slate-900 flex items-center gap-2">
-                <UserCog className="h-5 w-5 text-navy-600" />
+                <UserCog className="h-5 w-5 text-vsb-600" />
                 Manage Users
               </h2>
               <button
@@ -378,7 +378,7 @@ export default function AdminSettingsPage() {
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-500" />
                 <input
                   placeholder="Search by name, phone, or email..."
-                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none bg-white"
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:border-vsb-400 focus:ring-2 focus:ring-vsb-400/20 outline-none bg-white"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
                 />
@@ -425,7 +425,7 @@ export default function AdminSettingsPage() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2 flex-shrink-0">
-                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-navy-100 text-navy-700' : 'bg-blue-100 text-blue-700'}`}>
+                  <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${u.role === 'admin' ? 'bg-vsb-100 text-vsb-600' : 'bg-blue-100 text-blue-700'}`}>
                     {u.role === 'admin' ? 'Admin' : 'Player'}
                   </span>
                   <button
@@ -434,7 +434,7 @@ export default function AdminSettingsPage() {
                     className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors disabled:opacity-50 ${
                       u.role === 'admin'
                         ? 'bg-slate-100 hover:bg-slate-200 text-slate-700'
-                        : 'bg-navy-700 hover:bg-navy-800 text-white'
+                        : 'bg-vsb-600 hover:bg-vsb-700 text-white'
                     }`}
                   >
                     {u.role === 'admin' ? 'Demote' : 'Make Admin'}
@@ -442,7 +442,7 @@ export default function AdminSettingsPage() {
                   <button
                     onClick={() => { setResetUser(u); setNewPassword(''); }}
                     title="Reset password"
-                    className="p-1.5 text-slate-400 hover:text-navy-700 rounded-lg hover:bg-slate-100 transition-colors"
+                    className="p-1.5 text-slate-400 hover:text-vsb-600 rounded-lg hover:bg-slate-100 transition-colors"
                   >
                     <KeyRound className="h-4 w-4" />
                   </button>
@@ -479,7 +479,7 @@ export default function AdminSettingsPage() {
             />
             <div className="flex gap-3 mt-4">
               <button onClick={() => setResetUser(null)} className="flex-1 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold rounded-lg transition-colors">Cancel</button>
-              <button onClick={handleResetPassword} disabled={resetting} className="flex-1 py-2.5 bg-navy-700 hover:bg-navy-800 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
+              <button onClick={handleResetPassword} disabled={resetting} className="flex-1 py-2.5 bg-vsb-600 hover:bg-vsb-700 text-white font-bold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2">
                 {resetting && <Spinner className="h-4 w-4" />}
                 {resetting ? 'Resetting...' : 'Reset Password'}
               </button>

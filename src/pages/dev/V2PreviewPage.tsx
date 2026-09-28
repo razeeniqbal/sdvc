@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { SessionCard } from '@/components/SessionCard';
 import { WhosPlaying } from '@/components/WhosPlaying';
+import { PlayerCard } from '@/components/PlayerCard';
+import { BookingSteps } from '@/components/BookingSteps';
 import type { CourtPlayer, SessionWithCount } from '@/lib/sessions';
 
 // DEV-ONLY design review page (route registered only when import.meta.env.DEV).
@@ -49,6 +51,14 @@ export default function V2PreviewPage() {
             </select>
           </label>
           <WhosPlaying players={roster} capacity={capacity} />
+        </div>
+        <div className="grid items-start gap-8 md:grid-cols-2">
+          <PlayerCard name="Razeen" position="Middle Blocker" skill="Intermediate" gender="Male" joinedAt="2026-03-01T00:00:00Z" stats={{ played: 24, upcoming: 2 }} />
+          <div className="v2-surface space-y-6 p-6">
+            <BookingSteps current={1} />
+            <BookingSteps current={2} />
+            <BookingSteps current={3} />
+          </div>
         </div>
       </div>
     </div>
