@@ -6,6 +6,7 @@ import { useAuth } from '@/context/AuthContext';
 import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { VsbLogo } from '@/components/VsbLogo';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
+import { useMyAvatar } from '@/lib/avatars';
 
 // VSB Play navigation. Primary areas only — routes are not navigation.
 //   SESSIONS  ·  (COMMUNITY, once player visibility exists)  ·  MY VSB (avatar)
@@ -44,6 +45,7 @@ export function Navbar() {
   }
 
   const displayName = profile?.short_name || profile?.full_name || '';
+  const myAvatar = useMyAvatar(profile?.id);
   const itemClass = 'block px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-ink-700 hover:text-white focus-visible:bg-ink-700 focus-visible:outline-none';
 
   return (
@@ -70,7 +72,7 @@ export function Navbar() {
                 aria-label={t('v2.nav.playerMenu', { name: displayName })}
                 className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400"
               >
-                <PlayerAvatar name={displayName || '?'} size="sm" />
+                <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} size="sm" />
                 <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-chalk lg:block">{displayName}</span>
                 <ChevronDown className={`hidden h-4 w-4 text-muted transition-transform sm:block ${menuOpen ? 'rotate-180' : ''}`} aria-hidden />
               </button>

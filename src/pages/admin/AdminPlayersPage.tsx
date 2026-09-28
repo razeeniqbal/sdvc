@@ -8,6 +8,9 @@ import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { AdminPageHeader, OpsBadge, Stat } from '@/components/admin/AdminUI';
 import type { Profile } from '@/types/database';
+import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
+import { useAvatarMap } from '@/lib/avatars';
 
 // Admin → Players: operational view of the membership. Activity is derived
 // from the player's own (non-guest) bookings only. Contact and emergency
@@ -28,6 +31,7 @@ export default function AdminPlayersPage() {
   const [gender, setGender] = useState('');
   const [sort, setSort] = useState<'recent' | 'games' | 'name' | 'joined'>('recent');
   const [selected, setSelected] = useState<Profile | null>(null);
+  const avatars = useAvatarMap(profiles.map((p) => p.id));
 
   useEffect(() => {
     (async () => {
@@ -147,7 +151,7 @@ export default function AdminPlayersPage() {
               <tr key={p.id} className="cursor-pointer" onClick={() => setSelected(p)}>
                 <td>
                   <button onClick={(e) => { e.stopPropagation(); setSelected(p); }} className="flex items-center gap-3 text-left">
-                    <PlayerAvatar name={name} size="xs" />
+                    <PlayerAvatar name={name} src={avatars.get(p.id)} size="xs" />
                     <span className="min-w-0">
                       <span className="block truncate font-semibold text-chalk">{name}</span>
                       {p.short_name && p.short_name !== p.full_name && <span className="block truncate text-xs text-muted">{p.full_name}</span>}
@@ -175,7 +179,7 @@ export default function AdminPlayersPage() {
           return (
             <li key={p.id}>
               <button onClick={() => setSelected(p)} className="flex w-full items-center gap-3 py-3 text-left">
-                <PlayerAvatar name={name} size="sm" />
+                <PlayerAvatar name={name} src={avatars.get(p.id)} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-chalk">{name}</p>
                   <p className="text-xs text-muted">{[p.playing_position && POSITION_ABBR[p.playing_position], p.skill_level, p.gender].filter(Boolean).join(' · ') || 'Profile incomplete'}</p>
@@ -187,12 +191,42 @@ export default function AdminPlayersPage() {
         })}
       </ul>
 
-      {selected && <PlayerSheet profile={selected} activity={activity.get(selected.id)} onClose={() => setSelected(null)} />}
+      {selected && <PlayerSheet profile={selected} avatarUrl={avatars.get(selected.id)} activity={activity.get(selected.id)} onClose={() => setSelected(null)} />}
     </div>
   );
 }
 
-function PlayerSheet({ profile, activity, onClose }: { profile: Profile; activity?: Activity; onClose: () => void }) {
+function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profile; avatarUrl?: string; activity?: Activity; onClose: () => void }) {
+  const { show } = useToast();
+  const { profile: me } = useAuth();
+  const [gens, setGens] = useState<{ used: number; allowed: number; lastFailure: string | null } | null>(null);
+  const [granting, setGranting] = useState(false);
+
+  async function loadGens() {
+    const [{ data: g }, { count: grants }] = await Promise.all([
+      supabase.from('player_avatar_generations').select('status, failure_reason, created_at').eq('user_id', profile.id).order('created_at', { ascending: false }),
+      supabase.from('player_avatar_grants').select('id', { count: 'exact', head: true }).eq('user_id', profile.id),
+    ]);
+    const rows = (g || []) as { status: string; failure_reason: string | null }[];
+    setGens({
+      used: rows.filter((r) => r.status !== 'failed').length,
+      allowed: 1 + (grants ?? 0),
+      lastFailure: rows[0]?.status === 'failed' ? rows[0].failure_reason : null,
+    });
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps -- reload when the selected player changes
+  useEffect(() => { loadGens(); }, [profile.id]);
+
+  async function grant() {
+    if (!me) return;
+    setGranting(true);
+    const { error } = await supabase.from('player_avatar_grants').insert({ user_id: profile.id, granted_by: me.id });
+    setGranting(false);
+    if (error) { show(error.message, 'error'); return; }
+    show('Granted one more avatar generation', 'success');
+    loadGens();
+  }
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
     document.addEventListener('keydown', onKey);
@@ -216,7 +250,7 @@ function PlayerSheet({ profile, activity, onClose }: { profile: Profile; activit
       <aside className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col overflow-y-auto border-l border-ink-600 bg-ink-850">
         <header className="flex items-start justify-between gap-4 border-b border-ink-600 p-5">
           <div className="flex items-center gap-3">
-            <PlayerAvatar name={name} size="lg" />
+            <PlayerAvatar name={name} src={avatarUrl} size="lg" />
             <div>
               <h2 id="player-sheet-title" className="font-display text-3xl font-extrabold uppercase leading-none text-chalk">{name}</h2>
               {profile.playing_position && <p className="mt-1 font-display text-sm font-bold uppercase tracking-wider text-vsb-300">{profile.playing_position}</p>}
@@ -247,6 +281,21 @@ function PlayerSheet({ profile, activity, onClose }: { profile: Profile; activit
               <div className="flex justify-between gap-4 border-b border-ink-700 pb-2"><dt className="text-muted">Phone</dt><dd className="font-semibold text-chalk">{profile.phone_number || 'Not provided'}</dd></div>
               <div className="flex justify-between gap-4 border-b border-ink-700 pb-2"><dt className="text-muted">Emergency contact</dt><dd className="text-right font-semibold text-chalk">{profile.emergency_contact_name || 'Not provided'}{profile.emergency_contact_phone ? ` · ${profile.emergency_contact_phone}` : ''}</dd></div>
             </dl>
+          </section>
+
+          <section>
+            <h3 className="adm-label mb-2">VSB player avatar</h3>
+            {profile.role === 'admin' ? (
+              <p className="text-sm text-slate-400">Admins can generate as many times as they need.</p>
+            ) : gens ? (
+              <div className="space-y-3 text-sm">
+                <p className="text-slate-300">
+                  {avatarUrl ? 'Has a generated avatar.' : 'No avatar yet.'} Used <span className="font-semibold text-chalk">{gens.used}</span> of <span className="font-semibold text-chalk">{gens.allowed}</span> generation{gens.allowed === 1 ? '' : 's'}.
+                </p>
+                {gens.lastFailure && <p className="text-xs text-amber-300">Last attempt failed: {gens.lastFailure}</p>}
+                <button onClick={grant} disabled={granting} className="adm-btn">{granting ? 'Granting…' : 'Give another generation'}</button>
+              </div>
+            ) : <Spinner className="h-4 w-4 text-vsb-500" />}
           </section>
 
           <p className="text-xs text-muted">"Attended" counts bookings marked present in session attendance. Role changes are managed in Club Settings → Admins.</p>

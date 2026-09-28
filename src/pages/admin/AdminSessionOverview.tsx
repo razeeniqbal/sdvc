@@ -8,6 +8,7 @@ import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { OpsBadge, SectionTitle, Stat, type OpsTone } from '@/components/admin/AdminUI';
 import { useSessionWorkspace } from './sessionWorkspace';
 import { localToday } from '@/lib/adminSessions';
+import { useAvatarMap } from '@/lib/avatars';
 import type { Booking, BookingStatus, Profile } from '@/types/database';
 
 type Row = Booking & { profile: Pick<Profile, 'short_name' | 'full_name' | 'gender'> };
@@ -28,6 +29,7 @@ function formatInterval(v: string | null): string {
 export default function AdminSessionOverview() {
   const { session, waitingCount } = useSessionWorkspace();
   const [rows, setRows] = useState<Row[] | null>(null);
+  const avatars = useAvatarMap((rows || []).filter((b) => !b.is_guest).map((b) => b.user_id));
 
   useEffect(() => {
     supabase
@@ -83,7 +85,7 @@ export default function AdminSessionOverview() {
                 return (
                   <li key={b.id} className="flex items-center gap-3 border-b border-ink-700 py-2.5">
                     <span className="w-5 text-right font-display text-sm font-bold text-muted">{i + 1}</span>
-                    <PlayerAvatar name={name} guest={b.is_guest} size="xs" />
+                    <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} guest={b.is_guest} size="xs" />
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-sm font-semibold text-chalk">{name}</p>
                       <p className="text-[11px] text-muted">

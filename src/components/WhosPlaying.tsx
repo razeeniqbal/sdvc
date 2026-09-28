@@ -107,7 +107,7 @@ export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; cap
           <div aria-live="polite">
             {sel && (
               <div className="animate-pop mt-4 flex items-center gap-4 border border-ink-600 bg-ink-800 p-4">
-                <PlayerAvatar name={sel.display_name} guest={sel.is_guest} size="md" />
+                <PlayerAvatar name={sel.display_name} src={sel.avatar_url} guest={sel.is_guest} size="md" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-display text-2xl font-extrabold uppercase leading-none text-chalk">{sel.display_name}</p>
                   <p className="mt-1 text-sm text-slate-300">
@@ -134,7 +134,7 @@ export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; cap
           {visible.map(({ player: p }, i) => (
             <li key={i} className="flex items-center gap-4 py-3">
               <span className="w-6 text-right font-display text-lg font-bold text-muted">{i + 1}</span>
-              <PlayerAvatar name={p.display_name} guest={p.is_guest} size="sm" />
+              <PlayerAvatar name={p.display_name} src={p.avatar_url} guest={p.is_guest} size="sm" />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-semibold text-chalk">{p.display_name}</p>
                 <p className="text-xs text-slate-400">
@@ -191,7 +191,7 @@ function PlayerMarker({ player, pressed, onClick, delay }: { player: CourtPlayer
       style={{ animationDelay: `${delay}ms` }}
     >
       <span className={`relative rounded-full transition-transform group-hover:scale-105 group-focus-visible:ring-2 group-focus-visible:ring-vsb-300 ${pressed ? 'ring-2 ring-vsb-400 ring-offset-2 ring-offset-ink' : ''}`}>
-        <PlayerAvatar name={player.display_name} guest={player.is_guest} size="md" className="!h-10 !w-10 sm:!h-12 sm:!w-12 xl:!h-14 xl:!w-14 !ring-ink/80 shadow-lg shadow-black/40" />
+        <PlayerAvatar name={player.display_name} src={player.avatar_url} guest={player.is_guest} size="md" className="!h-10 !w-10 sm:!h-12 sm:!w-12 xl:!h-14 xl:!w-14 !ring-ink/80 shadow-lg shadow-black/40" />
         {player.gender && (
           <span
             className={`absolute -right-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-[11px] font-bold leading-none ring-2 ring-ink ${

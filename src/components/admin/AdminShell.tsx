@@ -4,6 +4,7 @@ import { ArrowLeft, CalendarDays, CreditCard, LayoutGrid, LogOut, Menu, Settings
 import { useAuth } from '@/context/AuthContext';
 import { VsbLogo } from '@/components/VsbLogo';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
+import { useMyAvatar } from '@/lib/avatars';
 
 // VSB Admin — the club operations console. Its own full-height application
 // shell: no consumer navbar, footer or player tab bar. Attendance and the
@@ -72,13 +73,14 @@ function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
   const { profile, signOut } = useAuth();
   const navigate = useNavigate();
   const name = profile?.short_name || profile?.full_name || 'Admin';
+  const avatar = useMyAvatar(profile?.id);
   return (
     <div className="space-y-1 border-t border-ink-600 p-3">
       <Link to="/sessions" onClick={onNavigate} className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-semibold text-slate-400 hover:bg-ink-800 hover:text-chalk">
         <ArrowLeft className="h-4 w-4" aria-hidden /> VSB Play
       </Link>
       <div className="flex items-center gap-3 px-3 pt-2">
-        <PlayerAvatar name={name} size="sm" />
+        <PlayerAvatar name={name} src={avatar?.thumb} size="sm" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-chalk">{name}</p>
           <p className="text-xs text-muted">Administrator</p>

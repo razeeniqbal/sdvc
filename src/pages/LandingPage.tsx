@@ -202,7 +202,7 @@ export default function LandingPage() {
               <li className="flex gap-3"><span className="text-vsb-500" aria-hidden>—</span>{t('v2.landing.identityPoint2')}</li>
               <li className="flex gap-3"><span className="text-vsb-500" aria-hidden>—</span>{t('v2.landing.identityPoint3')}</li>
             </ul>
-            <Link to={profile ? '/profile#card' : '/register'} className="v2-btn-primary mt-9 !px-8 !py-4 font-display text-lg uppercase tracking-wider">
+            <Link to={profile ? '/profile/player' : '/register'} className="v2-btn-primary mt-9 !px-8 !py-4 font-display text-lg uppercase tracking-wider">
               {t('v2.landing.createPlayer')} <ArrowRight className="h-5 w-5" aria-hidden />
             </Link>
           </div>

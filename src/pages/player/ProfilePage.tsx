@@ -12,6 +12,7 @@ import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
 import { PlayerCard } from '@/components/PlayerCard';
 import { GameStateLabel } from '@/components/vsb/GameStateLabel';
+import { fetchMyEntitlement, useMyAvatar, type Entitlement } from '@/lib/avatars';
 import type { PlayingPosition, SkillLevel } from '@/types/database';
 
 // MY VSB — the player's hub. Hierarchy: identity → next game → recent games
@@ -23,6 +24,8 @@ export default function ProfilePage() {
   const { profile, refreshProfile } = useAuth();
   const { show } = useToast();
   const [games, setGames] = useState<MyGame[] | null>(null);
+  const avatar = useMyAvatar(profile?.id);
+  const [entitlement, setEntitlement] = useState<Entitlement | null>(null);
   const [editingProfile, setEditingProfile] = useState(false);
   const [editingAccount, setEditingAccount] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -42,6 +45,7 @@ export default function ProfilePage() {
   useEffect(() => {
     if (profile) fetchMyGames(profile.id).then(setGames).catch(() => setGames([]));
   }, [profile]);
+  useEffect(() => { fetchMyEntitlement().then(setEntitlement); }, []);
 
   // Deep links from older menus (#card, #settings) still land somewhere sensible.
   useEffect(() => {
@@ -111,7 +115,12 @@ export default function ProfilePage() {
       <section id="card" aria-labelledby="myvsb-name" className="vsb-gutter relative scroll-mt-16 overflow-hidden border-b border-ink-600 py-10 lg:py-16">
         <div className="relative grid items-center gap-10 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)] xl:gap-16">
           <div className="mx-auto w-full max-w-[20rem] lg:mx-0">
-            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} gender={profile.gender} stats={stats} />
+            <PlayerCard name={displayName} position={profile.playing_position} skill={profile.skill_level} gender={profile.gender} stats={stats} artSrc={avatar?.image} />
+            {(!avatar || entitlement?.unlimited || (entitlement?.remaining ?? 0) > 0) && (
+              <Link to="/profile/player" className={`mt-4 w-full font-display uppercase tracking-wider ${avatar ? 'v2-btn-secondary' : 'v2-btn-primary'}`}>
+                {avatar ? t('v2.create.regenerate') : t('v2.landing.createPlayer')} <ArrowRight className="h-4 w-4" aria-hidden />
+              </Link>
+            )}
           </div>
           <div>
             <p className="vsb-meta mb-3">{t('v2.myVsb.meta')}</p>

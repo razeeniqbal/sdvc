@@ -35,9 +35,19 @@ Two experiences, one design system:
   brand value kept as `slate-brand` for non-text use). Filled buttons and
   selected states use `vsb-600` so white text passes AA; `vsb-500` is for
   accents, borders and text on ink.
-- **No schema changes for V2.** Work within the current Supabase schema/RLS
-  (e.g. roster comes from `session_player_list`; players can only read their
-  own profile).
+- **Schema changes are additive and deliberate.** Player-identity migration
+  (`20260929000000_vsb_player_avatars.sql`) added `player_avatars`,
+  `player_avatar_generations`, `player_avatar_grants`, the
+  `session_player_roster` RPC and the `player-sources` (private) /
+  `player-avatars` (public) buckets. Players still can only read their own
+  profile — other players' data comes only through SECURITY DEFINER RPCs.
+- **Avatar generation** runs in the `generate-avatar` edge function, which
+  owns the entitlement (1 free + admin grants, admins unlimited, idempotent,
+  failed attempts don't count) and deletes source photos. Never decide
+  entitlement in the client. The style reference is
+  `public/brand/avatar-style-v1.webp`, pinned by SHA-256 in the function —
+  change both (and `STYLE_VERSION`) together. The OpenAI key lives only in
+  Supabase Edge Function secrets (`OPENAI_API_KEY`).
 - **Full-width layout.** Player screens run edge to edge: sections use
   `.vsb-gutter` / `.vsb-section` (`padding-inline: clamp(20px, 3vw, 64px)`) and
   `FullWidthSection` / `SectionHeader` (src/components/layout/Section.tsx) —

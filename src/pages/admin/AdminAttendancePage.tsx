@@ -8,6 +8,7 @@ import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { OpsBadge } from '@/components/admin/AdminUI';
 import type { Booking, Profile, Attendance, AttendanceStatus } from '@/types/database';
+import { useAvatarMap } from '@/lib/avatars';
 
 // Courtside attendance for one session (rendered inside the session workspace).
 //   Present    → attendance 'Attended' and booking 'Completed' (existing rule)
@@ -42,6 +43,7 @@ export default function AdminAttendancePage() {
   const [updating, setUpdating] = useState<string | null>(null);
   const [bulk, setBulk] = useState(false);
   const [confirmCancel, setConfirmCancel] = useState<BookingWithProfile | null>(null);
+  const avatars = useAvatarMap(bookings.filter((b) => !b.is_guest).map((b) => b.user_id));
 
   useEffect(() => {
     if (!id) return;
@@ -179,7 +181,7 @@ export default function AdminAttendancePage() {
             return (
               <li key={b.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <PlayerAvatar name={name} guest={b.is_guest} size="sm" />
+                  <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} guest={b.is_guest} size="sm" />
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-chalk">{name}</p>
                     <p className="text-xs text-muted">

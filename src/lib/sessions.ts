@@ -1,5 +1,6 @@
 import { supabase } from './supabase';
 import { formatTime } from './format';
+import { avatarPublicUrl } from './avatars';
 import type { Session, Gender, PlayingPosition } from '@/types/database';
 
 export interface SessionWithCount extends Session {
@@ -73,13 +74,20 @@ export interface CourtPlayer {
   gender: Gender | null;
   playing_position: PlayingPosition | null;
   is_guest: boolean;
+  avatar_url?: string | null; // generated VSB avatar thumbnail, when the player has one
 }
 
-// Uses the existing `session_player_list` RPC — no schema changes for V2.
-// That RPC doesn't expose position or whether a row is a companion, and players
-// can't read other players' profiles under RLS, so both stay null/false here.
-// The UI treats them as optional and simply omits them.
+// `session_player_roster` (player-identity migration) adds position, the
+// companion flag and the avatar thumbnail. Falls back to the original
+// `session_player_list` if it's unavailable, without those extras.
 export async function fetchCourtRoster(sessionId: string): Promise<CourtPlayer[]> {
+  const { data, error } = await supabase.rpc('session_player_roster', { p_session_id: sessionId });
+  if (!error) {
+    return ((data || []) as (Omit<CourtPlayer, 'avatar_url'> & { avatar_thumb_path: string | null })[]).map(({ avatar_thumb_path, ...p }) => ({
+      ...p,
+      avatar_url: avatarPublicUrl(avatar_thumb_path),
+    }));
+  }
   const v1 = await fetchSessionRoster(sessionId);
   return v1.map((p) => ({ ...p, playing_position: null, is_guest: false }));
 }
