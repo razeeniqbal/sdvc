@@ -1,4 +1,5 @@
 import { supabase } from './supabase';
+import { vsbAssets } from './vsbAssets';
 
 // Session court photos live in the public `club-assets` bucket:
 //   admins      → sessions/{uuid}.webp
@@ -8,16 +9,18 @@ import { supabase } from './supabase';
 const BUCKET = 'club-assets';
 const MAX_EDGE = 1600;
 
-export const DEFAULT_COURT_IMAGE = '/brand/court-horizontal.webp';
+export const DEFAULT_COURT_IMAGE = vsbAssets.court.horizontal1024.src;
+const DEFAULT_COURT_IMAGE_LG = vsbAssets.court.horizontal.src;
 
 export function sessionCoverUrl(path: string | null | undefined): string | null {
   if (!path) return null;
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
-// Photo for a session card/hero: the uploaded court photo, else VSB court art.
-export function sessionImage(path: string | null | undefined): string {
-  return sessionCoverUrl(path) ?? DEFAULT_COURT_IMAGE;
+// Photo for a session card/hero: the uploaded court photo, else VSB court art
+// (`lg` for full-width heroes, default size for cards).
+export function sessionImage(path: string | null | undefined, size: 'md' | 'lg' = 'md'): string {
+  return sessionCoverUrl(path) ?? (size === 'lg' ? DEFAULT_COURT_IMAGE_LG : DEFAULT_COURT_IMAGE);
 }
 
 // Resize in the browser (phone photos are often 4000px+) and store as WebP.

@@ -151,7 +151,7 @@ export default function AdminPlayersPage() {
               <tr key={p.id} className="cursor-pointer" onClick={() => setSelected(p)}>
                 <td>
                   <button onClick={(e) => { e.stopPropagation(); setSelected(p); }} className="flex items-center gap-3 text-left">
-                    <PlayerAvatar name={name} src={avatars.get(p.id)} size="xs" />
+                    <PlayerAvatar name={name} src={avatars.get(p.id)} seed={p.id} size="xs" />
                     <span className="min-w-0">
                       <span className="block truncate font-semibold text-chalk">{name}</span>
                       {p.short_name && p.short_name !== p.full_name && <span className="block truncate text-xs text-muted">{p.full_name}</span>}
@@ -179,7 +179,7 @@ export default function AdminPlayersPage() {
           return (
             <li key={p.id}>
               <button onClick={() => setSelected(p)} className="flex w-full items-center gap-3 py-3 text-left">
-                <PlayerAvatar name={name} src={avatars.get(p.id)} size="sm" />
+                <PlayerAvatar name={name} src={avatars.get(p.id)} seed={p.id} size="sm" />
                 <div className="min-w-0 flex-1">
                   <p className="truncate font-semibold text-chalk">{name}</p>
                   <p className="text-xs text-muted">{[p.playing_position && POSITION_ABBR[p.playing_position], p.skill_level, p.gender].filter(Boolean).join(' · ') || 'Profile incomplete'}</p>

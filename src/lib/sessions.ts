@@ -69,6 +69,7 @@ export async function fetchSessionRoster(sessionId: string): Promise<SessionRost
 // ===== VSB V2: Who's Playing =====
 
 export interface CourtPlayer {
+  user_id?: string | null; // null for guests; seeds the stable VSB character
   display_name: string;
   booking_status: string;
   gender: Gender | null;

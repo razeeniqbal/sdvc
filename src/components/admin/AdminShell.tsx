@@ -80,7 +80,7 @@ function SidebarFooter({ onNavigate }: { onNavigate?: () => void }) {
         <ArrowLeft className="h-4 w-4" aria-hidden /> VSB Play
       </Link>
       <div className="flex items-center gap-3 px-3 pt-2">
-        <PlayerAvatar name={name} src={avatar?.thumb} size="sm" />
+        <PlayerAvatar name={name} src={avatar?.thumb} seed={profile?.id} size="sm" />
         <div className="min-w-0 flex-1">
           <p className="truncate text-sm font-semibold text-chalk">{name}</p>
           <p className="text-xs text-muted">Administrator</p>

@@ -9,6 +9,7 @@ import { AdminPageHeader } from '@/components/admin/AdminUI';
 import { BookingOpsBadge, PaymentOpsBadge } from '@/components/admin/statusBadges';
 import { BookingDetailSheet } from '@/components/admin/BookingDetailSheet';
 import type { Session } from '@/types/database';
+import { useAvatarMap } from '@/lib/avatars';
 
 const PAGE_SIZE = 25;
 
@@ -45,6 +46,7 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
   const [filters, setFilters] = useState({ search: '', session: sessionId ?? '', paymentStatus: '' });
   const [selected, setSelected] = useState<AdminBooking | null>(null);
   const [exporting, setExporting] = useState(false);
+  const avatars = useAvatarMap(bookings.filter((b) => !b.is_guest).map((b) => b.user_id));
 
   // Booking reference and guest name/phone live on the bookings table; the booker's own
   // name/phone live on the joined profile, so this resolves matching profile ids up front.
@@ -206,7 +208,7 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
                     <tr key={b.id} className="cursor-pointer" onClick={() => setSelected(b)}>
                       <td>
                         <div className="flex items-center gap-3">
-                          <PlayerAvatar name={name} guest={b.is_guest} size="xs" />
+                          <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} seed={b.is_guest ? null : b.user_id} guest={b.is_guest} size="xs" />
                           <div className="min-w-0">
                             <p className="truncate font-semibold text-chalk">{name}</p>
                             <p className="truncate text-xs text-muted">
@@ -246,7 +248,7 @@ export default function AdminBookingsPage({ sessionId }: { sessionId?: string } 
                 return (
                   <li key={b.id}>
                     <button onClick={() => setSelected(b)} className="flex w-full items-start gap-3 py-3 text-left">
-                      <PlayerAvatar name={name} guest={b.is_guest} size="sm" />
+                      <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} seed={b.is_guest ? null : b.user_id} guest={b.is_guest} size="sm" />
                       <div className="min-w-0 flex-1">
                         <div className="flex items-start justify-between gap-2">
                           <p className="truncate font-semibold text-chalk">{name}</p>

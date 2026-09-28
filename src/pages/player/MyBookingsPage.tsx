@@ -8,6 +8,7 @@ import { byDateAsc, fetchMyGames, gameState, isUpcoming, type MyGame } from '@/l
 import { Spinner } from '@/components/LoadingScreen';
 import { GameStateLabel } from '@/components/vsb/GameStateLabel';
 import { CourtLines } from '@/components/vsb/CourtLines';
+import { vsbAssets } from '@/lib/vsbAssets';
 
 // MY GAMES (/bookings) — the player's activity history. Upcoming leads with
 // the next game on court; Past is a compact timeline. Same booking data and
@@ -151,7 +152,7 @@ function FeaturedGame({ game, lang }: { game: MyGame; lang: string }) {
   return (
     <Link to={`/bookings/${game.id}`} className="group relative grid overflow-hidden border border-ink-600 transition-colors hover:border-vsb-500 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
       <div className="relative min-h-[14rem] overflow-hidden">
-        <img src="/brand/court-horizontal.webp" alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover" />
+        <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover" />
         <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" aria-hidden />
         <p className="absolute bottom-5 left-6 font-display uppercase leading-none" aria-hidden>
           <span className="block text-lg font-bold tracking-[0.25em] text-vsb-300">{d.weekday}</span>

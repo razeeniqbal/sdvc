@@ -12,20 +12,12 @@ import { SessionCard } from '@/components/SessionCard';
 import { PlayerCard } from '@/components/PlayerCard';
 import { CourtLines } from '@/components/vsb/CourtLines';
 import { FullWidthSection, SectionHeader } from '@/components/layout/Section';
+import { srcSet, vsbAssets } from '@/lib/vsbAssets';
 
-// Illustrative VSB characters (approved marketing art, public/brand/players).
-// They represent the community's variety — they are never shown as, or in place
-// of, real members.
-// Intrinsic sizes are declared so the lineup never shifts layout while loading.
-const PLAYER_SIZES: Record<number, [number, number]> = {
-  1: [274, 542], 2: [274, 528], 3: [251, 533], 4: [254, 511], 5: [230, 539],
-  6: [209, 469], 7: [230, 475], 8: [218, 449], 9: [257, 469], 10: [229, 457],
-};
-const LINEUP = [2, 3, 1, 4, 5, 7, 8, 6, 9, 10].map((n) => ({
-  src: `/brand/players/player-${String(n).padStart(2, '0')}.webp`,
-  w: PLAYER_SIZES[n][0],
-  h: PLAYER_SIZES[n][1],
-}));
+// Illustrative VSB characters (production art, via the asset registry). They
+// show the community's variety — never shown as, or in place of, real members.
+// Tallest in the middle, like a team photo.
+const LINEUP = [1, 4, 6, 0, 2, 3, 5].map((i) => vsbAssets.players[i].sm);
 
 export default function LandingPage() {
   const { t } = useTranslation();
@@ -74,53 +66,49 @@ export default function LandingPage() {
   return (
     <div className="bg-ink text-chalk">
       {/* ===== HERO ===== */}
-      <section className="relative overflow-hidden border-b border-ink-600 lg:flex lg:min-h-[calc(100svh-4rem)] lg:flex-col">
-        <CourtLines opacity={0.06} />
-
-        {/* Mobile / tablet art — stacked above the copy */}
-        <picture className="block lg:hidden">
-          <source media="(min-width: 640px)" srcSet="/brand/hero-desktop.webp" width={1112} height={520} />
-          <img src="/brand/hero-mobile.webp" width={308} height={408} alt={t('v2.landing.heroAlt')}
-            className="block aspect-[308/408] max-h-[58svh] w-full object-cover object-top sm:aspect-[1112/520] sm:max-h-none" />
-        </picture>
-
-        <div className="relative flex flex-1 flex-col">
-        {/* Desktop art — standing on the metadata rail at the right edge, fading into ink */}
-        <img
-          src="/brand/hero-desktop.webp"
-          width={1112}
-          height={520}
-          alt={t('v2.landing.heroAlt')}
-          className="absolute bottom-0 right-0 hidden w-[min(calc((100vw-40rem)/0.86),1700px)] lg:block"
-          style={{
-            WebkitMaskImage: 'linear-gradient(to right, transparent 8%, #000 34%), linear-gradient(to bottom, transparent 0%, #000 20%)',
-            WebkitMaskComposite: 'source-in',
-            maskImage: 'linear-gradient(to right, transparent 8%, #000 34%), linear-gradient(to bottom, transparent 0%, #000 20%)',
-            maskComposite: 'intersect',
-          }}
-        />
-
-        <div className="vsb-gutter relative flex flex-1 flex-col justify-center py-10 lg:py-16">
-          <div className="max-w-[46rem]">
-            <p className="vsb-meta mb-6 !text-vsb-400">{t('v2.landing.eyebrow')}</p>
-            <h1 className="vsb-display text-[clamp(3.25rem,7.5vw,7.5rem)]">
+      {/* One <picture>: dedicated mobile art below 768px, desktop art above.
+          ≥1024px the art is full-bleed and the copy sits on its dark left side;
+          below that the copy stacks above the art. Eager + high priority — it's
+          the first thing on screen. No text is baked into the artwork. */}
+      <section className="relative overflow-hidden border-b border-ink-600">
+        <div className="relative lg:flex lg:min-h-[min(calc(100svh-8.5rem),46vw)] lg:items-center">
+          <div className="vsb-gutter relative z-10 -mb-[58vw] pt-10 md:-mb-[6vw] md:pt-14 lg:mb-0 lg:w-[50%] lg:py-10 xl:py-16">
+            <p className="vsb-meta mb-5 !text-vsb-400">{t('v2.landing.eyebrow')}</p>
+            <h1 className="vsb-display text-[clamp(3rem,12vw,4.5rem)] md:text-[clamp(4rem,8vw,5.5rem)] lg:text-[clamp(3.5rem,5.5vw,7rem)]">
               {t('v2.landing.heroLine1')}<br />
               {t('v2.landing.heroLine2')}<br />
               <span className="text-vsb-500">{t('v2.landing.heroLine3')}</span>
             </h1>
-            <p className="mt-6 max-w-md text-lg leading-relaxed text-slate-300">
+            <p className="mt-5 max-w-md text-lg leading-relaxed text-slate-300">
               {t('v2.landing.heroSub1')}<br />{t('v2.landing.heroSub2')}<br />{t('v2.landing.heroSub3')}
             </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link to={findGameTo} className="v2-btn-primary !px-8 !py-4 font-display text-lg uppercase tracking-wider">
                 {t('v2.landing.findGame')} <ArrowRight className="h-5 w-5" aria-hidden />
               </Link>
-              <Link to={whosPlayingTo} className="v2-btn-secondary !px-8 !py-4 font-display text-lg uppercase tracking-wider">
+              <Link to={whosPlayingTo} className="v2-btn-secondary !bg-ink/60 !px-8 !py-4 font-display text-lg uppercase tracking-wider backdrop-blur-sm">
                 {t('v2.landing.seeWhosPlaying')}
               </Link>
             </div>
           </div>
-        </div>
+          <picture>
+            <source media="(min-width: 768px)" sizes="100vw"
+              srcSet={srcSet(vsbAssets.hero.desktop1280, vsbAssets.hero.desktop)}
+              width={vsbAssets.hero.desktop.width} height={vsbAssets.hero.desktop.height} />
+            <img
+              src={vsbAssets.hero.mobile750.src}
+              srcSet={srcSet(vsbAssets.hero.mobile750, vsbAssets.hero.mobile)}
+              sizes="100vw"
+              width={vsbAssets.hero.mobile.width}
+              height={vsbAssets.hero.mobile.height}
+              alt={t('v2.landing.heroAlt')}
+              fetchPriority="high"
+              decoding="async"
+              className="hero-art relative block h-auto w-full lg:absolute lg:inset-0 lg:h-full lg:object-cover lg:object-right-bottom"
+            />
+          </picture>
+          {/* readability: ink behind the copy on the left, fading into the art */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-[62%] bg-gradient-to-r from-ink via-ink/75 to-transparent lg:block" aria-hidden />
 
         </div>
 
@@ -184,11 +172,11 @@ export default function LandingPage() {
         <CourtLines opacity={0.05} />
         <div className="vsb-gutter relative grid items-center gap-12 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-24">
           <div className="relative flex items-end justify-center gap-4 sm:gap-8">
-            <img src="/brand/players/player-01.webp" alt="" width={274} height={542} loading="lazy"
+            <img src={vsbAssets.players[5].full.src} alt="" width={vsbAssets.players[5].full.width} height={vsbAssets.players[5].full.height} loading="lazy" decoding="async"
               className="hidden h-[26rem] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:block lg:h-[32rem]" />
             <div className="w-[17rem] sm:w-[19rem]">
               <PlayerCard name={t('v2.landing.cardName')} position={null} skill={null} gender={null}
-                stats={null} artSrc="/brand/players/player-01.webp" subtitle={t('v2.landing.cardSub')} />
+                stats={null} artSrc={vsbAssets.players[0].sm.src} subtitle={t('v2.landing.cardSub')} />
             </div>
           </div>
           <div>
@@ -238,10 +226,10 @@ export default function LandingPage() {
         </div>
         {/* Lineup: overlapping, reaching the bottom edge like a team photo */}
         <div className="relative mt-10 flex items-end justify-center overflow-hidden px-2" aria-hidden>
-          {LINEUP.map(({ src, w, h }, i) => (
-            <img key={src} src={src} alt="" width={w} height={h} loading="lazy"
-              className={`relative -mx-3 h-40 w-auto sm:-mx-4 sm:h-56 lg:-mx-5 lg:h-72 2xl:-mx-6 2xl:h-96 ${i >= 6 ? 'hidden lg:block' : ''}`}
-              style={{ zIndex: 10 - Math.round(Math.abs(i - 4.5)) }} />
+          {LINEUP.map(({ src, width, height }, i) => (
+            <img key={src} src={src} alt="" width={width} height={height} loading="lazy" decoding="async"
+              className={`relative -mx-2 h-44 w-auto sm:-mx-3 sm:h-60 lg:-mx-4 lg:h-80 2xl:h-[26rem] ${i === 0 || i === 6 ? 'hidden sm:block' : ''}`}
+              style={{ zIndex: 10 - Math.abs(i - 3) }} />
           ))}
         </div>
       </section>

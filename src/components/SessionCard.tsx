@@ -71,7 +71,7 @@ export function SessionCard({ session, to, roster, isPrivate }: SessionCardProps
           <p className="vsb-meta mb-2">{t('v2.whosPlaying.title')}</p>
           {faces.length > 0 ? (
             <div className="flex items-center -space-x-2" role="img" aria-label={t('v2.session.playersJoined', { count: roster?.length ?? 0 })}>
-              {faces.map((p, i) => <PlayerAvatar key={i} name={p.display_name} src={p.avatar_url} guest={p.is_guest} size="sm" />)}
+              {faces.map((p, i) => <PlayerAvatar key={i} name={p.display_name} src={p.avatar_url} seed={p.user_id} guest={p.is_guest} size="sm" />)}
               {extra > 0 && (
                 <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-ink-600 text-xs font-bold text-chalk ring-2 ring-ink">+{extra}</span>
               )}

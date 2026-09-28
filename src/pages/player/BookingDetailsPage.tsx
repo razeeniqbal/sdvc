@@ -15,6 +15,7 @@ import { ReceiptUpload } from '@/components/ReceiptUpload';
 import { HoldCountdown } from '@/components/vsb/HoldCountdown';
 import { ACTIVE_BOOKING_STATUSES, MAX_COMPANIONS } from '@/lib/bookingRules';
 import type { Booking, Session, Payment, Attendance, ClubSettings } from '@/types/database';
+import { vsbAssets } from '@/lib/vsbAssets';
 
 export default function BookingDetailsPage() {
   const { t } = useTranslation();
@@ -205,7 +206,7 @@ export default function BookingDetailsPage() {
 
       <div className="v2-surface overflow-hidden">
         <div className="relative overflow-hidden border-b border-ink-600 p-6">
-          <img src="/brand/court-horizontal.webp" alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+          <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-25" />
           <div className="relative">
           <div className="flex items-start justify-between gap-3">
             <div>

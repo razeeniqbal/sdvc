@@ -9,6 +9,7 @@ import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { BookingOpsBadge, PaymentOpsBadge } from '@/components/admin/statusBadges';
 import type { BookingStatus } from '@/types/database';
+import { useAvatarMap } from '@/lib/avatars';
 
 // Operational detail for one booking, as a right-hand sheet so the list stays
 // in view. All actions come from lib/adminBookings (shared with Payments).
@@ -25,6 +26,7 @@ export function BookingDetailSheet({ booking, onClose, onChanged }: {
   const [notes, setNotes] = useState(booking.admin_notes || '');
   const [savingNotes, setSavingNotes] = useState(false);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const avatars = useAvatarMap(booking.is_guest ? [] : [booking.user_id]);
 
   useEffect(() => {
     closeRef.current?.focus();
@@ -80,7 +82,7 @@ export function BookingDetailSheet({ booking, onClose, onChanged }: {
       <aside className="animate-slide-up absolute inset-y-0 right-0 flex w-full max-w-lg flex-col border-l border-ink-600 bg-ink-850 sm:animate-none">
         <header className="flex items-start justify-between gap-4 border-b border-ink-600 p-5">
           <div className="flex min-w-0 items-center gap-3">
-            <PlayerAvatar name={name} guest={booking.is_guest} size="md" />
+            <PlayerAvatar name={name} src={booking.is_guest ? null : avatars.get(booking.user_id)} seed={booking.is_guest ? null : booking.user_id} guest={booking.is_guest} size="md" />
             <div className="min-w-0">
               <h2 id="booking-sheet-title" className="truncate font-display text-2xl font-extrabold uppercase leading-none text-chalk">{name}</h2>
               <p className="mt-1 font-mono text-xs text-muted">{booking.booking_reference}</p>

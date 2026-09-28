@@ -1,12 +1,29 @@
-// Canonical VSB logo, sliced from the approved logo artwork (public/brand/).
-// Never redraw it in CSS/SVG — swap these files when vector exports exist.
-// `lockup` includes the VOLLEYBALL SDN BHD line; `mark` is just the letters.
-const SOURCES = {
-  lockup: { src: '/brand/vsb-logo.png', width: 520, height: 157 },
-  mark: { src: '/brand/vsb-mark.png', width: 520, height: 116 },
+import { srcSet, vsbAssets } from '@/lib/vsbAssets';
+
+// Canonical VSB logo from the production artwork. Never redraw it in CSS/text,
+// stretch it, or box it.
+//   lockup — letters + VOLLEYBALL SDN BHD: landing, auth, footer, admin sidebar
+//   mark   — letters only: compact / mobile navigation
+const VARIANTS = {
+  lockup: [vsbAssets.brand.lockup, vsbAssets.brand.lockupSm],
+  mark: [vsbAssets.brand.mark, vsbAssets.brand.markSm],
 } as const;
 
-export function VsbLogo({ variant = 'mark', className = '' }: { variant?: keyof typeof SOURCES; className?: string }) {
-  const { src, width, height } = SOURCES[variant];
-  return <img src={src} width={width} height={height} alt="VSB — Volleyball Sdn Bhd" className={`w-auto ${className}`} />;
+export function VsbLogo({ variant = 'mark', className = '', sizes = '200px' }: {
+  variant?: keyof typeof VARIANTS;
+  className?: string;
+  sizes?: string;
+}) {
+  const [large, small] = VARIANTS[variant];
+  return (
+    <img
+      src={small.src}
+      srcSet={srcSet(small, large)}
+      sizes={sizes}
+      width={large.width}
+      height={large.height}
+      alt="VSB — Volleyball Sdn Bhd"
+      className={`w-auto ${className}`}
+    />
+  );
 }

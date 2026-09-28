@@ -11,6 +11,7 @@ import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { AdminPageHeader } from '@/components/admin/AdminUI';
 import { BookingOpsBadge, PaymentOpsBadge } from '@/components/admin/statusBadges';
 import { BookingDetailSheet } from '@/components/admin/BookingDetailSheet';
+import { useAvatarMap } from '@/lib/avatars';
 
 // Payments = the human verification queue over existing booking/payment data.
 // No new payment model: "needs review" is a pending booking with a receipt,
@@ -45,6 +46,7 @@ export default function AdminPaymentsPage() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<AdminBooking | null>(null);
   const [busy, setBusy] = useState<string | null>(null);
+  const avatars = useAvatarMap(rows.filter((b) => !b.is_guest).map((b) => b.user_id));
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -105,7 +107,7 @@ export default function AdminPaymentsPage() {
               return (
                 <li key={b.id} className="grid gap-4 py-4 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)_auto] lg:items-center">
                   <div className="flex min-w-0 items-center gap-3">
-                    <PlayerAvatar name={name} guest={b.is_guest} size="sm" />
+                    <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} seed={b.is_guest ? null : b.user_id} guest={b.is_guest} size="sm" />
                     <div className="min-w-0">
                       <p className="truncate font-semibold text-chalk">{name}</p>
                       <p className="truncate text-xs text-muted"><span className="font-mono">{b.booking_reference}</span> · {sessionLine(b)}</p>

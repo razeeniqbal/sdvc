@@ -12,6 +12,7 @@ import { Spinner } from '@/components/LoadingScreen';
 import { ReceiptUpload } from '@/components/ReceiptUpload';
 import { BookingSteps } from '@/components/BookingSteps';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
+import { vsbAssets } from '@/lib/vsbAssets';
 
 export default function BookingConfirmationPage() {
   const { t } = useTranslation();
@@ -81,7 +82,7 @@ export default function BookingConfirmationPage() {
         {/* Success header — rewarding, not game-like (PRD §11). The player's VSB
             identity sits front and centre; state is always stated in text. */}
         <div className="relative overflow-hidden border-b border-ink-600 p-6 sm:p-8">
-          <img src="/brand/court-horizontal.webp" alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover opacity-25" />
+          <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-25" />
           <div className="relative flex flex-col items-center text-center">
             <BookingSteps current={isConfirmed ? 3 : 2} />
             <div className="relative mt-6">

@@ -181,7 +181,7 @@ export default function AdminAttendancePage() {
             return (
               <li key={b.id} className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-3">
-                  <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} guest={b.is_guest} size="sm" />
+                  <PlayerAvatar name={name} src={b.is_guest ? null : avatars.get(b.user_id)} seed={b.is_guest ? null : b.user_id} guest={b.is_guest} size="sm" />
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-chalk">{name}</p>
                     <p className="text-xs text-muted">

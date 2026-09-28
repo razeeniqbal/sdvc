@@ -93,3 +93,13 @@ body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   background-color: #0A0D12;
 }
+
+/* Landing hero art: below 1024px it sits under the copy, so its top fades into
+   the ink page; at ≥1024px it is full-bleed and the copy gradient does that. */
+.hero-art {
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0%, #000 26%);
+  mask-image: linear-gradient(to bottom, transparent 0%, #000 26%);
+}
+@media (min-width: 1024px) {
+  .hero-art { -webkit-mask-image: none; mask-image: none; }
+}

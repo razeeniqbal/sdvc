@@ -480,7 +480,11 @@
       "closePreview": "Close player preview",
       "tapHint": "Tap a player for details.",
       "openCount_one": "{{count}} spot open",
-      "openCount_other": "{{count}} spots open"
+      "openCount_other": "{{count}} spots open",
+      "bench_one": "Also in · {{count}}",
+      "bench_other": "Also in · {{count}}",
+      "moreOpen_one": "+{{count}} more open place",
+      "moreOpen_other": "+{{count}} more open places"
     },
     "sessionDetails": {
       "tabPlayers": "Players",

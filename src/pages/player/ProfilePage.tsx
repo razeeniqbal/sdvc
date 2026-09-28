@@ -14,6 +14,7 @@ import { PlayerCard } from '@/components/PlayerCard';
 import { GameStateLabel } from '@/components/vsb/GameStateLabel';
 import { fetchMyEntitlement, useMyAvatar, type Entitlement } from '@/lib/avatars';
 import type { PlayingPosition, SkillLevel } from '@/types/database';
+import { vsbAssets } from '@/lib/vsbAssets';
 
 // MY VSB — the player's hub. Hierarchy: identity → next game → recent games
 // → volleyball profile → account & safety. Profile/account editing is inline
@@ -333,7 +334,7 @@ function NextGame({ game, lang }: { game: MyGame; lang: string }) {
   const pending = game.booking_status === 'Pending Payment';
   return (
     <Link to={`/bookings/${game.id}`} className="group relative block overflow-hidden border border-ink-600 transition-colors hover:border-vsb-500">
-      <img src="/brand/court-horizontal.webp" alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover opacity-30" />
+      <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-30" />
       <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/30" aria-hidden />
       <div className="relative flex items-end gap-6 p-6">
         <p className="font-display uppercase leading-none" aria-hidden>

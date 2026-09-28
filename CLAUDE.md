@@ -72,10 +72,22 @@ Two experiences, one design system:
   `.v2-btn-secondary`, `.v2-chip`, `.v2-input`, `.v2-heading`, `.vsb-tab`
   (underline tabs/filters — not pills). Court geometry: `<CourtLines />`. Headings use
   the condensed display face (`font-display`, Barlow Condensed), uppercase.
-- **Marketing characters** (`public/brand/players/`) are illustrative art for
-  landing/marketing only — never presented as a real member's avatar.
-- **Logo**: `<VsbLogo />` only — sliced from the approved artwork in
-  `public/brand/`. Never redraw the logo in CSS/SVG or reuse `/logo.jpg`.
+- **Production artwork is locked** and lives in `public/assets/vsb/`
+  (brand, hero, court, players, states), generated from the supplied PNGs by
+  resizing/cropping/re-encoding only. Reference it **only through
+  `src/lib/vsbAssets.ts`** — never hardcode a path. `public/brand/` now only
+  holds the hash-pinned avatar style reference.
+- **Logo**: `<VsbLogo variant="lockup|mark" />` only. Never redraw, stretch,
+  box or recolour it.
+- **Characters**: the 7 production players are illustrative art on marketing
+  surfaces, and also the *stable fallback identity* for members without a
+  generated avatar — `PlayerAvatar` picks one from the user id
+  (`fallbackCharacter`), never randomly. Always pass `seed={userId}`.
+  State art (welcome / celebrate / waiting) is for those moments only; keep
+  it out of Admin.
+- **Who's Playing** draws on the flat UI court (`CourtRoster`, normalised
+  0–100 coordinates, 12 court spots + bench row). The photographic courts
+  are atmosphere only — never put player markers on them.
 - **Artwork carries no data.** Names, positions, counts, prices, dates are
   always rendered by React over/next to images, never baked into them.
 - **No fabricated numbers.** No invented ratings, player counts, or stats —

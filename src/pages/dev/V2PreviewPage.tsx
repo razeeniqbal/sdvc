@@ -7,19 +7,18 @@ import type { CourtPlayer, SessionWithCount } from '@/lib/sessions';
 
 // DEV-ONLY design review page (route registered only when import.meta.env.DEV).
 // Sample data lives here and nowhere else — never shown to real users.
-// Mirrors what session_player_list returns today: name, status, gender only
-// (no position / companion flag without a schema change).
-
-const roster: CourtPlayer[] = [
-  { display_name: 'Amir', booking_status: 'Confirmed', gender: 'Male', playing_position: null, is_guest: false },
-  { display_name: 'Aina', booking_status: 'Confirmed', gender: 'Female', playing_position: null, is_guest: false },
-  { display_name: 'Jason', booking_status: 'Confirmed', gender: 'Male', playing_position: null, is_guest: false },
-  { display_name: 'Mei', booking_status: 'Pending Payment', gender: 'Female', playing_position: null, is_guest: false },
-  { display_name: 'Hafiz', booking_status: 'Confirmed', gender: null, playing_position: null, is_guest: false },
-  { display_name: 'Sarah', booking_status: 'Confirmed', gender: 'Female', playing_position: null, is_guest: false },
-  { display_name: 'Kumar', booking_status: 'Confirmed', gender: 'Male', playing_position: null, is_guest: false },
-  { display_name: 'Nadia', booking_status: 'Pending Payment', gender: null, playing_position: null, is_guest: false },
-];
+// Sample roster: 16 players with fake ids (seed the stable fallback
+// character), positions, a guest and mixed statuses.
+const NAMES = ['Amir', 'Aina', 'Jason', 'Mei', 'Hafiz', 'Sarah', 'Kumar', 'Nadia', 'Daniel', 'Siti', 'Arjun', 'Lina', 'Farid', 'Grace', 'Wei', 'Zara'];
+const POS = ['Setter', 'Outside Hitter', 'Middle Blocker', 'Opposite Hitter', 'Libero', null] as const;
+const roster: CourtPlayer[] = NAMES.map((name, i) => ({
+  user_id: i === 5 ? null : `00000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
+  display_name: i === 5 ? 'Sarah (guest)' : name,
+  booking_status: i % 4 === 3 ? 'Pending Payment' : 'Confirmed',
+  gender: i % 5 === 4 ? null : i % 2 ? 'Female' : 'Male',
+  playing_position: i === 5 ? null : POS[i % POS.length],
+  is_guest: i === 5,
+}));
 
 const base: Omit<SessionWithCount, 'id' | 'title' | 'skill_level' | 'confirmed_count' | 'maximum_capacity'> = {
   description: 'Friendly Friday games for players who can rally and want a steady pace.', session_date: '2026-10-02', start_time: '20:00:00', end_time: '22:00:00',
@@ -36,21 +35,28 @@ const sessions: SessionWithCount[] = [
 ];
 
 export default function V2PreviewPage() {
-  const [capacity, setCapacity] = useState(12);
+  const q = new URLSearchParams(window.location.search);
+  const [capacity, setCapacity] = useState(Number(q.get('cap') ?? 12));
+  const [count, setCount] = useState(Number(q.get('players') ?? 8));
   return (
     <div className="bg-ink text-chalk">
       <p className="vsb-gutter border-b border-amber-500/40 bg-amber-500/10 py-2 text-sm text-amber-300">
         Dev-only preview with sample data ·{' '}
         <label>Capacity{' '}
           <select className="bg-transparent font-semibold" value={capacity} onChange={(e) => setCapacity(Number(e.target.value))}>
-            {[8, 12, 18, 24].map((n) => <option key={n} className="bg-ink">{n}</option>)}
+            {[6, 8, 12, 16, 18, 24].map((n) => <option key={n} className="bg-ink">{n}</option>)}
+          </select>
+        </label>{' · '}
+        <label>Players{' '}
+          <select className="bg-transparent font-semibold" value={count} onChange={(e) => setCount(Number(e.target.value))}>
+            {Array.from({ length: 17 }, (_, n) => <option key={n} className="bg-ink">{n}</option>)}
           </select>
         </label>
       </p>
 
       <SessionDetailsView
-        session={{ ...sessions[0], maximum_capacity: capacity, confirmed_count: Math.min(8, capacity) }}
-        players={roster.slice(0, capacity)}
+        session={{ ...sessions[0], maximum_capacity: capacity, confirmed_count: Math.min(count, capacity) }}
+        players={roster.slice(0, Math.min(count, capacity))}
         settings={null}
         needsPasskey={false}
         unlocked

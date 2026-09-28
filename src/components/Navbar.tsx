@@ -72,7 +72,7 @@ export function Navbar() {
                 aria-label={t('v2.nav.playerMenu', { name: displayName })}
                 className="flex items-center gap-2 rounded-full py-1 pl-1 pr-2 transition-colors hover:bg-ink-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400"
               >
-                <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} size="sm" />
+                <PlayerAvatar name={displayName || '?'} src={myAvatar?.thumb} seed={profile.id} size="sm" />
                 <span className="hidden max-w-[10rem] truncate text-sm font-semibold text-chalk lg:block">{displayName}</span>
                 <ChevronDown className={`hidden h-4 w-4 text-muted transition-transform sm:block ${menuOpen ? 'rotate-180' : ''}`} aria-hidden />
               </button>

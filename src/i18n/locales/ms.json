@@ -480,7 +480,11 @@
       "closePreview": "Tutup pratonton pemain",
       "tapHint": "Ketik pemain untuk butiran.",
       "openCount_one": "{{count}} slot kosong",
-      "openCount_other": "{{count}} slot kosong"
+      "openCount_other": "{{count}} slot kosong",
+      "bench_one": "Turut serta · {{count}}",
+      "bench_other": "Turut serta · {{count}}",
+      "moreOpen_one": "+{{count}} lagi slot kosong",
+      "moreOpen_other": "+{{count}} lagi slot kosong"
     },
     "sessionDetails": {
       "tabPlayers": "Pemain",

@@ -11,6 +11,7 @@ import { OpsBadge, type OpsTone } from '@/components/admin/AdminUI';
 import { useSessionWorkspace } from './sessionWorkspace';
 import type { WaitingListEntry, Profile, WaitingListStatus } from '@/types/database';
 import { bookingLink } from '@/lib/site';
+import { useAvatarMap } from '@/lib/avatars';
 
 interface WaitlistEntry extends WaitingListEntry {
   profile: Profile;
@@ -32,6 +33,7 @@ export default function AdminWaitingListPage() {
   const [entries, setEntries] = useState<WaitlistEntry[]>([]);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState<string | null>(null);
+  const avatars = useAvatarMap(entries.map((e) => e.user_id));
 
   async function load() {
     if (!id) return;
@@ -111,7 +113,7 @@ export default function AdminWaitingListPage() {
               <li key={entry.id} className="flex flex-col gap-3 py-4 sm:flex-row sm:items-center">
                 <div className="flex min-w-0 flex-1 items-center gap-4">
                   <span className="adm-num w-10 text-3xl text-vsb-500">{String(i + 1).padStart(2, '0')}</span>
-                  <PlayerAvatar name={name} size="sm" />
+                  <PlayerAvatar name={name} src={avatars.get(entry.user_id)} seed={entry.user_id} size="sm" />
                   <div className="min-w-0">
                     <p className="truncate font-semibold text-chalk">{name}</p>
                     <p className="text-xs text-muted">
