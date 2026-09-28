@@ -79,15 +79,17 @@ Two experiences, one design system:
   holds the hash-pinned avatar style reference.
 - **Logo**: `<VsbLogo variant="lockup|mark" />` only. Never redraw, stretch,
   box or recolour it.
-- **Characters**: the 7 production players are illustrative art on marketing
-  surfaces, and also the *stable fallback identity* for members without a
-  generated avatar — `PlayerAvatar` picks one from the user id
-  (`fallbackCharacter`), never randomly. Always pass `seed={userId}`.
-  State art (welcome / celebrate / waiting) is for those moments only; keep
+- **Characters** are illustration for marketing surfaces only. A member's
+  avatar is either their own generated player or their initial; never a
+  stand-in character (it reads as if they generated it). State art
+  (welcome / celebrate / waiting / neutral) is for those moments only; keep
   it out of Admin.
-- **Who's Playing** draws on the flat UI court (`CourtRoster`, normalised
-  0–100 coordinates, 12 court spots + bench row). The photographic courts
-  are atmosphere only — never put player markers on them.
+- **Gender** shows as blue ♂ / pink ♀ (`src/lib/gender.ts`), always with the
+  symbol and a spoken label, only from profile data.
+- **Copy**: no em dashes in UI text; time ranges use `v2.session.timeRange`.
+- **Who's Playing** places players on the production wood court
+  (`vsbAssets.roster`, playing area measured from the art) via `CourtRoster`:
+  up to 24 on court on desktop, 18 on phones, the rest on a row underneath.
 - **Artwork carries no data.** Names, positions, counts, prices, dates are
   always rendered by React over/next to images, never baked into them.
 - **No fabricated numbers.** No invented ratings, player counts, or stats —
