@@ -2,7 +2,7 @@ import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from '@/context/AuthContext';
 import { ToastProvider } from '@/context/ToastContext';
-import { Navbar } from '@/components/Navbar';
+import { Navbar, PlayerTabBar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 import { LoadingScreen } from '@/components/LoadingScreen';
 import { ProtectedRoute, AdminRoute } from '@/components/ProtectedRoute';
@@ -69,6 +69,7 @@ function App() {
               </Suspense>
             </main>
             <Footer />
+            <PlayerTabBar />
           </div>
         </BrowserRouter>
       </AuthProvider>

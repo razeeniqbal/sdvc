@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
+import { VsbLogo } from '@/components/VsbLogo';
 import type { ClubSettings } from '@/types/database';
 import { MessageCircle } from 'lucide-react';
 
@@ -18,7 +19,7 @@ export default function ForgotPasswordPage() {
   useEffect(() => { fetchClubSettings().then(setSettings); }, []);
 
   const clubName = settings?.club_name || 'Volleyball Sdn Bhd';
-  const inputClass = 'w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none transition-all bg-white';
+  const inputClass = 'v2-input !py-3 !text-base';
 
   async function handleRequestLink(e: FormEvent) {
     e.preventDefault();
@@ -37,17 +38,17 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-ink flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/logo.jpg" alt="Logo" className="h-14 w-14 mx-auto rounded-xl object-cover mb-4" />
-          <h1 className="text-xl font-semibold text-slate-900">{t('auth.forgotPassword.title')}</h1>
-          <p className="text-slate-500 text-sm mt-1">
+          <VsbLogo variant="lockup" className="h-12 mx-auto mb-6" />
+          <h1 className="v2-heading text-3xl">{t('auth.forgotPassword.title')}</h1>
+          <p className="text-slate-400 text-sm mt-1">
             {requested ? t('auth.forgotPassword.subtitleStep2') : t('auth.forgotPassword.subtitleStep1')}
           </p>
         </div>
 
-        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 sm:p-8">
+        <div className="v2-surface p-6 sm:p-8">
           {!requested ? (
             <form onSubmit={handleRequestLink} className="space-y-3">
               <input
@@ -59,7 +60,7 @@ export default function ForgotPasswordPage() {
                 onChange={(e) => setPhone(e.target.value)}
               />
               <button type="submit" disabled={requesting}
-                className="w-full py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-1">
+                className="v2-btn-primary w-full !py-3 mt-1">
                 {requesting && <Spinner className="h-5 w-5" />}
                 {requesting ? t('auth.forgotPassword.requesting') : t('auth.forgotPassword.requestCode')}
               </button>
@@ -76,8 +77,8 @@ export default function ForgotPasswordPage() {
             </a>
           )}
 
-          <p className="text-center text-sm text-slate-500 mt-5">
-            <Link to="/login" className="text-navy-700 font-medium hover:underline">{t('auth.forgotPassword.backToLogin')}</Link>
+          <p className="text-center text-sm text-slate-400 mt-5">
+            <Link to="/login" className="text-vsb-400 font-medium hover:underline">{t('auth.forgotPassword.backToLogin')}</Link>
           </p>
         </div>
       </div>

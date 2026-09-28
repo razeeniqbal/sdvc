@@ -4,6 +4,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
+import { VsbLogo } from '@/components/VsbLogo';
 
 const CLUB_NAME = 'Volleyball Sdn Bhd';
 
@@ -58,20 +59,20 @@ export default function RegisterPage() {
     navigate('/profile');
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none transition-all bg-white';
-  const labelClass = 'block text-sm font-medium text-slate-700 mb-1.5';
+  const inputClass = 'v2-input !py-3 !text-base';
+  const labelClass = 'block text-sm font-medium text-slate-300 mb-1.5';
   const errorClass = 'text-red-600 text-xs mt-1';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-ink flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/logo.jpg" alt="Logo" className="h-14 w-14 mx-auto rounded-xl object-cover mb-4" />
-          <h1 className="text-xl font-semibold text-slate-900">{t('auth.register.title', { clubName: CLUB_NAME })}</h1>
-          <p className="text-slate-500 text-sm mt-1">{t('auth.register.subtitle')}</p>
+          <VsbLogo variant="lockup" className="h-12 mx-auto mb-6" />
+          <h1 className="v2-heading text-3xl">{t('auth.register.title', { clubName: CLUB_NAME })}</h1>
+          <p className="text-slate-400 text-sm mt-1">{t('auth.register.subtitle')}</p>
         </div>
 
-        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 sm:p-8">
+        <div className="v2-surface p-6 sm:p-8">
           <form onSubmit={handleSubmit} className="space-y-3">
             <div>
               <label className={labelClass}>{t('auth.register.nameLabel')}</label>
@@ -94,14 +95,14 @@ export default function RegisterPage() {
               {errors.confirmPassword && <p className={errorClass}>{errors.confirmPassword}</p>}
             </div>
             <button type="submit" disabled={loading}
-              className="w-full py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-1">
+              className="v2-btn-primary w-full !py-3 mt-1">
               {loading && <Spinner className="h-5 w-5" />}
               {loading ? t('auth.register.submitting') : t('auth.register.submit')}
             </button>
           </form>
 
-          <p className="text-center text-sm text-slate-500 mt-5">
-            {t('auth.register.alreadyPlaying')} <Link to="/login" className="text-navy-700 font-medium hover:underline">{t('auth.register.logIn')}</Link>
+          <p className="text-center text-sm text-slate-400 mt-5">
+            {t('auth.register.alreadyPlaying')} <Link to="/login" className="text-vsb-400 font-medium hover:underline">{t('auth.register.logIn')}</Link>
           </p>
         </div>
       </div>

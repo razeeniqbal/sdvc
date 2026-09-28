@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { useToast } from '@/context/ToastContext';
 import { Spinner } from '@/components/LoadingScreen';
+import { VsbLogo } from '@/components/VsbLogo';
 import { AlertCircle } from 'lucide-react';
 
 export default function ResetPasswordPage() {
@@ -47,23 +48,23 @@ export default function ResetPasswordPage() {
     navigate('/login');
   }
 
-  const inputClass = 'w-full rounded-lg border border-slate-200 px-4 py-3 text-slate-900 placeholder-slate-400 focus:border-navy-400 focus:ring-2 focus:ring-navy-400/20 outline-none transition-all bg-white';
+  const inputClass = 'v2-input !py-3 !text-base';
 
   return (
-    <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4 py-8">
+    <div className="min-h-screen bg-ink flex items-center justify-center px-4 py-8">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <img src="/logo.jpg" alt="Logo" className="h-14 w-14 mx-auto rounded-xl object-cover mb-4" />
-          <h1 className="text-xl font-semibold text-slate-900">{t('auth.forgotPassword.title')}</h1>
+          <VsbLogo variant="lockup" className="h-12 mx-auto mb-6" />
+          <h1 className="v2-heading text-3xl">{t('auth.forgotPassword.title')}</h1>
         </div>
 
-        <div className="bg-white border border-slate-200 shadow-sm rounded-2xl p-6 sm:p-8">
+        <div className="v2-surface p-6 sm:p-8">
           {checking ? (
-            <div className="flex justify-center py-4"><Spinner className="h-6 w-6 text-navy-600" /></div>
+            <div className="flex justify-center py-4"><Spinner className="h-6 w-6 text-vsb-500" /></div>
           ) : !valid ? (
             <div className="flex items-start gap-3">
               <AlertCircle className="h-5 w-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-slate-600">{t('auth.forgotPassword.errorInvalidCode')}</p>
+              <p className="text-sm text-slate-300">{t('auth.forgotPassword.errorInvalidCode')}</p>
             </div>
           ) : (
             <form onSubmit={handleSubmit} className="space-y-3">
@@ -84,15 +85,15 @@ export default function ResetPasswordPage() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
               />
               <button type="submit" disabled={resetting}
-                className="w-full py-3 bg-navy-700 hover:bg-navy-800 text-white font-semibold rounded-lg transition-colors disabled:opacity-60 flex items-center justify-center gap-2 mt-1">
+                className="v2-btn-primary w-full !py-3 mt-1">
                 {resetting && <Spinner className="h-5 w-5" />}
                 {resetting ? t('auth.forgotPassword.resetting') : t('auth.forgotPassword.resetPassword')}
               </button>
             </form>
           )}
 
-          <p className="text-center text-sm text-slate-500 mt-5">
-            <Link to="/login" className="text-navy-700 font-medium hover:underline">{t('auth.forgotPassword.backToLogin')}</Link>
+          <p className="text-center text-sm text-slate-400 mt-5">
+            <Link to="/login" className="text-vsb-400 font-medium hover:underline">{t('auth.forgotPassword.backToLogin')}</Link>
           </p>
         </div>
       </div>

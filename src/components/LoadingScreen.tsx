@@ -1,11 +1,12 @@
 import { Loader2 } from 'lucide-react';
+import { VsbLogo } from '@/components/VsbLogo';
 
 export function LoadingScreen() {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-50">
-      <div className="flex flex-col items-center gap-3">
-        <img src="/logo.jpg" alt="Logo" className="h-12 w-12 rounded-2xl object-cover shadow-lg" />
-        <Spinner className="h-5 w-5 text-navy-600" />
+    <div className="min-h-screen flex items-center justify-center bg-ink">
+      <div className="flex flex-col items-center gap-4">
+        <VsbLogo variant="mark" className="h-8" />
+        <Spinner className="h-5 w-5 text-vsb-500" />
       </div>
     </div>
   );

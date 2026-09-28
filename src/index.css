@@ -2,6 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===== VSB V2 primitives =====
+   Shared by the V2 (dark) player screens. Kept as a handful of classes rather
+   than a component library so pages can still compose plain Tailwind. */
+@layer components {
+  .v2-surface { @apply bg-ink-800 border border-ink-600 rounded-2xl; }
+  .v2-btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl bg-vsb-500 px-5 py-2.5 font-semibold text-white transition-colors
+      hover:bg-vsb-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink
+      disabled:cursor-not-allowed disabled:bg-ink-600 disabled:text-muted;
+  }
+  .v2-btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border border-ink-500 bg-transparent px-5 py-2.5 font-semibold text-chalk transition-colors
+      hover:border-vsb-500 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-300 focus-visible:ring-offset-2 focus-visible:ring-offset-ink;
+  }
+  .v2-chip { @apply inline-flex items-center rounded-md px-2 py-0.5 text-xs font-semibold; }
+  .v2-input {
+    @apply w-full rounded-lg border border-ink-500 bg-ink-850 px-3 py-2 text-sm text-chalk placeholder:text-muted
+      focus:border-vsb-500 focus:outline-none focus:ring-2 focus:ring-vsb-500/30;
+  }
+  .v2-heading { @apply font-display font-bold uppercase tracking-wide text-chalk; }
+}
+
 @keyframes slide-up {
   from { transform: translateY(1rem); opacity: 0; }
   to { transform: translateY(0); opacity: 1; }
@@ -21,6 +43,7 @@
 @media (prefers-reduced-motion: reduce) {
   .reveal-hidden { opacity: 1; }
   .animate-reveal { animation: none; }
+  html { scroll-behavior: auto; }
 }
 
 html {
