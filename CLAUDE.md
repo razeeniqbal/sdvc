@@ -41,6 +41,18 @@ Two experiences, one design system:
   `session_player_roster` RPC and the `player-sources` (private) /
   `player-avatars` (public) buckets. Players still can only read their own
   profile — other players' data comes only through SECURITY DEFINER RPCs.
+- **RLS says *which rows*, triggers say *what may change*.** Own-row policies
+  on `profiles`, `bookings` and `waiting_list` are backed by guard triggers
+  (`guard_profile_role`, `guard_player_booking`, `guard_player_waitlist`) that
+  only allow the writes the app offers players: sign up as 'player', book as
+  'Pending Payment' at the session price, upload a receipt, link a friend
+  group once, cancel, join/leave the queue. Status, payment, price, hold and
+  role changes go through admins or SECURITY DEFINER RPCs. Payments are
+  admin-only. A new player-side write needs the guard updated in the same
+  migration.
+- **Behaviour changes wait for launch.** V1 on `main` shares this database.
+  Anything that changes what V1 users experience lives in
+  `supabase/launch/` (see its README) instead of `migrations/`.
 - **Avatar generation** runs in the `generate-avatar` edge function, which
   owns the entitlement (1 free + admin grants, admins unlimited, idempotent,
   failed attempts don't count) and deletes source photos. Never decide
