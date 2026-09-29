@@ -578,7 +578,8 @@
       "mobileLabel": "Primary",
       "adminConsole": "Admin Console",
       "community": "Community",
-      "organizerConsole": "Organizer Console"
+      "organizerConsole": "Organizer Console",
+      "whatsNew": "What's new"
     },
     "footer": {
       "tagline": "People · Play · Connect · Belong",

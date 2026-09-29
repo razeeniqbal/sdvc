@@ -6,11 +6,16 @@ import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useMyAvatar } from '@/lib/avatars';
 import { vsbAssets } from '@/lib/vsbAssets';
+import { WHATS_NEW_EVENT } from '@/lib/whatsNew';
 
 // One-time "What's new" announcement per person. Seen state lives on the
-// profile (profiles.seen_whats_new), so it shows once across devices. Bump
+// profile (profiles.seen_whats_new), so it shows once across devices:
+//   ANNOUNCEMENT          seen to the end: never shown again automatically
+//   ANNOUNCEMENT + PARTIAL closed on step 1: shown once more, from step 2
+// Anyone can reopen it from the player menu (openWhatsNew). Bump
 // ANNOUNCEMENT for the next announcement; the copy lives in v2.whatsNew.*.
 const ANNOUNCEMENT = '2026-10-rules-and-players';
+const PARTIAL = ':rules';
 
 // Never interrupt sign-in, the console, or someone already creating a player.
 const QUIET = /^\/(admin|login|register|forgot-password|reset-password|profile\/player|__)/;
@@ -22,13 +27,28 @@ export function WhatsNew({ preview = false }: { preview?: boolean } = {}) {
   const { pathname } = useLocation();
   const avatar = useMyAvatar(profile?.id);
   const [dismissed, setDismissed] = useState(false);
-  const [step, setStep] = useState<1 | 2>(1);
+  const [manual, setManual] = useState(false);
+  const [chosenStep, setStep] = useState<1 | 2 | null>(null);
+  const seen = profile?.seen_whats_new ?? null;
+  const onlyRulesSeen = seen === ANNOUNCEMENT + PARTIAL;
+  // Someone who closed on the rules gets the features straight away next time.
+  const step = chosenStep ?? (onlyRulesSeen && !manual ? 2 : 1);
 
-  const open = preview ? !dismissed : !!profile && !dismissed && profile.seen_whats_new !== ANNOUNCEMENT && !QUIET.test(pathname);
+  useEffect(() => {
+    const reopen = () => { setManual(true); setDismissed(false); setStep(1); };
+    window.addEventListener(WHATS_NEW_EVENT, reopen);
+    return () => window.removeEventListener(WHATS_NEW_EVENT, reopen);
+  }, []);
+
+  const auto = !!profile && seen !== ANNOUNCEMENT && !QUIET.test(pathname);
+  const open = !dismissed && (preview || manual || auto);
 
   function close() {
     setDismissed(true);
-    if (profile && !preview) supabase.from('profiles').update({ seen_whats_new: ANNOUNCEMENT }).eq('id', profile.id).then(() => {});
+    setManual(false);
+    if (!profile || preview || seen === ANNOUNCEMENT) return;
+    const next = step === 2 ? ANNOUNCEMENT : ANNOUNCEMENT + PARTIAL;
+    if (next !== seen) supabase.from('profiles').update({ seen_whats_new: next }).eq('id', profile.id).then(() => {});
   }
 
   useEffect(() => {

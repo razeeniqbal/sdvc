@@ -7,6 +7,7 @@ import { LanguageSwitcher } from '@/components/LanguageSwitcher';
 import { VsbLogo } from '@/components/VsbLogo';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { useMyAvatar } from '@/lib/avatars';
+import { openWhatsNew } from '@/lib/whatsNew';
 
 // VSB Play navigation. Primary areas only — routes are not navigation.
 //   SESSIONS  ·  COMMUNITY  in the bar; MY VSB lives in the avatar menu
@@ -82,6 +83,7 @@ export function Navbar() {
                 <div role="menu" className="animate-pop absolute right-0 mt-2 w-60 origin-top-right border border-ink-600 bg-ink-800 py-2 shadow-2xl shadow-black/50">
                   <Link role="menuitem" to="/profile" className={itemClass}>{t('v2.nav.myVsb')}</Link>
                   <Link role="menuitem" to="/bookings" className={itemClass}>{t('v2.nav.myGames')}</Link>
+                  <button role="menuitem" onClick={() => { setMenuOpen(false); openWhatsNew(); }} className={`${itemClass} w-full text-left`}>{t('v2.nav.whatsNew')}</button>
                   {(isAdmin || isOrganizer) && (
                     <div className="my-2 border-t border-ink-600 pt-2">
                       <Link role="menuitem" to={isAdmin ? '/admin' : '/admin/sessions'} className={`${itemClass} flex items-center gap-2`}>

@@ -117,7 +117,9 @@ Two experiences, one design system:
 - **What's new** (`components/vsb/WhatsNew.tsx`): a one-time announcement per
   person, dismissed state on `profiles.seen_whats_new` (not the browser).
   Bump `ANNOUNCEMENT` for the next one. Never shown on auth, admin or
-  Create Player routes.
+  Create Player routes. Closed on step 1 = saved as `ANNOUNCEMENT:rules` and
+  shown once more from step 2. Reopen any time from the player menu
+  (`openWhatsNew` in lib/whatsNew.ts).
 - **Signed-in Home** starts with `MemberShortcuts`: next game (Pay now while
   unpaid, links to `/bookings/:id#pay`) and four shortcuts. Login lands on `/`.
 - **Starting players** (`add_session_starters`, `lib/starters.ts`,
