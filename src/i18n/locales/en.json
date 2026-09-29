@@ -496,7 +496,9 @@
       "bench_one": "Also in · {{count}}",
       "bench_other": "Also in · {{count}}",
       "moreOpen_one": "+{{count}} more open place",
-      "moreOpen_other": "+{{count}} more open places"
+      "moreOpen_other": "+{{count}} more open places",
+      "waitingTitle": "Waiting list",
+      "waitingHint": "In queue order. When a place opens, the next person is booked in automatically."
     },
     "sessionDetails": {
       "tabPlayers": "Players",

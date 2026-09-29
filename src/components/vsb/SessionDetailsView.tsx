@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowLeft, Info, Lock, MapPin, MessageCircle } from 'lucide-react';
 import { dateParts, formatCurrency, formatDateLocale, formatTime } from '@/lib/format';
-import { getSessionStatus, SESSION_STATUS_KEY, type CourtPlayer, type SessionWithCount } from '@/lib/sessions';
+import { getSessionStatus, SESSION_STATUS_KEY, type CourtPlayer, type SessionWithCount, type WaitlistPlayer } from '@/lib/sessions';
 import { SKILL_LEVEL_KEY, SKILL_LEVEL_STYLE } from '@/lib/volleyball';
 import { whatsappLink } from '@/lib/settings';
 import type { ClubSettings } from '@/types/database';
@@ -23,6 +23,8 @@ import { vsbAssets } from '@/lib/vsbAssets';
 export interface SessionDetailsViewProps {
   session: SessionWithCount;
   players: CourtPlayer[];
+  /** The waiting list in queue order (empty when nobody is waiting). */
+  waiting?: WaitlistPlayer[];
   settings: ClubSettings | null;
   needsPasskey: boolean;
   unlocked: boolean;
@@ -32,7 +34,7 @@ export interface SessionDetailsViewProps {
   onJoinWaitlist: () => void;
 }
 
-export function SessionDetailsView({ session, players, settings, needsPasskey, unlocked, onUnlocked, onWaitlist, onBook, onJoinWaitlist }: SessionDetailsViewProps) {
+export function SessionDetailsView({ session, players, waiting = [], settings, needsPasskey, unlocked, onUnlocked, onWaitlist, onBook, onJoinWaitlist }: SessionDetailsViewProps) {
   const { t, i18n } = useTranslation();
   const railRef = useRef<HTMLDivElement>(null);
   // The phone booking bar only appears once the booking panel is off screen,
@@ -156,7 +158,7 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
 
       {/* ===== Who's playing: the people on this court ===== */}
       <div className="vsb-section border-b border-ink-600">
-        <WhosPlaying players={players} capacity={session.maximum_capacity} />
+        <WhosPlaying players={players} capacity={session.maximum_capacity} waiting={waiting} />
       </div>
 
       {/* ===== What to know | venue + help ===== */}

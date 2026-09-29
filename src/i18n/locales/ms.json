@@ -496,7 +496,9 @@
       "bench_one": "Turut serta · {{count}}",
       "bench_other": "Turut serta · {{count}}",
       "moreOpen_one": "+{{count}} lagi slot kosong",
-      "moreOpen_other": "+{{count}} lagi slot kosong"
+      "moreOpen_other": "+{{count}} lagi slot kosong",
+      "waitingTitle": "Senarai menunggu",
+      "waitingHint": "Mengikut giliran. Apabila ada tempat kosong, orang seterusnya ditempah secara automatik."
     },
     "sessionDetails": {
       "tabPlayers": "Pemain",

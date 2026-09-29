@@ -67,6 +67,11 @@ export default function V2PreviewPage() {
       <SessionDetailsView
         session={{ ...sessions[0], maximum_capacity: capacity, confirmed_count: Math.min(count, capacity) }}
         players={roster.slice(0, Math.min(count, capacity))}
+        waiting={count >= capacity ? [
+          { queue_number: 1, display_name: 'Hakim', gender: 'Male', playing_position: 'Outside Hitter', avatar_url: null, is_me: false },
+          { queue_number: 2, display_name: 'Jeen', gender: 'Female', playing_position: null, avatar_url: null, is_me: true },
+          { queue_number: 3, display_name: 'Ravi', gender: null, playing_position: 'Setter', avatar_url: null, is_me: false },
+        ] : []}
         settings={null}
         needsPasskey={false}
         unlocked

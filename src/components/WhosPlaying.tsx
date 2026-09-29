@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
-import type { CourtPlayer } from '@/lib/sessions';
+import type { CourtPlayer, WaitlistPlayer } from '@/lib/sessions';
 import type { BookingStatus, Gender } from '@/types/database';
 import { POSITION_KEY } from '@/lib/volleyball';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
@@ -19,7 +19,7 @@ type GenderFilter = 'all' | 'male' | 'female' | 'unspecified';
 const matches = (g: Gender | null, f: GenderFilter) =>
   f === 'all' || (f === 'male' && g === 'Male') || (f === 'female' && g === 'Female') || (f === 'unspecified' && !g);
 
-export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; capacity: number }) {
+export function WhosPlaying({ players, capacity, waiting = [] }: { players: CourtPlayer[]; capacity: number; waiting?: WaitlistPlayer[] }) {
   const { t } = useTranslation();
   const [filter, setFilter] = useState<GenderFilter>('all');
   const [view, setView] = useState<'court' | 'list'>('court');
@@ -131,6 +131,33 @@ export function WhosPlaying({ players, capacity }: { players: CourtPlayer[]; cap
             <li className="py-3 font-display text-sm font-bold uppercase tracking-wider text-muted">{t('v2.whosPlaying.openCount', { count: openCount })}</li>
           )}
         </ul>
+      )}
+
+      {/* Waiting list: who's queued, in order. Places go to them automatically. */}
+      {waiting.length > 0 && (
+        <div className="mt-10" aria-labelledby="waitlist-heading">
+          <h3 id="waitlist-heading" className="flex items-baseline gap-3 font-display text-2xl font-extrabold uppercase tracking-wide text-chalk">
+            {t('v2.whosPlaying.waitingTitle')} <span className="text-base font-bold text-ball">{waiting.length}</span>
+          </h3>
+          <p className="mt-1 text-sm text-muted">{t('v2.whosPlaying.waitingHint')}</p>
+          <ol className="mt-4 grid border-l border-t border-ink-600 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {waiting.map((w) => (
+              <li key={w.queue_number} className={`flex items-center gap-3 border-b border-r border-ink-600 px-4 py-3 ${w.is_me ? 'bg-ball/10' : ''}`}>
+                <span className="w-7 font-display text-2xl font-extrabold leading-none text-ball">{w.queue_number}</span>
+                <PlayerAvatar name={w.display_name} src={w.avatar_url} size="sm" className={w.gender ? GENDER_RING[w.gender] : ''} />
+                <div className="min-w-0 flex-1">
+                  <p className="flex items-baseline gap-2">
+                    <span className="truncate font-semibold text-chalk">{w.display_name}</span>
+                    {w.is_me && <span className="font-display text-xs font-bold uppercase tracking-wider text-ball">{t('v2.community.you')}</span>}
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    {[w.playing_position ? t(POSITION_KEY[w.playing_position]) : null, genderLabel(w.gender)].filter(Boolean).join(' · ')}
+                  </p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </section>
   );

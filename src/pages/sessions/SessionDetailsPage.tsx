@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '@/lib/supabase';
-import { fetchCourtRoster, type CourtPlayer, type SessionWithCount } from '@/lib/sessions';
+import { fetchCourtRoster, fetchWaitlistRoster, type CourtPlayer, type SessionWithCount, type WaitlistPlayer } from '@/lib/sessions';
 import { fetchClubSettings } from '@/lib/settings';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
@@ -22,6 +22,7 @@ export default function SessionDetailsPage() {
   const [myWaitlistEntry, setMyWaitlistEntry] = useState<WaitingListEntry | null>(null);
   const [settings, setSettings] = useState<ClubSettings | null>(null);
   const [players, setPlayers] = useState<CourtPlayer[]>([]);
+  const [waiting, setWaiting] = useState<WaitlistPlayer[]>([]);
   const [needsPasskey, setNeedsPasskey] = useState(false);
   const [unlocked, setUnlocked] = useState(false);
 
@@ -38,6 +39,7 @@ export default function SessionDetailsPage() {
       const { data: count } = await supabase.rpc('confirmed_booking_count', { p_session_id: id });
       setSession({ ...data, confirmed_count: (count as number) || 0 } as SessionWithCount);
       setPlayers(await fetchCourtRoster(id));
+      setWaiting(await fetchWaitlistRoster(id));
       const { data: requiresPasskey } = await supabase.rpc('session_requires_passkey', { p_session_id: id });
       setNeedsPasskey(!!requiresPasskey);
       // Was this player already waitlisted for this session? The old version only
@@ -87,6 +89,7 @@ export default function SessionDetailsPage() {
       return;
     }
     setMyWaitlistEntry(inserted as WaitingListEntry);
+    setWaiting(await fetchWaitlistRoster(session.id));
     show(t('sessionDetails.addedToWaitlist'), 'success');
   }
 
@@ -98,6 +101,7 @@ export default function SessionDetailsPage() {
     <SessionDetailsView
       session={session}
       players={players}
+      waiting={waiting}
       settings={settings}
       needsPasskey={needsPasskey}
       unlocked={unlocked}

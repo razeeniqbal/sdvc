@@ -93,6 +93,26 @@ export async function fetchCourtRoster(sessionId: string): Promise<CourtPlayer[]
   return v1.map((p) => ({ ...p, playing_position: null, is_guest: false }));
 }
 
+// The session's waiting list in queue order (session_waitlist_roster RPC:
+// public roster fields only, signed-in members only).
+export interface WaitlistPlayer {
+  queue_number: number;
+  display_name: string;
+  gender: Gender | null;
+  playing_position: PlayingPosition | null;
+  avatar_url: string | null;
+  is_me: boolean;
+}
+
+export async function fetchWaitlistRoster(sessionId: string): Promise<WaitlistPlayer[]> {
+  const { data, error } = await supabase.rpc('session_waitlist_roster', { p_session_id: sessionId });
+  if (error) return [];
+  return ((data || []) as (Omit<WaitlistPlayer, 'avatar_url'> & { avatar_thumb_path: string | null })[]).map(({ avatar_thumb_path, ...p }) => ({
+    ...p,
+    avatar_url: avatarPublicUrl(avatar_thumb_path),
+  }));
+}
+
 export interface SessionExtras {
   roster: CourtPlayer[];
   isPrivate: boolean;
