@@ -89,7 +89,7 @@ export default function LandingPage() {
               <Link to={findGameTo} className="v2-btn-primary !px-8 !py-4 font-display text-lg uppercase tracking-wider">
                 {t('v2.landing.findGame')} <ArrowRight className="h-5 w-5" aria-hidden />
               </Link>
-              <Link to={whosPlayingTo} className="inline-flex items-center justify-center gap-2 py-2 font-display text-lg font-bold uppercase tracking-wider text-chalk underline decoration-vsb-500 decoration-2 underline-offset-8 hover:text-white sm:v2-btn-secondary sm:!bg-ink/60 sm:!px-8 sm:!py-4 sm:no-underline sm:backdrop-blur-sm">
+              <Link to={whosPlayingTo} className="v2-btn-secondary !border-chalk/40 !bg-ink/80 !px-8 !py-4 font-display text-lg uppercase tracking-wider backdrop-blur-sm">
                 {t('v2.landing.seeWhosPlaying')}
               </Link>
             </div>

@@ -8,6 +8,7 @@ import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { AdminPageHeader, OpsBadge, Stat } from '@/components/admin/AdminUI';
 import { OrganizerApplications } from '@/components/admin/OrganizerApplications';
+import { setOrganizer } from '@/lib/organizers';
 import type { Profile } from '@/types/database';
 import { useToast } from '@/context/ToastContext';
 import { useAuth } from '@/context/AuthContext';
@@ -195,17 +196,37 @@ export default function AdminPlayersPage() {
         })}
       </ul>
 
-      {selected && <PlayerSheet profile={selected} avatarUrl={avatars.get(selected.id)} activity={activity.get(selected.id)} onClose={() => setSelected(null)} />}
+      {selected && <PlayerSheet profile={selected} avatarUrl={avatars.get(selected.id)} activity={activity.get(selected.id)} onClose={() => setSelected(null)}
+        onRoleChange={(role) => { setProfiles((ps) => ps.map((p) => (p.id === selected.id ? { ...p, role } : p))); setSelected({ ...selected, role }); }} />}
     </div>
   );
 }
 
-function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profile; avatarUrl?: string; activity?: Activity; onClose: () => void }) {
+function PlayerSheet({ profile, avatarUrl, activity, onClose, onRoleChange }: { profile: Profile; avatarUrl?: string; activity?: Activity; onClose: () => void; onRoleChange: (role: Profile['role']) => void }) {
   const { t } = useTranslation();
   const { show } = useToast();
   const { profile: me } = useAuth();
   const [gens, setGens] = useState<{ used: number; allowed: number; lastFailure: string | null } | null>(null);
   const [granting, setGranting] = useState(false);
+  const [changingRole, setChangingRole] = useState(false);
+
+  async function toggleOrganizer() {
+    const make = profile.role !== 'organizer';
+    const who = profile.short_name || profile.full_name;
+    if (!window.confirm(make
+      ? `Make ${who} an organizer? They can create their own sessions, confirm payments for them and set their own payment QR.`
+      : `Remove organizer access from ${who}? Their sessions stay; they go back to a normal player.`)) return;
+    setChangingRole(true);
+    try {
+      await setOrganizer(profile.id, make);
+      onRoleChange(make ? 'organizer' : 'player');
+      show(make ? `${who} is now an organizer.` : `${who} is a player again.`, 'success');
+    } catch (err) {
+      show((err as Error).message, 'error');
+    } finally {
+      setChangingRole(false);
+    }
+  }
 
   async function loadGens() {
     const [{ data: g }, { count: grants }] = await Promise.all([
@@ -292,6 +313,20 @@ function PlayerSheet({ profile, avatarUrl, activity, onClose }: { profile: Profi
               <div className="flex justify-between gap-4 border-b border-ink-700 pb-2"><dt className="text-muted">Emergency contact</dt><dd className="text-right font-semibold text-chalk">{profile.emergency_contact_name || 'Not provided'}{profile.emergency_contact_phone ? ` · ${profile.emergency_contact_phone}` : ''}</dd></div>
             </dl>
           </section>
+
+          {profile.role !== 'admin' && (
+            <section>
+              <h3 className="adm-label mb-2">Organizer</h3>
+              <p className="mb-3 text-sm text-slate-400">
+                {profile.role === 'organizer'
+                  ? 'Runs their own games: creates sessions, confirms payments for them and uses their own payment QR.'
+                  : 'Organizers run their own games in the Organizer Console. Players can also apply from My VSB.'}
+              </p>
+              <button onClick={toggleOrganizer} disabled={changingRole} className={`adm-btn ${profile.role === 'organizer' ? '' : '!border-vsb-600 !text-vsb-200'}`}>
+                {changingRole && <Spinner className="h-4 w-4" />} {profile.role === 'organizer' ? 'Remove organizer' : 'Make organizer'}
+              </button>
+            </section>
+          )}
 
           <section>
             <h3 className="adm-label mb-2">VSB player avatar</h3>

@@ -32,6 +32,12 @@ export async function fetchPendingApplications(): Promise<PendingApplication[]> 
   return (data || []) as PendingApplication[];
 }
 
+// Admin: make a player an organizer, or back to a player, without an application.
+export async function setOrganizer(userId: string, make: boolean) {
+  const { error } = await supabase.rpc('set_organizer', { p_user_id: userId, p_make: make });
+  if (error) throw error;
+}
+
 export async function reviewApplication(id: string, approve: boolean) {
   const { error } = await supabase.rpc('review_organizer_application', { p_id: id, p_approve: approve });
   if (error) throw error;
