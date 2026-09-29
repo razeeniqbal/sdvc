@@ -46,6 +46,10 @@ export default function BookingDetailsPage() {
   const [leaving, setLeaving] = useState(false);
   const [addingFriend, setAddingFriend] = useState(false);
   const myAvatar = useMyAvatar(profile?.id);
+  // Home's "Pay now" links here with #pay: jump to the payment step once loaded.
+  useEffect(() => {
+    if (!loading && window.location.hash === '#pay') document.getElementById('pay')?.scrollIntoView({ block: 'start' });
+  }, [loading]);
 
   useEffect(() => {
     fetchClubSettings().then(setSettings);
@@ -326,7 +330,7 @@ export default function BookingDetailsPage() {
           )}
 
           {!friendView && groupHasPendingPayment && profile && (
-            <section aria-labelledby="pay-heading">
+            <section id="pay" aria-labelledby="pay-heading" className="scroll-mt-20">
               <h2 id="pay-heading" className="vsb-display mb-4 text-3xl">{t('v2.booking.stepPayment')}</h2>
               <ReceiptUpload booking={booking} session={session} profile={profile} qrUrl={settings?.payment_qr_url} groupBookings={groupBookings} onUploaded={(path) => setBooking({ ...booking, receipt_path: path })} />
             </section>

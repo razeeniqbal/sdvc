@@ -868,6 +868,43 @@
       "hint": "Pemain anda hanya memakai cermin mata jika anda jawab ya.",
       "yes": "Ya",
       "no": "Tidak"
+    },
+    "whatsNew": {
+      "meta": "Apa yang baharu",
+      "rulesTitle": "Peraturan tempahan baharu",
+      "rule1Title": "Bayar dalam 12 jam",
+      "rule1Body": "Tempat yang belum dibayar akan dilepaskan selepas 12 jam (atau 2 jam sebelum game, mana yang lebih awal). Muat naik resit untuk hentikan masa.",
+      "rule2Title": "Senarai menunggu automatik",
+      "rule2Body": "Game penuh? Sertai senarai menunggu. Bila ada tempat kosong, orang seterusnya ditempah secara automatik. Giliran boleh dilihat di bawah Who's Playing.",
+      "rule3Title": "1 kawan setiap tempahan",
+      "rule3Body": "Bawa seorang kawan: tetamu, atau ahli VSB yang dipilih daripada senarai.",
+      "featuresTitle": "Baharu untuk anda",
+      "feature1Title": "Cipta pemain VSB anda",
+      "feature1Body": "Satu foto menjadi pemain VSB anda sendiri, dalam gaya pilihan anda. Ia muncul di kad, gelanggang dan komuniti.",
+      "feature2Title": "Gaya Permainan",
+      "feature2Body": "Kongsi cara anda suka bermain: gaya, suasana permainan dan sebab anda bermain.",
+      "feature3Title": "Kemas kini profil",
+      "feature3Body": "Tukar posisi, tahap dan butiran anda bila-bila masa di My VSB.",
+      "next": "Seterusnya",
+      "done": "Nanti",
+      "openMyVsb": "Buka My VSB"
+    },
+    "home": {
+      "meta": "My VSB",
+      "welcome": "Hai, {{name}}",
+      "shortcuts": "Pintasan",
+      "openGames_one": "{{count}} permainan dibuka",
+      "openGames_other": "{{count}} permainan dibuka",
+      "upcomingGames_one": "{{count}} akan datang",
+      "upcomingGames_other": "{{count}} akan datang",
+      "cardAndGame": "Kad dan gaya permainan anda",
+      "onePhoto": "Daripada satu foto",
+      "whoPlays": "Warga VSB",
+      "payNow": "Bayar sekarang · {{amount}}",
+      "payBy": "Bayar sebelum {{time}}",
+      "receiptSent": "Resit dihantar, menunggu pengesahan kelab.",
+      "moreUnpaid_one": "Anda ada {{count}} lagi permainan belum dibayar di My Games.",
+      "moreUnpaid_other": "Anda ada {{count}} lagi permainan belum dibayar di My Games."
     }
   }
 }

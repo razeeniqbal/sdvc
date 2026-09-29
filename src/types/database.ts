@@ -66,6 +66,8 @@ export interface Profile {
   player_pose: string | null;
   /** The player's own answer for their generated character; null = not asked yet. */
   wears_glasses: boolean | null;
+  /** Last "What's new" announcement dismissed (components/vsb/WhatsNew.tsx). */
+  seen_whats_new: string | null;
   role: UserRole;
   created_at: string;
   updated_at: string;

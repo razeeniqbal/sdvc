@@ -114,13 +114,19 @@ Two experiences, one design system:
   `.vsb-watermark` (one very faint word behind a composition). Watermarks
   are rare: Home's closing CTA and the My VSB identity (the player's
   position) only. Never decorate empty space; fix the composition instead.
+- **What's new** (`components/vsb/WhatsNew.tsx`): a one-time announcement per
+  person, dismissed state on `profiles.seen_whats_new` (not the browser).
+  Bump `ANNOUNCEMENT` for the next one. Never shown on auth, admin or
+  Create Player routes.
+- **Signed-in Home** starts with `MemberShortcuts`: next game (Pay now while
+  unpaid, links to `/bookings/:id#pay`) and four shortcuts. Login lands on `/`.
 - **Loading states** use the skeletons in `components/vsb/Skeletons.tsx`
   shaped like the real content (fixture, list, roster, ticket, session,
   identity). No full-page spinners on player routes; spinners only inside
   buttons or for in-progress generation.
 - **Dev review routes** (DEV only, never in production bundles):
   `/__v2-preview` (components + session details with sample data),
-  `/__player-preview/myvsb|games|community|sessions` (real pages for a sample profile
+  `/__player-preview/myvsb|games|community|sessions|home` (add `?whatsnew` to show the announcement; real pages for a sample profile
   via `PreviewAuthProvider`, signed out, nothing written),
   `/__avatar-compare`, `/__admin-preview`.
 - **Type scale.** 16px root everywhere. Display type uses `.vsb-display` /

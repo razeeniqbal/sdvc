@@ -868,6 +868,43 @@
       "hint": "Your player only gets glasses if you say yes.",
       "yes": "Yes",
       "no": "No"
+    },
+    "whatsNew": {
+      "meta": "What's new",
+      "rulesTitle": "New booking rules",
+      "rule1Title": "Pay within 12 hours",
+      "rule1Body": "Unpaid places are released after 12 hours (or 2 hours before the game, whichever is sooner). Upload your receipt to stop the clock.",
+      "rule2Title": "Waiting list is automatic",
+      "rule2Body": "Game full? Join the waiting list. When a place opens, the next person is booked in automatically. You can see the queue under Who's Playing.",
+      "rule3Title": "1 friend per booking",
+      "rule3Body": "Bring one friend: a guest, or a VSB member picked from the list.",
+      "featuresTitle": "New for you",
+      "feature1Title": "Create your VSB player",
+      "feature1Body": "One photo becomes your own VSB player, in the pose you choose. It appears on your card, the court and the community.",
+      "feature2Title": "Your Game",
+      "feature2Body": "Tell other players how you like to play: playstyle, game vibe and why you play.",
+      "feature3Title": "Edit your profile",
+      "feature3Body": "Update your position, level and details any time in My VSB.",
+      "next": "Next",
+      "done": "Later",
+      "openMyVsb": "Open My VSB"
+    },
+    "home": {
+      "meta": "My VSB",
+      "welcome": "Hi, {{name}}",
+      "shortcuts": "Shortcuts",
+      "openGames_one": "{{count}} open game",
+      "openGames_other": "{{count}} open games",
+      "upcomingGames_one": "{{count}} upcoming",
+      "upcomingGames_other": "{{count}} upcoming",
+      "cardAndGame": "Your card and your game",
+      "onePhoto": "From one photo",
+      "whoPlays": "The people of VSB",
+      "payNow": "Pay now · {{amount}}",
+      "payBy": "Pay by {{time}}",
+      "receiptSent": "Receipt sent, waiting for the club to confirm.",
+      "moreUnpaid_one": "You have {{count}} more unpaid game in My Games.",
+      "moreUnpaid_other": "You have {{count}} more unpaid games in My Games."
     }
   }
 }

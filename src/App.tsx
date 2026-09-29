@@ -9,6 +9,7 @@ import { ProtectedRoute, AdminRoute, AdminOnly, OrganizerOnly } from '@/componen
 import { PublicOnlyRoute } from '@/components/PublicOnlyRoute';
 import { AdminShell } from '@/components/admin/AdminShell';
 import { ScrollToTop } from '@/components/ScrollToTop';
+import { WhatsNew } from '@/components/vsb/WhatsNew';
 
 const LandingPage = lazy(() => import('@/pages/LandingPage'));
 const RegisterPage = lazy(() => import('@/pages/auth/RegisterPage'));
@@ -56,6 +57,7 @@ function PlayShell() {
       </main>
       <Footer />
       <PlayerTabBar />
+      <WhatsNew />
     </div>
   );
 }

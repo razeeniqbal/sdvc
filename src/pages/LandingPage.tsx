@@ -11,6 +11,7 @@ import { SessionCard } from '@/components/SessionCard';
 import { PlayerCard } from '@/components/PlayerCard';
 import { CourtLines } from '@/components/vsb/CourtLines';
 import { FullWidthSection, SectionHeader } from '@/components/layout/Section';
+import { MemberShortcuts } from '@/components/vsb/MemberShortcuts';
 import { srcSet, vsbAssets } from '@/lib/vsbAssets';
 
 // Illustrative VSB characters (production art, via the asset registry). They
@@ -64,6 +65,9 @@ export default function LandingPage() {
 
   return (
     <div className="bg-ink text-chalk">
+      {/* Signed in: your next game (pay now) and shortcuts come first */}
+      {profile && <MemberShortcuts openCount={loading ? null : openSessions.length} />}
+
       {/* ===== HERO ===== */}
       {/* One <picture>: dedicated mobile art below 768px, desktop art above.
           ≥1024px the art is full-bleed and the copy sits on its dark left side;

@@ -25,7 +25,7 @@ export default function LoginPage() {
     setLoading(false);
     if (error) { show(error.message.includes('Invalid login') ? t('auth.login.errorInvalidLogin') : error.message, 'error'); return; }
     show(t('auth.login.welcomeBack'), 'success');
-    navigate('/sessions');
+    navigate('/');
   }
 
   const inputClass = 'v2-input !py-3 !text-base';
