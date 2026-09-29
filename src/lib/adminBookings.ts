@@ -13,7 +13,9 @@ export interface AdminBooking extends Booking {
   profile: Profile;
 }
 
-export const ADMIN_BOOKING_SELECT = '*, session:sessions(*), profile:profiles(*)';
+// The booker's profile. Named FK: bookings also references profiles through
+// guest_user_id (a member friend), which makes a bare profiles() embed ambiguous.
+export const ADMIN_BOOKING_SELECT = '*, session:sessions(*), profile:profiles!bookings_user_id_fkey(*)';
 
 // Unpaid bookings owe the session's *current* price (a TBC session may have been
 // priced after the slot was locked); paid ones show what was actually paid.

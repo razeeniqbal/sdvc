@@ -34,7 +34,7 @@ export default function AdminSessionOverview() {
   useEffect(() => {
     supabase
       .from('bookings')
-      .select('*, profile:profiles(short_name, full_name, gender)')
+      .select('*, profile:profiles!bookings_user_id_fkey(short_name, full_name, gender)')
       .eq('session_id', session.id)
       .order('created_at', { ascending: true })
       .then(({ data }) => setRows((data || []) as unknown as Row[]));
