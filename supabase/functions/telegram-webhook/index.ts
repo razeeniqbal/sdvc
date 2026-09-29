@@ -343,7 +343,7 @@ Deno.serve(async (req: Request) => {
   async function sendPendingDetail(chatId: number, bookingId: string) {
     const { data } = await supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles(full_name, short_name, phone_number, gender)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles!bookings_user_id_fkey(full_name, short_name, phone_number, gender)")
       .eq("id", bookingId)
       .maybeSingle();
     if (!data) {
@@ -370,7 +370,7 @@ Deno.serve(async (req: Request) => {
   async function runPending(chatId: number, filter: SessionRow | undefined) {
     let query = supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles(full_name, short_name, phone_number, gender)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles!bookings_user_id_fkey(full_name, short_name, phone_number, gender)")
       .eq("booking_status", "Pending Payment")
       .order("created_at", { ascending: true })
       .limit(50);
@@ -484,7 +484,7 @@ Deno.serve(async (req: Request) => {
   async function sendReminderDetail(chatId: number, bookingId: string) {
     const { data } = await supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles(full_name, short_name, phone_number, gender)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles!bookings_user_id_fkey(full_name, short_name, phone_number, gender)")
       .eq("id", bookingId)
       .maybeSingle();
     if (!data) {
@@ -507,7 +507,7 @@ Deno.serve(async (req: Request) => {
   async function runReminder(chatId: number, filter: SessionRow | undefined) {
     let query = supabase
       .from("bookings")
-      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles(full_name, short_name, phone_number, gender)")
+      .select("id, booking_reference, booking_status, is_guest, guest_name, guest_phone, guest_gender, total_amount, created_at, booking_group_id, session:sessions(id, title, session_date, price), profile:profiles!bookings_user_id_fkey(full_name, short_name, phone_number, gender)")
       .eq("booking_status", "Pending Payment")
       .order("created_at", { ascending: true })
       .limit(50);

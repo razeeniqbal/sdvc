@@ -1,5 +1,9 @@
 # V2 launch checklist
 
+**Done on 2026-09-29**: V2 merged to `main` and live on `vsb.madebyrazeen.com`;
+`telegram-webhook` (v21) and `telegram-notify` (v9) redeployed; `v2_launch_rules.sql`
+run (triggers + `vsb-booking-holds` cron). Kept for reference and re-runs.
+
 The live V1 app shares this database, so anything that changes behaviour for V1
 users waits until V2 goes live on `vsb.madebyrazeen.com`. Do these in order on
 launch day.

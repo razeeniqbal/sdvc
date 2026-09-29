@@ -2,7 +2,7 @@
 
 A session booking web app for a Malaysia-based volleyball club. Players sign up, browse and book sessions (solo or with companions), pay via DuitNow/CIMB QR, and upload their payment receipt. Admins manage sessions, bookings, attendance, waiting lists, and club settings.
 
-Live app: [vsb-play.vercel.app](https://vsb-play.vercel.app)
+Live app: [vsb.madebyrazeen.com](https://vsb.madebyrazeen.com)
 
 ## Tech stack
 
