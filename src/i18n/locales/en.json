@@ -512,7 +512,8 @@
       "whatToKnow": "What to know",
       "venue": "Venue",
       "sessionType": "Session type",
-      "waitlistAuto": "We'll book you in automatically when a place opens, and let you know."
+      "waitlistAuto": "We'll book you in automatically when a place opens, and let you know.",
+      "fullNote": "Fully booked. Join the waiting list and you are booked in automatically when a place opens."
     },
     "booking": {
       "stepBook": "Book",

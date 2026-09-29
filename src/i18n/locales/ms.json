@@ -512,7 +512,8 @@
       "whatToKnow": "Perlu tahu",
       "venue": "Tempat",
       "sessionType": "Jenis sesi",
-      "waitlistAuto": "Kami akan tempah untuk anda secara automatik apabila ada slot kosong, dan memaklumkan anda."
+      "waitlistAuto": "Kami akan tempah untuk anda secara automatik apabila ada slot kosong, dan memaklumkan anda.",
+      "fullNote": "Penuh. Sertai senarai menunggu dan anda akan ditempah secara automatik apabila ada tempat kosong."
     },
     "booking": {
       "stepBook": "Tempah",

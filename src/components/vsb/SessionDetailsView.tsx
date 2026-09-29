@@ -9,6 +9,7 @@ import { whatsappLink } from '@/lib/settings';
 import type { ClubSettings } from '@/types/database';
 import { PasskeyGate } from '@/components/PasskeyGate';
 import { WhosPlaying } from '@/components/WhosPlaying';
+import { SessionStatusChip } from '@/components/vsb/SessionStatusChip';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
 import { sessionImage } from '@/lib/sessionMedia';
 import { vsbAssets } from '@/lib/vsbAssets';
@@ -121,7 +122,7 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
                 {needsPasskey && <Lock className="mr-1 h-3 w-3" aria-hidden />}
                 {needsPasskey ? t('v2.session.private') : t('v2.session.public')}
               </span>
-              {status !== 'Available' && <span className="v2-chip bg-ink uppercase tracking-wider text-chalk">{t(SESSION_STATUS_KEY[status] || status)}</span>}
+              <SessionStatusChip status={status} />
             </div>
             <dl className="mt-6 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-ink-600 pt-5">
               <Fact label={t('sessionDetails.dateLabel')} value={formatDateLocale(session.session_date, i18n.language, 'medium')} />
@@ -140,6 +141,7 @@ export function SessionDetailsView({ session, players, settings, needsPasskey, u
               <div className="min-w-[12rem] flex-1 sm:max-w-xs">
                 <CapacityIndicator confirmed={session.confirmed_count} max={session.maximum_capacity} />
                 {canBook && <p className={`mt-1.5 text-sm ${available <= 3 ? 'font-semibold text-amber-300' : 'text-slate-400'}`}>{t('v2.session.openSlots', { count: available })}</p>}
+                {status === 'Fully Booked' && <p className="mt-1.5 text-sm font-semibold text-ball">{t('v2.sessionDetails.fullNote')}</p>}
               </div>
             </div>
             {session.price === 0 && <p className="mt-2 text-xs text-amber-300">{t('sessionDetails.tbcNote')}</p>}

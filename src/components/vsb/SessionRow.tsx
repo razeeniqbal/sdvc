@@ -1,11 +1,12 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Lock } from 'lucide-react';
-import { getSessionStatus, SESSION_STATUS_KEY, type SessionWithCount, type CourtPlayer } from '@/lib/sessions';
+import { getSessionStatus, type SessionWithCount, type CourtPlayer } from '@/lib/sessions';
 import { dateParts, formatCurrency, formatTime } from '@/lib/format';
 import { SKILL_LEVEL_KEY, SKILL_LEVEL_STYLE } from '@/lib/volleyball';
 import { sessionImage } from '@/lib/sessionMedia';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
+import { SessionStatusChip } from '@/components/vsb/SessionStatusChip';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
 import { GENDER_RING } from '@/lib/gender';
 
@@ -52,7 +53,7 @@ export function SessionRow({ session, to, roster, isPrivate }: SessionRowProps) 
         <div className="flex flex-wrap gap-2">
           <span className={`v2-chip uppercase tracking-wider ${SKILL_LEVEL_STYLE[skill]}`}>{t(SKILL_LEVEL_KEY[skill])}</span>
           {isPrivate && <span className="v2-chip bg-ink uppercase tracking-wider text-chalk"><Lock className="mr-1 h-3 w-3" aria-hidden />{t('v2.session.private')}</span>}
-          {status !== 'Available' && <span className="v2-chip bg-ink uppercase tracking-wider text-chalk">{t(SESSION_STATUS_KEY[status] || status)}</span>}
+          <SessionStatusChip status={status} />
         </div>
         <h3 className="font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk">{session.title}</h3>
         <p className="text-slate-300">{t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })}</p>

@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { ArrowRight, Lock } from 'lucide-react';
-import { getSessionStatus, SESSION_STATUS_KEY, type SessionWithCount, type CourtPlayer } from '@/lib/sessions';
+import { getSessionStatus, type SessionWithCount, type CourtPlayer } from '@/lib/sessions';
 import { dateParts, formatCurrency, formatTime } from '@/lib/format';
 import { SKILL_LEVEL_KEY, SKILL_LEVEL_STYLE } from '@/lib/volleyball';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
+import { SessionStatusChip } from '@/components/vsb/SessionStatusChip';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
 import { sessionImage } from '@/lib/sessionMedia';
 
@@ -50,9 +51,7 @@ export function SessionCard({ session, to, roster, isPrivate }: SessionCardProps
             {isPrivate && (
               <span className="v2-chip bg-ink text-chalk uppercase tracking-wider"><Lock className="mr-1 h-3 w-3" aria-hidden />{t('v2.session.private')}</span>
             )}
-            {status !== 'Available' && (
-              <span className="v2-chip bg-ink text-chalk uppercase tracking-wider">{t(SESSION_STATUS_KEY[status] || status)}</span>
-            )}
+            <SessionStatusChip status={status} />
           </div>
         </div>
       </div>
