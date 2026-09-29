@@ -6,13 +6,14 @@ import { User } from 'lucide-react';
 //   3. a guest silhouette for companions without an account
 // VSB characters are never shown in place of a real person: a character on
 // someone's avatar should always mean they generated it.
-// Tones are brand blues/ink only; never derived from gender.
+// Tones are neutral ink/slate only: blue and pink mean gender (the ring and
+// badge, from profile data), so an initial must never be filled blue or pink.
 const TONES = [
-  'bg-vsb-600 text-white',
-  'bg-vsb-800 text-vsb-100',
   'bg-ink-500 text-chalk',
-  'bg-vsb-400 text-ink',
-  'bg-ink-600 text-vsb-200',
+  'bg-ink-600 text-chalk',
+  'bg-slate-600 text-white',
+  'bg-slate-500 text-white',
+  'bg-ink-700 text-slate-200',
 ];
 
 function toneFor(name: string) {
