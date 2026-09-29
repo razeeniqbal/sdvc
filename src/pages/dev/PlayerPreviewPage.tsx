@@ -13,7 +13,7 @@ const SAMPLE: Profile = {
   id: '00000000-0000-4000-8000-00000000abcd', full_name: 'Jeen Tan', short_name: 'Jeen', email: '', phone_number: '0123456789',
   emergency_contact_name: null, emergency_contact_phone: null, gender: 'Female', playing_position: 'Flexible / Any Position',
   skill_level: 'Open Level', show_in_community: true, game_vibe: 'balanced', playstyle: 'all_rounder', experience_range: '1_3',
-  play_reasons: ['social', 'improve'], player_pose: null, role: 'player', created_at: '2026-09-01T00:00:00Z', updated_at: '',
+  play_reasons: ['social', 'improve'], player_pose: null, wears_glasses: null, role: 'player', created_at: '2026-09-01T00:00:00Z', updated_at: '',
 };
 
 const PAGES = { myvsb: ProfilePage, games: MyBookingsPage, community: CommunityPage, sessions: SessionsPage } as const;

@@ -64,6 +64,8 @@ export interface Profile {
   play_reasons: string[];
   /** Generated-character pose (lib/playerPose.ts); presentation only. */
   player_pose: string | null;
+  /** The player's own answer for their generated character; null = not asked yet. */
+  wears_glasses: boolean | null;
   role: UserRole;
   created_at: string;
   updated_at: string;

@@ -18,6 +18,8 @@ import { defaultPose, isPose, poseBlock, type Pose } from "./pose.ts";
 //   4. store the 1024x1536 PNG master untouched + a 256px thumbnail in the
 //      public player-avatars bucket, point player_avatars at them
 //   5. ALWAYS delete the source photo (the club keeps no originals)
+// Glasses come from the player's answer (profiles.wears_glasses), not the
+// model's reading of the photo; unanswered means only glasses clearly worn.
 // Pose (pose.ts): one of six calm identity poses from the profile, or a
 // stable default; only the pose instruction changes, style/kit/framing don't.
 // A failed attempt is marked 'failed', which does not count against the
@@ -38,7 +40,7 @@ const corsHeaders = {
 
 // Bump all three together when the style master or prompt changes.
 const STYLE_VERSION = 3;
-const PROMPT_VERSION = "VSB_PLAYER_V5"; // V5: V4 + controlled pose (pose.ts)
+const PROMPT_VERSION = "VSB_PLAYER_V6"; // V6: V5 + glasses from the player's own answer
 // SHA-256 of public/brand/avatar-style-v3.png (production Player #10, lossless).
 const STYLE_SHA256 = "d2c7fd2dcb2686acce39a04f9be6719137b47a9fe5dd90e14f9fd95ab5c44b66";
 const DEFAULT_MODEL = "gpt-image-1.5";
@@ -53,7 +55,18 @@ function headwearRule(gender: string | null): string {
   return `HEAD: ${hijab} Never draw a cap, hat or hood.`;
 }
 
-function buildPrompt(gender: string | null, pose: Pose): string {
+// The player says whether they wear glasses; the model was adding them.
+function glassesRule(wearsGlasses: boolean | null): string {
+  if (wearsGlasses === true) {
+    return "GLASSES: the player wears glasses. Draw glasses matching the frame shape and colour in IMAGE 2, in IMAGE 1's style, with large anime eyes visible behind them.";
+  }
+  if (wearsGlasses === false) {
+    return "GLASSES: the player does NOT wear glasses. Draw no glasses, sunglasses, goggles or any eyewear, even if IMAGE 2 shows some.";
+  }
+  return "GLASSES: only if IMAGE 2 clearly shows glasses worn on the face. If there is any doubt, draw no glasses or eyewear of any kind.";
+}
+
+function buildPrompt(gender: string | null, pose: Pose, wearsGlasses: boolean | null): string {
   const genderLine = gender === "Male" ? "The player's profile says male." : gender === "Female" ? "The player's profile says female." : "";
   return [
     "Edit IMAGE 1. IMAGE 1 is the approved VSB production character (Player #10). IMAGE 2 is a photo of a real person.",
@@ -63,7 +76,8 @@ function buildPrompt(gender: string | null, pose: Pose): string {
     "uniform construction and fabric, blue saturation, lighting and overall production polish.",
 
     "Change ONLY the identity, taken from IMAGE 2: face shape, skin tone (face, neck, arms and legs), hairstyle, hair colour and eyebrows;",
-    "glasses only if they wear glasses and facial hair only if they have it. Draw these in IMAGE 1's anime style: keep large anime eyes even behind glasses.",
+    "and facial hair only if they have it. Draw these in IMAGE 1's anime style.",
+    glassesRule(wearsGlasses),
     "Do not keep IMAGE 1's face or hairstyle. Do not beautify, age, or change ethnicity or skin tone. Ignore the clothing, accessories and background of IMAGE 2.",
     genderLine,
     headwearRule(gender),
@@ -222,7 +236,8 @@ Deno.serve(async (req: Request) => {
 
   try {
     // Explicit profile data only (never inferred from the photo).
-    const { data: prof } = await admin.from("profiles").select("gender, player_pose").eq("id", user.id).maybeSingle();
+    const { data: prof } = await admin.from("profiles").select("gender, player_pose, wears_glasses").eq("id", user.id).maybeSingle();
+    const wearsGlasses: boolean | null = typeof prof?.wears_glasses === "boolean" ? prof.wears_glasses : null;
     const gender = prof?.gender ?? null;
     // Pose: the player's choice, or a stable default that is saved so the
     // same pose is kept for later regenerations (never random per attempt).
@@ -230,14 +245,14 @@ Deno.serve(async (req: Request) => {
     if (!isPose(prof?.player_pose)) {
       await admin.from("profiles").update({ player_pose: pose }).eq("id", user.id);
     }
-    await admin.from("player_avatar_generations").update({ pose }).eq("id", generationId);
-    const prompt = buildPrompt(gender, pose);
+    await admin.from("player_avatar_generations").update({ pose, glasses: wearsGlasses }).eq("id", generationId);
+    const prompt = buildPrompt(gender, pose, wearsGlasses);
 
     const { data: photo, error: dlError } = await admin.storage.from("player-sources").download(sourcePath);
     if (dlError || !photo) return await fail(`download: ${dlError?.message}`, "We couldn't read your photo. Please upload it again.", 400);
 
     // 3. Edit the style master with the photo as identity reference.
-    trace("started", { generation_id: generationId, user_id: user.id, model: usedModel, input_fidelity: "high", pose });
+    trace("started", { generation_id: generationId, user_id: user.id, model: usedModel, input_fidelity: "high", pose, glasses: wearsGlasses });
     let result = await callEdit(apiKey, usedModel, true, prompt, styleBytes, photo);
 
     // Explicit, recorded fallbacks (never a silent switch to text-only):

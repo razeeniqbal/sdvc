@@ -72,6 +72,11 @@ Two experiences, one design system:
   user id (never random), saved and kept for regenerations. Prompt text lives
   in `supabase/functions/generate-avatar/pose.ts`; keep `POSES`/`defaultPose`
   in sync with `src/lib/playerPose.ts` (`npm run test:pose` checks both).
+- **Glasses** (`profiles.wears_glasses`) are the player's own Yes/No answer
+  in Create Player's pose step (required to continue), never the model's
+  guess from the photo: yes = match their frames, no = no eyewear at all,
+  unanswered = only if clearly worn. `VSB_PLAYER_V6`; each attempt records
+  `glasses` on `player_avatar_generations`.
 - **Avatar generation** runs in the `generate-avatar` edge function, which
   owns the entitlement (1 free + admin grants, admins unlimited by DB role,
   idempotent, failed attempts don't count) and deletes source photos. Never

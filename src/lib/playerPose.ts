@@ -29,3 +29,10 @@ export async function savePose(userId: string, pose: Pose) {
   const { error } = await supabase.from('profiles').update({ player_pose: pose }).eq('id', userId);
   if (error) throw error;
 }
+
+// The generated character's look: pose + whether they wear glasses (the
+// player's own answer, so the image model never guesses from the photo).
+export async function saveLook(userId: string, look: { player_pose: Pose; wears_glasses: boolean }) {
+  const { error } = await supabase.from('profiles').update(look).eq('id', userId);
+  if (error) throw error;
+}

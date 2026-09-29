@@ -859,6 +859,12 @@
       "title": "Kunci tempat saya",
       "yourGame": "Permainan anda",
       "yourSlot": "Tempat anda"
+    },
+    "glasses": {
+      "question": "Anda memakai cermin mata?",
+      "hint": "Pemain anda hanya memakai cermin mata jika anda jawab ya.",
+      "yes": "Ya",
+      "no": "Tidak"
     }
   }
 }

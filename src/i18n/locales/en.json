@@ -859,6 +859,12 @@
       "title": "Secure my slot",
       "yourGame": "Your game",
       "yourSlot": "Your slot"
+    },
+    "glasses": {
+      "question": "Do you wear glasses?",
+      "hint": "Your player only gets glasses if you say yes.",
+      "yes": "Yes",
+      "no": "No"
     }
   }
 }

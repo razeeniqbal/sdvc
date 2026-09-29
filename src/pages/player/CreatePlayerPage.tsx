@@ -12,7 +12,7 @@ import { PlayerCard } from '@/components/PlayerCard';
 import { YourGameForm } from '@/components/vsb/YourGameForm';
 import { PoseIcon } from '@/components/vsb/PoseIcon';
 import { Check } from 'lucide-react';
-import { defaultPose, isPose, poseKey, POSES, savePose, type Pose } from '@/lib/playerPose';
+import { defaultPose, isPose, poseKey, POSES, saveLook, type Pose } from '@/lib/playerPose';
 import { hasYourGame, playstyleKey, saveYourGame, vibeKey, yourGameOf, type YourGame } from '@/lib/yourGame';
 
 // CREATE YOUR VSB PLAYER: photo → crop → position → generate → "your player
@@ -50,15 +50,20 @@ export default function CreatePlayerPage() {
   const currentPose = isPose(profile?.player_pose) ? profile!.player_pose : null;
   const [pose, setPose] = useState<Pose | null>(currentPose);
   const [savingPose, setSavingPose] = useState(false);
+  // Glasses: asked, never guessed from the photo. Must be answered to continue.
+  const [glasses, setGlasses] = useState<boolean | null>(profile?.wears_glasses ?? null);
 
   async function continueFromPose(skip: boolean) {
-    if (!profile) return;
+    if (!profile || glasses === null) return;
     const chosen: Pose = skip || !pose ? currentPose ?? defaultPose(profile.id) : pose;
     setSavingPose(true);
     try {
-      if (chosen !== profile.player_pose) { await savePose(profile.id, chosen); await refreshProfile(); }
+      if (chosen !== profile.player_pose || glasses !== profile.wears_glasses) {
+        await saveLook(profile.id, { player_pose: chosen, wears_glasses: glasses });
+        await refreshProfile();
+      }
       setPose(chosen);
-    } catch { /* the server applies the same default if saving fails */ }
+    } catch { /* the server applies the same pose default; glasses then fall back to "only if clearly worn" */ }
     setSavingPose(false);
     if (needsGame) setStep('game'); else setConfirming(true);
   }
@@ -292,11 +297,27 @@ export default function CreatePlayerPage() {
                 {avatar && currentPose && (
                   <p className="mt-4 text-sm text-slate-400">{t('v2.pose.current', { pose: t(poseKey(currentPose)) })}</p>
                 )}
+
+                <fieldset className="mt-8 border-t border-ink-600 pt-6">
+                  <legend className="float-left w-full font-display text-xl font-bold uppercase tracking-wide text-chalk">{t('v2.glasses.question')}</legend>
+                  <p className="clear-both pt-1 text-sm text-slate-400">{t('v2.glasses.hint')}</p>
+                  <div role="radiogroup" aria-label={t('v2.glasses.question')} className="mt-4 flex gap-3">
+                    {[true, false].map((v) => (
+                      <label key={String(v)} className={`flex min-w-[7rem] cursor-pointer items-center justify-center gap-2 border px-5 py-3 font-display text-base font-bold uppercase tracking-wider transition-colors has-[:focus-visible]:ring-2 has-[:focus-visible]:ring-vsb-400 ${
+                        glasses === v ? 'border-vsb-500 bg-vsb-600/20 text-chalk' : 'border-ink-500 text-slate-400 hover:border-slate-400 hover:text-chalk'}`}>
+                        <input type="radio" name="wears-glasses" checked={glasses === v} onChange={() => setGlasses(v)} className="sr-only" />
+                        {glasses === v && <Check className="h-4 w-4 text-vsb-300" aria-hidden />}
+                        {v ? t('v2.glasses.yes') : t('v2.glasses.no')}
+                      </label>
+                    ))}
+                  </div>
+                </fieldset>
+
                 <div className="mt-8 flex flex-wrap gap-3">
-                  <button onClick={() => continueFromPose(false)} disabled={savingPose || !pose} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
+                  <button onClick={() => continueFromPose(false)} disabled={savingPose || !pose || glasses === null} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">
                     {savingPose && <Spinner className="h-4 w-4" />} {needsGame ? t('v2.create.continue') : t('v2.create.generate')} <ArrowRight className="h-4 w-4" aria-hidden />
                   </button>
-                  <button onClick={() => continueFromPose(true)} disabled={savingPose} className="v2-btn-secondary">{currentPose ? t('v2.pose.keep') : t('v2.pose.skip')}</button>
+                  <button onClick={() => continueFromPose(true)} disabled={savingPose || glasses === null} className="v2-btn-secondary">{currentPose ? t('v2.pose.keep') : t('v2.pose.skip')}</button>
                 </div>
               </div>
             )}
