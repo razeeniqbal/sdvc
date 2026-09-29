@@ -120,6 +120,14 @@ Two experiences, one design system:
   Create Player routes.
 - **Signed-in Home** starts with `MemberShortcuts`: next game (Pay now while
   unpaid, links to `/bookings/:id#pay`) and four shortcuts. Login lands on `/`.
+- **Starting players** (`add_session_starters`, `lib/starters.ts`,
+  `components/admin/StarterPicker.tsx`): admins (any session) and organizers
+  (their own) book members straight in as Confirmed, RM0, marked Paid, so
+  they never owe and are never released. From Create session (repeats for
+  recurring weeks) and from a session's Overview (+ Add players).
+- **Organizers**: players apply in My VSB (hidden for admins); admins approve
+  in Admin -> Players, or use Make/Remove organizer on a player
+  (`set_organizer`, never touches admins).
 - **Loading states** use the skeletons in `components/vsb/Skeletons.tsx`
   shaped like the real content (fixture, list, roster, ticket, session,
   identity). No full-page spinners on player routes; spinners only inside

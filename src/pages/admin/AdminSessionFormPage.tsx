@@ -9,6 +9,8 @@ import { SKILL_LEVELS } from '@/lib/volleyball';
 import { sessionImage, uploadSessionCover } from '@/lib/sessionMedia';
 import { Spinner } from '@/components/LoadingScreen';
 import { useConsoleScope } from '@/lib/consoleScope';
+import { StarterPicker } from '@/components/admin/StarterPicker';
+import { addStarters, type Starter } from '@/lib/starters';
 
 export default function AdminSessionFormPage() {
   const scope = useConsoleScope();
@@ -21,6 +23,7 @@ export default function AdminSessionFormPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showRecurring, setShowRecurring] = useState(false);
+  const [starters, setStarters] = useState<Starter[]>([]);
 
   const [form, setForm] = useState({
     title: '',
@@ -143,6 +146,7 @@ export default function AdminSessionFormPage() {
     e.preventDefault();
     if (!profile) return;
     setSaving(true);
+    const starterFailures: string[] = [];
 
     const sessionData: Omit<Session, 'id' | 'created_by' | 'created_at' | 'updated_at'> & { created_by?: string } = {
       title: form.title,
@@ -178,6 +182,13 @@ export default function AdminSessionFormPage() {
       const pkError = await savePasskey(created.id);
       if (pkError) { show(`Session created, but the passkey failed to save: ${pkError}`, 'error'); setSaving(false); return; }
 
+      // Starting players: confirmed places with no payment (add_session_starters).
+      const starterIds = starters.map((s) => s.id);
+      const seat = async (sessionId: string) => {
+        try { await addStarters(sessionId, starterIds); } catch (err) { starterFailures.push((err as Error).message); }
+      };
+      await seat(created.id);
+
       // Create recurring sessions
       if (recurring.enabled && recurring.endDate) {
         const start = new Date(form.session_date);
@@ -198,6 +209,8 @@ export default function AdminSessionFormPage() {
             if (form.passkey.trim() && recCreated) {
               await Promise.all(recCreated.map((s: { id: string }) => savePasskey(s.id)));
             }
+            // The starting lineup repeats with the session.
+            for (const s of (recCreated || []) as { id: string }[]) await seat(s.id);
             show(`Session created with ${sessions.length} recurring sessions`, 'success');
           }
         } else {
@@ -208,6 +221,7 @@ export default function AdminSessionFormPage() {
       }
     }
 
+    if (!isEdit && starterFailures.length > 0) show(`Session saved, but some starting players couldn't be added: ${starterFailures[0]}`, 'error');
     setSaving(false);
     navigate('/admin/sessions');
   }
@@ -370,6 +384,15 @@ export default function AdminSessionFormPage() {
           <h2 className="font-display text-lg font-bold uppercase tracking-[0.12em] text-chalk">Notes for Players</h2>
           <textarea className={inputClass} rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} placeholder="Any additional notes visible to players" />
         </div>
+
+        {/* Starting players (create only; later, use the session's Overview) */}
+        {!isEdit && (
+          <div className="border-t border-ink-600 py-6 space-y-3">
+            <h2 className="font-display text-lg font-bold uppercase tracking-[0.12em] text-chalk">Starting players</h2>
+            <p className="text-sm text-slate-400">Optional. Members added here get a confirmed place with no payment (core players, coaches, or people who pay you separately). For recurring sessions they're added to every week.</p>
+            <StarterPicker value={starters} onChange={setStarters} max={parseInt(form.maximum_capacity) || 18} />
+          </div>
+        )}
 
         {/* Recurring sessions */}
         {!isEdit && (

@@ -7,6 +7,9 @@ import { Spinner } from '@/components/LoadingScreen';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { OpsBadge, SectionTitle, Stat, type OpsTone } from '@/components/admin/AdminUI';
 import { useSessionWorkspace } from './sessionWorkspace';
+import { StarterPicker } from '@/components/admin/StarterPicker';
+import { addStarters, type Starter } from '@/lib/starters';
+import { useToast } from '@/context/ToastContext';
 import { localToday } from '@/lib/adminSessions';
 import { useAvatarMap } from '@/lib/avatars';
 import type { Booking, BookingStatus, Profile } from '@/types/database';
@@ -27,7 +30,26 @@ function formatInterval(v: string | null): string {
 }
 
 export default function AdminSessionOverview() {
-  const { session, waitingCount } = useSessionWorkspace();
+  const { session, waitingCount, reload } = useSessionWorkspace();
+  const { show } = useToast();
+  const [adding, setAdding] = useState(false);
+  const [picked, setPicked] = useState<Starter[]>([]);
+  const [saving, setSaving] = useState(false);
+
+  async function saveStarters() {
+    setSaving(true);
+    try {
+      const n = await addStarters(session.id, picked.map((p) => p.id));
+      show(n === picked.length ? `Added ${n} player${n === 1 ? '' : 's'}.` : `Added ${n}; the rest already had a place.`, 'success');
+      setPicked([]);
+      setAdding(false);
+      await reload();
+    } catch (err) {
+      show((err as Error).message, 'error');
+    } finally {
+      setSaving(false);
+    }
+  }
   const [rows, setRows] = useState<Row[] | null>(null);
   const avatars = useAvatarMap((rows || []).filter((b) => !b.is_guest).map((b) => b.user_id));
 
@@ -76,6 +98,24 @@ export default function AdminSessionOverview() {
           <SectionTitle id="roster-heading" action={<Link to="bookings" className="inline-flex items-center gap-1 text-xs font-semibold uppercase tracking-wider text-vsb-400 hover:text-vsb-300">All bookings <ArrowRight className="h-3.5 w-3.5" aria-hidden /></Link>}>
             Players · {active.length}
           </SectionTitle>
+          {session.session_date >= localToday() && (
+            adding ? (
+              <div className="mb-5 border border-ink-600 bg-ink-800 p-4">
+                <p className="adm-label mb-1">Add players</p>
+                <p className="mb-3 text-xs text-slate-400">Confirmed places with no payment. {spotsLeft} spot{spotsLeft === 1 ? '' : 's'} left.</p>
+                <StarterPicker value={picked} onChange={setPicked} max={spotsLeft}
+                  excludeIds={active.flatMap((b) => (b.is_guest ? (b.guest_user_id ? [b.guest_user_id] : []) : [b.user_id]))} />
+                <div className="mt-4 flex gap-2">
+                  <button onClick={saveStarters} disabled={saving || picked.length === 0} className="adm-btn !border-vsb-600 !text-vsb-200">
+                    {saving && <Spinner className="h-4 w-4" />} Add {picked.length || ''} player{picked.length === 1 ? '' : 's'}
+                  </button>
+                  <button onClick={() => { setAdding(false); setPicked([]); }} className="adm-btn">Cancel</button>
+                </div>
+              </div>
+            ) : spotsLeft > 0 && (
+              <button onClick={() => setAdding(true)} className="adm-btn mb-4">+ Add players</button>
+            )
+          )}
           {active.length === 0 ? (
             <p className="py-4 text-slate-400">No one has booked yet.</p>
           ) : (
