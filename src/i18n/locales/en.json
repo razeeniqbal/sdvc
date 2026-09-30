@@ -763,18 +763,14 @@
     "organizer": {
       "payTo": "Pay the organizer, {{name}}, for this game.",
       "title": "Organize games",
-      "intro": "Want to run your own VSB games? Organizers create sessions, confirm payments and manage the waiting list for their own games, and players pay them directly. An admin reviews every application.",
-      "messageLabel": "Tell the club about your games (optional)",
-      "messagePlaceholder": "For example: where and when you play, and how many players usually join.",
-      "apply": "Apply to organize",
-      "applied": "Application sent. An admin will review it.",
-      "applyError": "Couldn't send your application. Try again.",
+      "intro": "Want to run your own VSB games? Organizers create sessions, confirm payments and manage the waiting list for their own games, and players pay them directly. To become one, message a club admin.",
       "pendingTitle": "Application sent",
       "pendingBody": "You applied on {{date}}. An admin will review it and you will get a notification.",
-      "rejected": "Your application from {{date}} was not approved. You can apply again.",
       "youAre": "You are an organizer. Create games, confirm payments and manage your waiting list in the Organizer Console.",
       "noQr": "Add your payment QR so players can pay you. Until then they see the club's QR.",
-      "paymentQr": "Payment QR"
+      "paymentQr": "Payment QR",
+      "contactAdmin": "Message {{name}} on WhatsApp",
+      "contactMessage": "Hi, I'd like to become a VSB organizer."
     },
     "friend": {
       "addMember": "Add a VSB player",

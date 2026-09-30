@@ -1,48 +1,34 @@
-import { useEffect, useState, type FormEvent } from 'react';
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, MessageCircle } from 'lucide-react';
 import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/context/ToastContext';
-import { applyToOrganize, fetchMyLatestApplication, fetchMyPaymentProfile } from '@/lib/organizers';
+import { fetchMyLatestApplication, fetchMyPaymentProfile } from '@/lib/organizers';
+import { fetchClubSettings, whatsappLink } from '@/lib/settings';
 import { formatDateLocale } from '@/lib/format';
-import type { OrganizerApplication } from '@/types/database';
+import type { ClubSettings, OrganizerApplication } from '@/types/database';
 import { Spinner } from '@/components/LoadingScreen';
 
-// My VSB: apply to organize games, see where the application stands, or (once
-// approved) jump into the organizer console. Hidden for admins.
+// My VSB: how to become an organizer (message a club admin; in-app applications
+// are switched off), an application still pending from before, or (once made an
+// organizer) the way into the organizer console. Hidden for admins.
 export function OrganizeSection({ bare = false }: { bare?: boolean }) {
   const { t, i18n } = useTranslation();
   const { profile, isAdmin, isOrganizer } = useAuth();
-  const { show } = useToast();
   const [app, setApp] = useState<OrganizerApplication | null | undefined>(undefined);
   const [hasQr, setHasQr] = useState<boolean | null>(null);
-  const [message, setMessage] = useState('');
-  const [sending, setSending] = useState(false);
+  const [settings, setSettings] = useState<ClubSettings | null>(null);
 
   useEffect(() => {
     if (!profile || isAdmin) return;
     if (isOrganizer) fetchMyPaymentProfile(profile.id).then((p) => setHasQr(!!p?.qr_path));
-    else fetchMyLatestApplication(profile.id).then(setApp);
+    else {
+      fetchMyLatestApplication(profile.id).then(setApp);
+      fetchClubSettings().then(setSettings).catch(() => {});
+    }
   }, [profile, isAdmin, isOrganizer]);
 
   if (!profile || isAdmin) return null;
-
-  async function submit(e: FormEvent) {
-    e.preventDefault();
-    if (!profile) return;
-    setSending(true);
-    try {
-      await applyToOrganize(profile.id, message);
-      setApp(await fetchMyLatestApplication(profile.id));
-      setMessage('');
-      show(t('v2.organizer.applied'), 'success');
-    } catch {
-      show(t('v2.organizer.applyError'), 'error');
-    } finally {
-      setSending(false);
-    }
-  }
 
   const lang = i18n.language;
 
@@ -69,18 +55,13 @@ export function OrganizeSection({ bare = false }: { bare?: boolean }) {
           <p className="mt-1 text-slate-300">{t('v2.organizer.pendingBody', { date: formatDateLocale(app.created_at, lang, 'medium') })}</p>
         </div>
       ) : (
-        <form onSubmit={submit} className="max-w-3xl">
-          {app?.status === 'rejected' && (
-            <p className="mb-4 border-l-2 border-ink-500 pl-3 text-sm text-slate-400">{t('v2.organizer.rejected', { date: formatDateLocale(app.reviewed_at ?? app.created_at, lang, 'medium') })}</p>
-          )}
+        <div className="max-w-3xl">
           <p className="text-slate-300">{t('v2.organizer.intro')}</p>
-          <label htmlFor="organize-msg" className="mb-1.5 mt-5 block text-sm font-medium text-slate-300">{t('v2.organizer.messageLabel')}</label>
-          <textarea id="organize-msg" rows={3} maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)}
-            placeholder={t('v2.organizer.messagePlaceholder')} className="v2-input !text-base" />
-          <button type="submit" disabled={sending} className={`${bare ? 'v2-btn-secondary' : 'v2-btn-primary'} mt-4 !px-6 font-display uppercase tracking-wider`}>
-            {sending && <Spinner className="h-4 w-4" />} {t('v2.organizer.apply')}
-          </button>
-        </form>
+          <a href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('v2.organizer.contactMessage'))} target="_blank" rel="noopener noreferrer"
+            className="mt-4 inline-flex items-center gap-2 font-semibold text-green-400 hover:text-green-300">
+            <MessageCircle className="h-5 w-5" aria-hidden /> {t('v2.organizer.contactAdmin', { name: settings?.contact_person_name || 'the club' })}
+          </a>
+        </div>
       )}
     </section>
   );

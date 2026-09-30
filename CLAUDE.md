@@ -130,9 +130,11 @@ Two experiences, one design system:
   (their own) book members straight in as Confirmed, RM0, marked Paid, so
   they never owe and are never released. From Create session (repeats for
   recurring weeks) and from a session's Overview (+ Add players).
-- **Organizers**: players apply in My VSB (hidden for admins); admins approve
-  in Admin -> Players, or use Make/Remove organizer on a player
-  (`set_organizer`, never touches admins).
+- **Organizers**: in-app applications are switched off for now; My VSB
+  (hidden for admins) tells players to message a club admin on WhatsApp.
+  Admins use Make/Remove organizer on a player in Admin -> Players
+  (`set_organizer`, never touches admins); older pending applications still
+  show there to approve.
 - **Loading states** use the skeletons in `components/vsb/Skeletons.tsx`
   shaped like the real content (fixture, list, roster, ticket, session,
   identity). No full-page spinners on player routes; spinners only inside
