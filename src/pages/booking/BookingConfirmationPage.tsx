@@ -6,7 +6,7 @@ import { useMyAvatar } from '@/lib/avatars';
 import { HoldCountdown } from '@/components/vsb/HoldCountdown';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
-import { bookingDisplayName, dateParts, formatCurrency, formatDateLocale, formatTime } from '@/lib/format';
+import { bookingDisplayName, dateParts, formatCurrency, formatTime } from '@/lib/format';
 import { fetchClubSettings } from '@/lib/settings';
 import { StatusBadge, GenderBadge } from '@/components/StatusBadge';
 import type { Booking, Session, Payment, ClubSettings } from '@/types/database';
@@ -90,15 +90,15 @@ export default function BookingConfirmationPage() {
     <div className="bg-ink text-chalk">
       {/* ===== You're on court (state always in words, not just art) ===== */}
       <section aria-labelledby="confirm-title" className="relative overflow-hidden border-b border-ink-600">
-        <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-15" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/85 to-ink/40" aria-hidden />
         <div className="vsb-gutter relative grid items-end gap-6 pt-8 md:grid-cols-[minmax(0,1fr)_auto] md:pt-10">
           <div className="pb-10 md:pb-14">
             <BookingSteps current={isConfirmed ? 3 : 2} />
-            <p className={`mt-8 font-display text-lg font-bold uppercase tracking-wider ${isConfirmed ? 'text-green-400' : 'text-amber-300'}`}>
-              {isConfirmed ? t('bookingConfirmation.bookingConfirmed') : verifying ? t('bookingConfirmation.pendingVerification') : t('v2.booking.payToConfirm')}
-            </p>
-            <h1 id="confirm-title" className="vsb-display mt-2 text-6xl sm:text-7xl lg:text-8xl">
+            {!isConfirmed && (
+              <p className="mt-8 font-display text-lg font-bold uppercase tracking-wider text-amber-300">
+                {verifying ? t('bookingConfirmation.pendingVerification') : t('v2.booking.payToConfirm')}
+              </p>
+            )}
+            <h1 id="confirm-title" className={`vsb-display text-5xl sm:text-6xl lg:text-7xl ${isConfirmed ? 'mt-8' : 'mt-2'}`}>
               {isConfirmed ? t('v2.booking.onCourt') : t('bookingConfirmation.slotLocked')}
             </h1>
 
@@ -111,7 +111,7 @@ export default function BookingConfirmationPage() {
               <div className="min-w-0 pb-1">
                 <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-4xl">{session.title}</p>
                 <p className="mt-2 text-lg text-slate-200">
-                  {formatDateLocale(session.session_date, i18n.language, 'medium')} · {t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })}
+                  {t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })}
                 </p>
                 <p className="text-slate-300">{[session.venue_name, session.court_number].filter(Boolean).join(' · ')}</p>
                 <p className="mt-2 font-semibold text-chalk">
@@ -122,7 +122,7 @@ export default function BookingConfirmationPage() {
             </div>
           </div>
           <img src={figure.src} alt={figure.alt} width={figure.width} height={figure.height} decoding="async"
-            className="hidden h-[22rem] w-auto self-end object-contain md:block lg:h-[28rem]" />
+            className="hidden h-64 w-auto self-end object-contain md:block lg:h-80" />
         </div>
       </section>
 
@@ -136,19 +136,19 @@ export default function BookingConfirmationPage() {
             </div>
             <div>
               <dt className="vsb-meta mb-1">{isConfirmed ? t('bookingConfirmation.amountPaid') : t('bookingConfirmation.amountDue')}</dt>
-              <dd className={`font-display text-3xl font-extrabold ${isConfirmed ? 'text-green-400' : 'text-amber-300'}`}>{formatCurrency(totalAmount)}</dd>
+              <dd className={`font-display text-2xl font-extrabold sm:text-3xl ${isConfirmed ? 'text-green-400' : 'text-amber-300'}`}>{formatCurrency(totalAmount)}</dd>
             </div>
-            {isConfirmed && (
-              <>
-                <div>
-                  <dt className="vsb-meta mb-1">{t('bookingConfirmation.methodLabel')}</dt>
-                  <dd className="font-semibold text-chalk">{payment?.payment_method || t('common.na')}</dd>
-                </div>
-                <div>
-                  <dt className="vsb-meta mb-1">{t('bookingConfirmation.referenceLabel')}</dt>
-                  <dd className="font-mono text-chalk">{payment?.transaction_reference || t('common.na')}</dd>
-                </div>
-              </>
+            {isConfirmed && payment?.payment_method && (
+              <div>
+                <dt className="vsb-meta mb-1">{t('bookingConfirmation.methodLabel')}</dt>
+                <dd className="font-semibold text-chalk">{payment.payment_method}</dd>
+              </div>
+            )}
+            {isConfirmed && payment?.transaction_reference && (
+              <div>
+                <dt className="vsb-meta mb-1">{t('bookingConfirmation.referenceLabel')}</dt>
+                <dd className="font-mono text-chalk">{payment.transaction_reference}</dd>
+              </div>
             )}
           </dl>
 

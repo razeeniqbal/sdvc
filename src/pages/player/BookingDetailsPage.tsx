@@ -5,7 +5,7 @@ import { ArrowLeft, ArrowRight, MapPin, UserPlus } from 'lucide-react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { bookingDisplayName, dateParts, formatCurrency, formatDateLocale, formatTime, formatDateTime } from '@/lib/format';
+import { bookingDisplayName, dateParts, formatCurrency, formatTime, formatDateTime } from '@/lib/format';
 import { notifyGroup } from '@/lib/notifications';
 import { fetchSessionRoster, buildRosterMessage } from '@/lib/sessions';
 import { fetchClubSettings } from '@/lib/settings';
@@ -18,7 +18,6 @@ import { ReceiptUpload } from '@/components/ReceiptUpload';
 import { HoldCountdown } from '@/components/vsb/HoldCountdown';
 import { ACTIVE_BOOKING_STATUSES, MAX_COMPANIONS } from '@/lib/bookingRules';
 import type { Booking, Session, Payment, ClubSettings } from '@/types/database';
-import { vsbAssets } from '@/lib/vsbAssets';
 import { MemberPicker } from '@/components/vsb/MemberPicker';
 import type { CommunityPlayer } from '@/lib/community';
 
@@ -238,20 +237,119 @@ export default function BookingDetailsPage() {
   const holder = booking.is_guest && !friendView ? booking.guest_name || '' : profile?.short_name || profile?.full_name || '';
   const holderPosition = !booking.is_guest || friendView ? profile?.playing_position : null;
   const amount = formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.total_amount);
+  // With nothing to do on this booking, payment sits beside the venue rather than
+  // leaving one column nearly empty.
+  const leftBusy = !!booking.cancelled_at || friendView || awaitingConfirmation || groupHasPendingPayment || groupBookings.length > 1 || showAddFriend;
+  const partySection = (
+    <>
+    {(groupBookings.length > 1 || canAddFriend) && (
+      <section aria-labelledby="party-heading">
+        {groupBookings.length > 1
+          ? <h2 id="party-heading" className="vsb-display mb-4 text-3xl">{t('v2.booking.players')} <span className="text-muted">{groupBookings.length}</span></h2>
+          : <h2 id="party-heading" className="sr-only">{t('v2.booking.players')}</h2>}
+        {groupBookings.length > 1 && (
+          <ul className="divide-y divide-ink-700 border-y border-ink-600">
+            {groupBookings.map((b) => (
+              <li key={b.id} className="flex items-center justify-between gap-3 py-3">
+                <span className="flex min-w-0 items-center gap-3 font-semibold text-chalk">
+                  <PlayerAvatar name={bookingDisplayName(b, profile)} src={!b.is_guest ? myAvatar?.thumb : null} guest={b.is_guest && !b.guest_user_id} size="sm" />
+                  <span className="truncate">{bookingDisplayName(b, profile)}</span>
+                  <GenderBadge gender={b.is_guest ? b.guest_gender : profile?.gender} />
+                  {b.id === booking.id && <span className="font-display text-xs font-bold uppercase tracking-wider text-vsb-400">{t('v2.booking.thisTicket')}</span>}
+                </span>
+                <StatusBadge status={b.booking_status} />
+              </li>
+            ))}
+          </ul>
+        )}
+
+        {canAddFriend && (
+          !showAddFriend ? (
+            <button type="button" onClick={() => setShowAddFriend(true)} className={`hub-link ${groupBookings.length > 1 ? 'mt-4' : ''}`}>
+              <UserPlus className="h-4 w-4" aria-hidden /> {t('bookingDetails.addFriend')}
+            </button>
+          ) : (
+            <form onSubmit={(e) => handleAddFriend(e)} className="mt-5 border-t border-ink-600 pt-5">
+              <p className="font-semibold text-chalk">{t('bookingDetails.addFriend')}</p>
+              <p className="mb-3 text-sm text-slate-400">{t('bookingDetails.addFriendDesc')}</p>
+              <div className="mb-4 flex gap-6 border-b border-ink-600" role="group" aria-label={t('bookingDetails.addFriend')}>
+                <button type="button" onClick={() => setFriendKind('member')} aria-pressed={friendKind === 'member'} className="vsb-tab">{t('v2.friend.tabMember')}</button>
+                <button type="button" onClick={() => setFriendKind('guest')} aria-pressed={friendKind === 'guest'} className="vsb-tab">{t('v2.friend.tabGuest')}</button>
+              </div>
+              {friendKind === 'member' ? (
+                <MemberPicker
+                  excludeIds={[profile?.id ?? '', ...groupBookings.map((b) => b.guest_user_id ?? '')]}
+                  onPick={(m) => { if (!addingFriend) handleAddFriend(null, m); }}
+                />
+              ) : (
+                <div className="grid gap-2 sm:grid-cols-3">
+                  <input className="v2-input" placeholder={t('checkout.companionNamePlaceholder')} aria-label={t('checkout.companionName')}
+                    value={friendForm.name} onChange={(e) => setFriendForm({ ...friendForm, name: e.target.value })} />
+                  <input className="v2-input" placeholder={t('checkout.companionPhone')} aria-label={t('checkout.companionPhone')}
+                    value={friendForm.phone} onChange={(e) => setFriendForm({ ...friendForm, phone: e.target.value })} />
+                  <select className="v2-input" value={friendForm.gender} aria-label={t('common.genderLabel')}
+                    onChange={(e) => setFriendForm({ ...friendForm, gender: e.target.value })} required>
+                    <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
+                    <option value="Male">{t('common.genderMale')}</option>
+                    <option value="Female">{t('common.genderFemale')}</option>
+                  </select>
+                </div>
+              )}
+              <div className="mt-4 flex gap-3">
+                {friendKind === 'guest' && (
+                  <button type="submit" disabled={addingFriend} className="v2-btn-primary">
+                    {addingFriend ? t('bookingDetails.addingFriend') : t('bookingDetails.saveFriend')}
+                  </button>
+                )}
+                <button type="button" onClick={() => { setShowAddFriend(false); setFriendForm({ name: '', phone: '', gender: '' }); }} className="v2-btn-secondary">
+                  {t('bookingDetails.cancelAddFriend')}
+                </button>
+              </div>
+            </form>
+          )
+        )}
+      </section>
+    )}
+    </>
+  );
+  const paymentSection = (
+    <>
+    <section aria-labelledby="payment-heading">
+      <h2 id="payment-heading" className="vsb-display mb-4 text-3xl">{t('bookingDetails.paymentDetails')}</h2>
+      <dl className="divide-y divide-ink-700 border-y border-ink-600 text-sm">
+        <div className="flex justify-between py-3"><dt className="text-slate-400">{t('bookingDetails.sessionFee')}</dt><dd className="text-chalk">{formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.subtotal)}</dd></div>
+        {booking.processing_fee > 0 && <div className="flex justify-between py-3"><dt className="text-slate-400">{t('bookingDetails.processingFee')}</dt><dd className="text-chalk">{formatCurrency(booking.processing_fee)}</dd></div>}
+        {booking.discount_amount > 0 && <div className="flex justify-between py-3 text-green-400"><dt>{t('bookingDetails.discount')}</dt><dd>-{formatCurrency(booking.discount_amount)}</dd></div>}
+        <div className="flex items-baseline justify-between py-3"><dt className="font-semibold text-chalk">{t('bookingDetails.total')}</dt><dd className="font-display text-3xl font-extrabold text-chalk">{amount}</dd></div>
+        <div className="flex items-center justify-between py-3"><dt className="text-slate-400">{t('v2.booking.paymentStatus')}</dt><dd><PaymentStatusBadge status={booking.payment_status} /></dd></div>
+      </dl>
+      {payments.length > 0 && (
+        <ul className="mt-3 divide-y divide-ink-700">
+          {payments.map((p) => (
+            <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
+              <span className="text-slate-300">{p.payment_method || t('bookingDetails.paymentFallback')} <span className="font-mono text-xs text-slate-400">{p.transaction_reference}</span></span>
+              <span className="flex items-center gap-2"><PaymentStatusBadge status={p.payment_status} /><span className="font-medium text-chalk">{formatCurrency(p.amount)}</span></span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+
+    </>
+  );
+
 
   return (
     <div className="bg-ink text-chalk">
       <div className="vsb-gutter border-b border-ink-600 py-3">
         <Link to="/bookings" className="inline-flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-muted hover:text-chalk">
-          <ArrowLeft className="h-4 w-4" aria-hidden /> {t('bookingDetails.backToBookings')}
+          <ArrowLeft className="h-4 w-4" aria-hidden /> {t('v2.nav.myGames')}
         </Link>
       </div>
 
       {/* ===== The ticket: game | stub ===== */}
-      <section aria-labelledby="ticket-title" className="relative overflow-hidden border-b border-ink-600">
-        <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-20" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/90 to-ink/60" aria-hidden />
-        <div className="relative grid lg:grid-cols-[minmax(0,1fr)_24rem]">
+      <section aria-labelledby="ticket-title" className="border-b border-ink-600 bg-ink-850">
+        <div className="grid grid-cols-[minmax(0,1fr)] lg:grid-cols-[minmax(0,1fr)_24rem]">
           <div className="vsb-gutter py-10 lg:py-14">
             <p className={`font-display text-lg font-bold uppercase tracking-wider ${cancelled ? 'text-red-300' : awaitingConfirmation ? 'text-amber-300' : 'text-green-400'}`}>{headline}</p>
             <div className="mt-6 flex flex-wrap items-end gap-x-10 gap-y-6">
@@ -261,9 +359,9 @@ export default function BookingDetailsPage() {
                 <span className="block text-xl font-bold tracking-[0.25em] text-chalk">{d.month}</span>
               </p>
               <div className="min-w-0 pb-1">
-                <h1 id="ticket-title" className="vsb-display text-5xl lg:text-6xl">{session.title}</h1>
+                <h1 id="ticket-title" className="vsb-display break-words text-4xl sm:text-5xl lg:text-6xl">{session.title}</h1>
                 <p className="mt-3 font-display text-2xl font-bold uppercase tracking-wide text-chalk">
-                  {formatDateLocale(session.session_date, i18n.language, 'medium')} · {t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })}
+                  {t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })}
                 </p>
                 <p className="mt-1 text-lg text-slate-300">{[session.venue_name, session.court_number].filter(Boolean).join(' · ')}</p>
               </div>
@@ -271,7 +369,8 @@ export default function BookingDetailsPage() {
           </div>
 
           {/* Stub: who, status, reference. Perforated edge, like a match ticket. */}
-          <div className="vsb-gutter flex flex-col justify-end gap-5 border-t-2 border-dashed border-ink-500 bg-ink-850/90 py-8 lg:border-l-2 lg:border-t-0 lg:!px-8 lg:py-14">
+          <div className="vsb-gutter flex flex-col justify-end gap-5 border-t-2 border-dashed border-ink-500 bg-ink-800 py-8 lg:border-l-2 lg:border-t-0 lg:!px-8 lg:py-14">
+            <p className="vsb-meta -mb-2">{t('v2.booking.holder')}</p>
             <div className="flex items-center gap-4">
               <PlayerAvatar name={holder || '?'} src={!booking.is_guest || friendView ? myAvatar?.thumb : null} guest={booking.is_guest && !friendView} size="md" />
               <div className="min-w-0">
@@ -283,7 +382,7 @@ export default function BookingDetailsPage() {
             </div>
             {friendView && <p className="text-sm text-slate-300">{t('v2.friend.addedBy', { name: host ?? '…' })}</p>}
             {booking.is_guest && !friendView && <p className="text-sm text-slate-300">{t('myBookings.bookingFor', { name: booking.guest_name })}</p>}
-            <div className="flex items-end justify-between gap-4 border-t border-ink-600 pt-5">
+            <div className="flex flex-wrap items-end justify-between gap-4 border-t border-ink-600 pt-5">
               <div>
                 <p className="vsb-meta mb-1">{t('bookingConfirmation.bookingReference')}</p>
                 <p className="font-mono text-2xl font-bold tracking-wider text-chalk">{booking.booking_reference}</p>
@@ -311,7 +410,8 @@ export default function BookingDetailsPage() {
             <HoldCountdown reservedUntil={booking.reserved_until} />
           )}
 
-          {awaitingConfirmation && (
+          {/* Only once there's a receipt to check; before that the pay step says what to do. */}
+          {awaitingConfirmation && booking.receipt_path && (
             <div className="border-l-2 border-amber-400 pl-4">
               <p className="font-semibold text-amber-200">{t('bookingDetails.awaitingAdminConfirmation')}</p>
               <p className="mt-0.5 text-sm text-amber-300">{t('bookingDetails.awaitingAdminConfirmationDesc')}</p>
@@ -336,98 +436,11 @@ export default function BookingDetailsPage() {
             </section>
           )}
 
-          {/* Players on this booking + bring a friend */}
-          {(groupBookings.length > 1 || canAddFriend) && (
-            <section aria-labelledby="party-heading">
-              <h2 id="party-heading" className="vsb-display mb-4 text-3xl">{t('v2.booking.players')}{groupBookings.length > 1 && <span className="text-muted"> {groupBookings.length}</span>}</h2>
-              {groupBookings.length > 1 && (
-                <ul className="divide-y divide-ink-700 border-y border-ink-600">
-                  {groupBookings.map((b) => (
-                    <li key={b.id} className="flex items-center justify-between gap-3 py-3">
-                      <span className="flex min-w-0 items-center gap-3 font-semibold text-chalk">
-                        <PlayerAvatar name={bookingDisplayName(b, profile)} src={!b.is_guest ? myAvatar?.thumb : null} guest={b.is_guest && !b.guest_user_id} size="sm" />
-                        <span className="truncate">{bookingDisplayName(b, profile)}</span>
-                        <GenderBadge gender={b.is_guest ? b.guest_gender : profile?.gender} />
-                        {b.id === booking.id && <span className="font-display text-xs font-bold uppercase tracking-wider text-vsb-400">{t('v2.booking.thisTicket')}</span>}
-                      </span>
-                      <StatusBadge status={b.booking_status} />
-                    </li>
-                  ))}
-                </ul>
-              )}
-
-              {canAddFriend && (
-                !showAddFriend ? (
-                  <button type="button" onClick={() => setShowAddFriend(true)} className="hub-link mt-4">
-                    <UserPlus className="h-4 w-4" aria-hidden /> {t('bookingDetails.addFriend')}
-                  </button>
-                ) : (
-                  <form onSubmit={(e) => handleAddFriend(e)} className="mt-5 border-t border-ink-600 pt-5">
-                    <p className="font-semibold text-chalk">{t('bookingDetails.addFriend')}</p>
-                    <p className="mb-3 text-sm text-slate-400">{t('bookingDetails.addFriendDesc')}</p>
-                    <div className="mb-4 flex gap-6 border-b border-ink-600" role="group" aria-label={t('bookingDetails.addFriend')}>
-                      <button type="button" onClick={() => setFriendKind('member')} aria-pressed={friendKind === 'member'} className="vsb-tab">{t('v2.friend.tabMember')}</button>
-                      <button type="button" onClick={() => setFriendKind('guest')} aria-pressed={friendKind === 'guest'} className="vsb-tab">{t('v2.friend.tabGuest')}</button>
-                    </div>
-                    {friendKind === 'member' ? (
-                      <MemberPicker
-                        excludeIds={[profile?.id ?? '', ...groupBookings.map((b) => b.guest_user_id ?? '')]}
-                        onPick={(m) => { if (!addingFriend) handleAddFriend(null, m); }}
-                      />
-                    ) : (
-                      <div className="grid gap-2 sm:grid-cols-3">
-                        <input className="v2-input" placeholder={t('checkout.companionNamePlaceholder')} aria-label={t('checkout.companionName')}
-                          value={friendForm.name} onChange={(e) => setFriendForm({ ...friendForm, name: e.target.value })} />
-                        <input className="v2-input" placeholder={t('checkout.companionPhone')} aria-label={t('checkout.companionPhone')}
-                          value={friendForm.phone} onChange={(e) => setFriendForm({ ...friendForm, phone: e.target.value })} />
-                        <select className="v2-input" value={friendForm.gender} aria-label={t('common.genderLabel')}
-                          onChange={(e) => setFriendForm({ ...friendForm, gender: e.target.value })} required>
-                          <option value="" disabled>{t('common.genderSelectPlaceholder')}</option>
-                          <option value="Male">{t('common.genderMale')}</option>
-                          <option value="Female">{t('common.genderFemale')}</option>
-                        </select>
-                      </div>
-                    )}
-                    <div className="mt-4 flex gap-3">
-                      {friendKind === 'guest' && (
-                        <button type="submit" disabled={addingFriend} className="v2-btn-primary">
-                          {addingFriend ? t('bookingDetails.addingFriend') : t('bookingDetails.saveFriend')}
-                        </button>
-                      )}
-                      <button type="button" onClick={() => { setShowAddFriend(false); setFriendForm({ name: '', phone: '', gender: '' }); }} className="v2-btn-secondary">
-                        {t('bookingDetails.cancelAddFriend')}
-                      </button>
-                    </div>
-                  </form>
-                )
-              )}
-            </section>
-          )}
+          {leftBusy ? partySection : paymentSection}
         </div>
 
         <div className="min-w-0 space-y-10">
-          {/* Payment */}
-          <section aria-labelledby="payment-heading">
-            <h2 id="payment-heading" className="vsb-display mb-4 text-3xl">{t('bookingDetails.paymentDetails')}</h2>
-            <dl className="divide-y divide-ink-700 border-y border-ink-600 text-sm">
-              <div className="flex justify-between py-3"><dt className="text-slate-400">{t('bookingDetails.sessionFee')}</dt><dd className="text-chalk">{formatCurrency(booking.payment_status !== 'Paid' ? session.price : booking.subtotal)}</dd></div>
-              {booking.processing_fee > 0 && <div className="flex justify-between py-3"><dt className="text-slate-400">{t('bookingDetails.processingFee')}</dt><dd className="text-chalk">{formatCurrency(booking.processing_fee)}</dd></div>}
-              {booking.discount_amount > 0 && <div className="flex justify-between py-3 text-green-400"><dt>{t('bookingDetails.discount')}</dt><dd>-{formatCurrency(booking.discount_amount)}</dd></div>}
-              <div className="flex items-baseline justify-between py-3"><dt className="font-semibold text-chalk">{t('bookingDetails.total')}</dt><dd className="font-display text-3xl font-extrabold text-chalk">{amount}</dd></div>
-              <div className="flex items-center justify-between py-3"><dt className="text-slate-400">{t('v2.booking.paymentStatus')}</dt><dd><PaymentStatusBadge status={booking.payment_status} /></dd></div>
-            </dl>
-            {payments.length > 0 && (
-              <ul className="mt-3 divide-y divide-ink-700">
-                {payments.map((p) => (
-                  <li key={p.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5 text-sm">
-                    <span className="text-slate-300">{p.payment_method || t('bookingDetails.paymentFallback')} <span className="font-mono text-xs text-slate-400">{p.transaction_reference}</span></span>
-                    <span className="flex items-center gap-2"><PaymentStatusBadge status={p.payment_status} /><span className="font-medium text-chalk">{formatCurrency(p.amount)}</span></span>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-
+          {leftBusy && paymentSection}
           {/* Venue */}
           <section aria-labelledby="venue-heading">
             <h2 id="venue-heading" className="vsb-display mb-4 text-3xl">{t('v2.sessionDetails.venue')}</h2>
@@ -441,11 +454,12 @@ export default function BookingDetailsPage() {
             </div>
           </section>
 
+          {!leftBusy && partySection}
           {/* Actions */}
           {(canCancel || (!isPast && booking.booking_status === 'Confirmed')) && (
             <section aria-label={t('bookingDetails.cancelBooking')} className="border-t border-ink-600 pt-6">
               {canCancel ? (
-                <button onClick={() => setShowCancelDialog(true)} className="w-full rounded-md border border-red-500/40 py-3 font-semibold text-red-400 transition-colors hover:bg-red-500/10">
+                <button onClick={() => setShowCancelDialog(true)} className="text-sm font-semibold text-red-400 underline decoration-red-500/40 underline-offset-4 transition-colors hover:text-red-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-400">
                   {t('bookingDetails.cancelBooking')}
                 </button>
               ) : (

@@ -54,10 +54,10 @@ export default function CommunityPage() {
     <div className="bg-ink text-chalk">
       {/* Header */}
       <section className="relative overflow-hidden border-b border-ink-600">
-        <div className="vsb-gutter relative grid items-end gap-8 pt-12 lg:grid-cols-[1fr_auto] lg:pt-16">
-          <div className="pb-10 lg:pb-14">
+        <div className="vsb-gutter relative grid items-end gap-8 pt-10 lg:grid-cols-[1fr_auto] lg:pt-12">
+          <div className="pb-8 lg:pb-12">
             <p className="vsb-meta mb-3 !text-vsb-400">{t('v2.community.meta')}</p>
-            <h1 className="vsb-display text-5xl sm:text-6xl lg:text-7xl xl:text-8xl">{t('v2.community.titleLine1')}<br />{t('v2.community.titleLine2')}</h1>
+            <h1 className="vsb-display text-5xl sm:text-6xl xl:text-7xl">{t('v2.community.titleLine1')}<br />{t('v2.community.titleLine2')}</h1>
             <p className="mt-5 max-w-xl text-lg text-slate-300">{t('v2.community.intro')}</p>
             {!loading && !error && (
               <dl className="mt-8 flex gap-10 font-display uppercase leading-none">
@@ -70,7 +70,7 @@ export default function CommunityPage() {
           <div className="hidden items-end self-end lg:flex" aria-hidden>
             {[vsbAssets.players[1], vsbAssets.players[5], vsbAssets.players[2]].map((c, i) => (
               <img key={c.sm.src} src={c.sm.src} alt="" width={c.sm.width} height={c.sm.height} decoding="async"
-                className={`relative w-auto ${i === 1 ? 'z-10 -mx-6 h-80' : 'h-64'}`} />
+                className={`relative w-auto ${i === 1 ? 'z-10 -mx-5 h-64' : 'h-52'}`} />
             ))}
           </div>
         </div>
@@ -125,7 +125,7 @@ export default function CommunityPage() {
                     {t(`v2.community.group.${g.key === 'none' ? 'none' : POSITION_ABBR[g.key]}`)}
                     <span className="text-base font-bold text-muted">{g.items.length}</span>
                   </h3>
-                  <ul className="grid grid-cols-1 border-l border-t border-ink-600 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+                  <ul className="grid grid-cols-1 gap-x-10 border-t border-ink-600 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                     {g.items.map((p) => <MemberTile key={p.user_id} p={p} lang={lang} />)}
                   </ul>
                 </section>
@@ -145,26 +145,26 @@ export default function CommunityPage() {
 
 function MemberTile({ p, lang }: { p: CommunityPlayer; lang: string }) {
   const { t } = useTranslation();
+  const since = new Intl.DateTimeFormat(lang === 'ms' ? 'ms-MY' : 'en-MY', { month: 'short', year: 'numeric' }).format(new Date(p.member_since));
   return (
-    <li className={`flex gap-4 border-b border-r border-ink-600 p-5 ${p.is_me ? 'bg-vsb-900/30' : ''}`}>
+    <li className="flex gap-4 border-b border-ink-700 py-5">
       <PlayerAvatar name={p.display_name} src={p.avatar_url} size="lg" />
       <div className="min-w-0 flex-1">
         <p className="flex items-baseline gap-2">
           <span className="truncate font-display text-2xl font-extrabold uppercase leading-none text-chalk">{p.display_name}</span>
           {p.is_me && <span className="font-display text-xs font-bold uppercase tracking-wider text-vsb-400">{t('v2.community.you')}</span>}
         </p>
-        <p className="mt-1.5 text-sm text-slate-300">
+        <p className="mt-1.5 truncate font-display text-sm font-bold uppercase tracking-wider text-slate-300">
           {[p.playing_position ? t(POSITION_KEY[p.playing_position]) : t('v2.community.noPosition'),
             p.skill_level ? t(SKILL_LEVEL_KEY[p.skill_level]) : null].filter(Boolean).join(' · ')}
         </p>
-        {p.playstyle && (
-          <p className="mt-1.5"><span className="border border-vsb-500/50 px-2 py-0.5 font-display text-[11px] font-bold uppercase tracking-[0.14em] text-vsb-200">{t(playstyleKey(p.playstyle as Playstyle))}</span></p>
-        )}
-        <p className="mt-1 text-xs text-muted">
-          {t('v2.community.games', { count: p.games_played })} · {t('v2.community.since', { date: formatDateLocale(p.member_since, lang, 'medium') })}
+        <p className="mt-1 truncate text-sm text-muted">
+          {[p.playstyle ? t(playstyleKey(p.playstyle as Playstyle)) : null,
+            t('v2.community.games', { count: p.games_played }),
+            t('v2.community.since', { date: since })].filter(Boolean).join(' · ')}
         </p>
         {p.next_session_id && (
-          <Link to={`/sessions/${p.next_session_id}`} className="mt-3 inline-flex max-w-full items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300">
+          <Link to={`/sessions/${p.next_session_id}`} className="mt-2 inline-flex max-w-full items-center gap-1.5 text-sm font-semibold text-vsb-400 hover:text-vsb-300">
             <span className="truncate">{t('v2.community.next', { title: p.next_session_title, date: formatDateLocale(p.next_session_date!, lang, 'medium') })}</span>
             <ArrowRight className="h-4 w-4 flex-shrink-0" aria-hidden />
           </Link>

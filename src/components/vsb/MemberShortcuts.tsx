@@ -55,17 +55,16 @@ export function MemberShortcuts({ openCount }: { openCount: number | null }) {
           <NextGameShortcut game={next} lang={i18n.language} />
         ) : (
           <div className="flex flex-col justify-center border border-ink-600 p-5">
-            <p className="vsb-meta">{t('v2.myVsb.nextOnCourt')}</p>
+            <p className="vsb-meta">{t('v2.home.yourNext')}</p>
             <p className="mt-1 font-display text-2xl font-extrabold uppercase text-chalk">{t('v2.myVsb.noUpcoming')}</p>
-            <p className="mt-1 text-slate-400">{t('v2.myVsb.nextWaiting')}</p>
           </div>
         )}
 
         {/* Shortcuts */}
         <nav aria-label={t('v2.home.shortcuts')} className="grid grid-cols-2 border-l border-t border-ink-600">
           {shortcuts.map((s) => (
-            <Link key={s.to} to={s.to} className="group flex flex-col justify-between gap-3 border-b border-r border-ink-600 p-4 transition-colors hover:bg-ink-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-vsb-400">
-              <span className="flex items-center justify-between gap-2 font-display text-lg font-bold uppercase tracking-wide text-chalk">
+            <Link key={s.to} to={s.to} className="group flex min-w-0 flex-col justify-between gap-3 border-b border-r border-ink-600 p-3 sm:p-4 transition-colors hover:bg-ink-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-vsb-400">
+              <span className="flex min-w-0 items-center justify-between gap-2 font-display text-base font-bold uppercase tracking-wide text-chalk sm:text-lg">
                 {s.label} <ArrowRight className="h-4 w-4 flex-shrink-0 text-vsb-400 transition-transform group-hover:translate-x-0.5" aria-hidden />
               </span>
               <span className="text-xs text-muted">{s.meta}</span>
@@ -91,7 +90,7 @@ function NextGameShortcut({ game, lang }: { game: MyGame; lang: string }) {
         <span className="block text-sm font-bold tracking-[0.2em] text-chalk">{d.month}</span>
       </p>
       <div className="min-w-0">
-        <p className="vsb-meta">{t('v2.myVsb.nextOnCourt')}</p>
+        <p className="vsb-meta">{t('v2.home.yourNext')}</p>
         <p className="mt-1 truncate font-display text-2xl font-extrabold uppercase leading-tight tracking-wide text-chalk">{game.session.title}</p>
         <p className="text-sm text-slate-300">
           {t('v2.session.timeRange', { start: formatTime(game.session.start_time), end: formatTime(game.session.end_time) })} · {game.session.venue_name}

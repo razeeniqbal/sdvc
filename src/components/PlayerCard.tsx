@@ -50,7 +50,7 @@ export function PlayerCard({ name, position, skill, games, tags = [], artSrc, su
 
   return (
     <figure
-      className={`relative mx-auto aspect-[5/7] w-full max-w-[440px] [container-type:inline-size] ${artSrc ? 'mt-[8%]' : ''}`}
+      className={`relative mx-auto aspect-[5/7] w-full max-w-[440px] overflow-x-clip [container-type:inline-size] ${artSrc ? 'mt-[8%]' : ''}`}
       aria-label={t('v2.card.ariaLabel', { name })}
     >
       <div className="absolute inset-0 bg-gradient-to-b from-vsb-400 via-vsb-600 to-[#C9A36A] p-[3px] drop-shadow-[0_14px_34px_rgba(22,139,255,0.28)]" style={{ clipPath: FRAME }}>

@@ -55,7 +55,6 @@ export default function LandingPage() {
     { title: t('v2.landing.step3Title'), desc: t('v2.landing.step3Desc') },
   ];
   const pillars = [t('v2.landing.pillarPeople'), t('v2.landing.pillarPlay'), t('v2.landing.pillarConnect'), t('v2.landing.pillarBelong')];
-  const rules = [t('landing.rule1'), t('landing.rule2'), t('landing.rule3'), t('landing.rule4'), t('landing.rule5'), t('landing.rule6')];
   const faqs = [
     { q: t('landing.faqQ1'), a: t('landing.faqA1', { clubName }) },
     { q: t('landing.faqQ2'), a: t('landing.faqA2') },
@@ -89,7 +88,7 @@ export default function LandingPage() {
               <Link to={findGameTo} className="v2-btn-primary !px-8 !py-4 font-display text-lg uppercase tracking-wider">
                 {t('v2.landing.findGame')} <ArrowRight className="h-5 w-5" aria-hidden />
               </Link>
-              <Link to={whosPlayingTo} className="v2-btn-secondary !border-chalk/40 !bg-ink/80 !px-8 !py-4 font-display text-lg uppercase tracking-wider backdrop-blur-sm">
+              <Link to={whosPlayingTo} className="v2-btn-secondary !border-chalk/40 !bg-ink/80 !px-8 !py-4 font-display text-lg uppercase tracking-wider">
                 {t('v2.landing.seeWhosPlaying')}
               </Link>
             </div>
@@ -118,7 +117,7 @@ export default function LandingPage() {
         {/* Hero metadata rail */}
         <div className="vsb-gutter relative grid grid-cols-2 border-t border-ink-600 bg-ink sm:grid-cols-4">
           {pillars.map((p, i) => (
-            <p key={p} className={`py-4 font-display text-base font-bold uppercase tracking-[0.3em] text-chalk sm:py-5 ${i % 2 === 1 ? 'border-l border-ink-600 pl-6' : ''} ${i === 2 ? 'sm:border-l sm:border-ink-600 sm:pl-6' : ''}`}>
+            <p key={p} className={`py-4 font-display text-sm font-bold uppercase tracking-[0.15em] text-chalk sm:py-5 sm:text-base sm:tracking-[0.3em] ${i % 2 === 1 ? 'border-l border-ink-600 pl-4 sm:pl-6' : ''} ${i === 2 ? 'sm:border-l sm:border-ink-600 sm:pl-6' : ''}`}>
               <span className="text-vsb-500">0{i + 1}</span><span className="mx-2 text-muted" aria-hidden>/</span>{p}
             </p>
           ))}
@@ -209,7 +208,7 @@ export default function LandingPage() {
         <div className="vsb-gutter relative grid items-center gap-12 py-16 lg:grid-cols-[1.1fr_1fr] lg:py-24">
           <div className="relative flex items-end justify-center gap-4 sm:gap-8">
             <img src={vsbAssets.players[5].full.src} alt="" width={vsbAssets.players[5].full.width} height={vsbAssets.players[5].full.height} loading="lazy" decoding="async"
-              className="hidden h-[26rem] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:block lg:h-[32rem]" />
+              className="hidden h-[26rem] w-auto sm:block lg:h-[32rem]" />
             <div className="w-[17rem] sm:w-[19rem]">
               <PlayerCard name={t('v2.landing.cardName')} position={null} skill={null}
                 games={null} artSrc={vsbAssets.players[0].sm.src} subtitle={t('v2.landing.cardSub')} />
@@ -233,65 +232,57 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ===== GOOD TO KNOW: how it works, rules, FAQ, contact ===== */}
-      <FullWidthSection divider labelledBy="faq-heading" className="bg-ink-850">
-        <p className="vsb-meta mb-3">{t('v2.landing.goodToKnow')}</p>
-        <div className="grid gap-14 lg:grid-cols-2 xl:grid-cols-[1fr_1fr_1.25fr]">
-          <div>
-            <h2 className="vsb-display text-4xl sm:text-5xl">{t('v2.landing.howVsbWorks')}</h2>
-            <ol className="mt-6 divide-y divide-ink-600 border-y border-ink-600">
-              {steps.map((step, i) => (
-                <li key={step.title} className="flex gap-4 py-4">
-                  <span className="font-display text-2xl font-extrabold leading-none text-vsb-500">{String(i + 1).padStart(2, '0')}</span>
-                  <div>
-                    <h3 className="font-display text-xl font-bold uppercase tracking-wide text-chalk">{step.title}</h3>
-                    <p className="mt-1 text-sm text-slate-400">{step.desc}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </div>
-          <div>
-            <h2 className="vsb-display text-4xl sm:text-5xl">{t('landing.sessionRulesTitle')}</h2>
-            <ul className="mt-6 divide-y divide-ink-600 border-y border-ink-600 text-slate-300">
-              {rules.map((rule) => <li key={rule} className="py-3">{rule}</li>)}
-            </ul>
-            <div className="mt-8 space-y-3">
-              <a href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('landing.contactWhatsappMessage', { clubName }))} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-3 text-slate-200 hover:text-white">
-                <Phone className="h-5 w-5 text-green-400" aria-hidden />
-                {t('landing.chatWithOnWhatsapp', { name: settings?.contact_person_name || 'us' })}
-              </a>
-              {settings?.whatsapp_group_link && (
-                <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-slate-200 hover:text-white">
-                  <MessageCircle className="h-5 w-5 text-green-400" aria-hidden />
-                  {t('landing.joinWhatsappGroup')}
-                </a>
-              )}
-            </div>
-          </div>
-          <div className="lg:col-span-2 xl:col-span-1">
-            <h2 id="faq-heading" className="vsb-display text-4xl sm:text-5xl">{t('landing.faqTitle')}</h2>
-            <div className="mt-6 divide-y divide-ink-600 border-y border-ink-600">
-              {faqs.map((faq, i) => (
-                <details key={i} className="group py-5">
-                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 text-lg font-semibold text-chalk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400">
-                    {faq.q}
-                    <span className="text-2xl text-vsb-500 transition-transform group-open:rotate-45" aria-hidden>+</span>
-                  </summary>
-                  <p className="mt-3 max-w-2xl text-slate-400">{faq.a}</p>
-                </details>
-              ))}
-            </div>
+      {/* ===== HOW IT WORKS: three steps, then the questions people actually ask.
+          Session rules live on each session's page, where they apply. ===== */}
+      <FullWidthSection divider labelledBy="how-heading">
+        <h2 id="how-heading" className="vsb-display text-4xl sm:text-5xl lg:text-6xl">{t('v2.landing.howVsbWorks')}</h2>
+        <ol className="mt-8 grid border-t border-ink-600 sm:grid-cols-3">
+          {steps.map((step, i) => (
+            <li key={step.title} className={`py-6 sm:pr-8 ${i > 0 ? 'border-t border-ink-600 sm:border-l sm:border-t-0 sm:pl-8' : ''}`}>
+              <p className="font-display text-5xl font-extrabold uppercase leading-none lg:text-6xl">
+                <span className="text-vsb-500">{String(i + 1).padStart(2, '0')}</span> <span className="text-chalk">{step.title}</span>
+              </p>
+              <p className="mt-3 max-w-sm text-slate-300">{step.desc}</p>
+            </li>
+          ))}
+        </ol>
+
+        <div className="mt-12 grid gap-x-16 border-t border-ink-600 pt-8 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)]">
+          <h3 className="vsb-meta mb-2 lg:mt-5">{t('v2.landing.questions')}</h3>
+          <div className="grid gap-x-12 md:grid-cols-2">
+            {faqs.map((faq, i) => (
+              <details key={i} className="group border-b border-ink-600 py-4">
+                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold text-chalk focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400">
+                  {faq.q}
+                  <span className="text-2xl leading-none text-vsb-500 transition-transform group-open:rotate-45" aria-hidden>+</span>
+                </summary>
+                <p className="mt-2 max-w-xl text-slate-400">{faq.a}</p>
+              </details>
+            ))}
           </div>
         </div>
       </FullWidthSection>
 
-      {/* ===== FINAL CTA ===== */}
+      {/* ===== FINAL CTA + contact ===== */}
       <section aria-labelledby="final-heading" className="vsb-gutter relative overflow-hidden border-t border-ink-600 py-16 lg:py-24">
         <span className="vsb-watermark -bottom-[0.18em] right-0" aria-hidden>{t('v2.landing.watermark')}</span>
         <div className="relative flex flex-col items-start justify-between gap-8 lg:flex-row lg:items-end">
-          <h2 id="final-heading" className="vsb-display max-w-4xl text-5xl sm:text-6xl lg:text-7xl">{t('v2.landing.finalTitle')}</h2>
+          <div>
+            <h2 id="final-heading" className="vsb-display max-w-4xl text-5xl sm:text-6xl lg:text-7xl">{t('v2.landing.finalTitle')}</h2>
+            <p className="mt-6 flex flex-wrap gap-x-8 gap-y-3 font-semibold">
+              <a href={whatsappLink(settings?.contact_whatsapp || '0137441727', t('landing.contactWhatsappMessage', { clubName }))} target="_blank" rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-slate-200 hover:text-white">
+                <Phone className="h-4 w-4 text-green-400" aria-hidden />
+                {t('landing.chatWithOnWhatsapp', { name: settings?.contact_person_name || 'us' })}
+              </a>
+              {settings?.whatsapp_group_link && (
+                <a href={settings.whatsapp_group_link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 text-slate-200 hover:text-white">
+                  <MessageCircle className="h-4 w-4 text-green-400" aria-hidden />
+                  {t('landing.joinWhatsappGroup')}
+                </a>
+              )}
+            </p>
+          </div>
           <Link to={findGameTo} className="v2-btn-primary !px-8 !py-4 font-display text-lg uppercase tracking-wider">
             {t('v2.landing.findGame')} <ArrowRight className="h-5 w-5" aria-hidden />
           </Link>

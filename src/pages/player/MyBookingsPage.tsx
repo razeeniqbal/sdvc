@@ -8,7 +8,6 @@ import { byDateAsc, fetchMyGames, gameState, isUpcoming, type MyGame } from '@/l
 import { SKILL_LEVEL_KEY } from '@/lib/volleyball';
 import { GameStateLabel } from '@/components/vsb/GameStateLabel';
 import { ListSkeleton } from '@/components/vsb/Skeletons';
-import { vsbAssets } from '@/lib/vsbAssets';
 
 // MY GAMES (/bookings): the player's volleyball journey as one timeline.
 // Upcoming leads with the next game on court; below it, every past game
@@ -159,7 +158,7 @@ function GameRow({ game: g, lang }: { game: MyGame; lang: string }) {
   const level = g.session.skill_level || 'Open Level';
   return (
     <li>
-      <Link to={`/bookings/${g.id}`} className="group grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-4 py-4 hover:bg-ink-850 sm:grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,14rem)_9rem_1.25rem]">
+      <Link to={`/bookings/${g.id}`} className="group grid grid-cols-[3.5rem_minmax(0,1fr)_auto] items-center gap-4 py-4 hover:bg-ink-850 sm:grid-cols-[4.5rem_minmax(0,1fr)_minmax(0,12rem)_11.5rem_1.25rem]">
         <span className="text-center font-display uppercase leading-none">
           <span className="block text-3xl font-extrabold text-chalk">{String(d.day).padStart(2, '0')}</span>
           <span className="text-xs font-bold tracking-wider text-muted">{d.weekday}</span>
@@ -180,31 +179,28 @@ function GameRow({ game: g, lang }: { game: MyGame; lang: string }) {
   );
 }
 
+// The next game leads the timeline: the same row, given more room.
 function FeaturedGame({ game, lang }: { game: MyGame; lang: string }) {
   const { t } = useTranslation();
   const d = dateParts(game.session.session_date, lang);
   const pending = game.booking_status === 'Pending Payment';
   const amount = game.payment_status !== 'Paid' ? game.session.price : game.total_amount;
   return (
-    <Link to={`/bookings/${game.id}`} className="group relative grid overflow-hidden border border-ink-600 transition-colors hover:border-vsb-500 lg:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)]">
-      <div className="relative min-h-[14rem] overflow-hidden">
-        <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover" />
-        <div className="absolute inset-0 bg-gradient-to-t from-ink via-ink/40 to-transparent" aria-hidden />
-        <p className="absolute bottom-5 left-6 font-display uppercase leading-none" aria-hidden>
-          <span className="block text-lg font-bold tracking-[0.25em] text-vsb-300">{d.weekday}</span>
-          <span className="block text-8xl font-extrabold text-chalk">{d.day}</span>
-          <span className="block text-lg font-bold tracking-[0.25em] text-chalk">{d.month}</span>
-        </p>
+    <Link to={`/bookings/${game.id}`} className="group grid grid-cols-[auto_minmax(0,1fr)] items-end gap-x-6 gap-y-4 border-y border-ink-600 py-6 transition-colors hover:bg-ink-850 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400 sm:gap-x-10 lg:grid-cols-[auto_minmax(0,1fr)_auto]">
+      <p className="font-display uppercase leading-none" aria-hidden>
+        <span className="block text-base font-bold tracking-[0.25em] text-vsb-300">{d.weekday}</span>
+        <span className="block text-7xl font-extrabold text-chalk sm:text-8xl">{String(d.day).padStart(2, '0')}</span>
+        <span className="block text-base font-bold tracking-[0.25em] text-chalk">{d.month}</span>
+      </p>
+      <div className="min-w-0 pb-1">
+        <p className="vsb-meta mb-2">{t('v2.myVsb.nextOnCourt')}</p>
+        <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-4xl">{game.session.title}</p>
+        <p className="mt-2 text-lg text-slate-300">{t('v2.session.timeRange', { start: formatTime(game.session.start_time), end: formatTime(game.session.end_time) })}</p>
+        <p className="text-slate-400">{[game.session.venue_name, game.session.court_number].filter(Boolean).join(' · ')}</p>
+        {pending && <p className="mt-3 text-sm text-amber-300">{t('v2.games.payHint', { amount: amount > 0 ? formatCurrency(amount) : 'TBC' })}</p>}
       </div>
-      <div className="flex flex-col justify-between gap-6 bg-ink-850 p-6 lg:p-8">
-        <div>
-          <p className="vsb-meta mb-3">{t('v2.myVsb.nextOnCourt')}</p>
-          <GameStateLabel state={pending ? 'awaiting-payment' : 'upcoming'} />
-          <p className="mt-3 font-display text-4xl font-extrabold uppercase leading-none tracking-wide text-chalk">{game.session.title}</p>
-          <p className="mt-3 text-lg text-slate-300">{t('v2.session.timeRange', { start: formatTime(game.session.start_time), end: formatTime(game.session.end_time) })}</p>
-          <p className="text-slate-400">{[game.session.venue_name, game.session.court_number].filter(Boolean).join(' · ')}</p>
-          {pending && <p className="mt-4 text-sm text-amber-300">{t('v2.games.payHint', { amount: amount > 0 ? formatCurrency(amount) : 'TBC' })}</p>}
-        </div>
+      <div className="col-span-2 flex flex-wrap items-center gap-x-6 gap-y-2 pb-1 lg:col-span-1 lg:flex-col lg:items-end">
+        <GameStateLabel state={pending ? 'awaiting-payment' : 'upcoming'} />
         <span className="inline-flex items-center gap-1.5 font-display text-lg font-bold uppercase tracking-wider text-vsb-400 group-hover:text-vsb-300">
           {t('v2.myVsb.viewGame')} <ArrowRight className="h-5 w-5" aria-hidden />
         </span>

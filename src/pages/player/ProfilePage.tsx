@@ -188,7 +188,7 @@ export default function ProfilePage() {
             </p>
             <p className="vsb-meta mt-2">{t('v2.myVsb.vsbMember', { date: memberSince.toUpperCase() })}</p>
 
-            <dl className="relative mt-10 grid max-w-3xl grid-cols-3 gap-6 border-t border-ink-600 pt-6">
+            <dl className="relative mt-10 grid max-w-3xl grid-cols-3 gap-4 border-t border-ink-600 pt-6 sm:gap-6">
               <BigStat label={t('v2.myVsb.statGames')} value={activity?.games} />
               <BigStat label={t('v2.myVsb.statVenues')} value={activity?.venues} />
               <BigStat label={t('v2.myVsb.statUpcoming')} value={activity?.upcoming} />
@@ -224,7 +224,6 @@ export default function ProfilePage() {
               )}
               <div className="py-8">
                 <p className="font-display text-3xl font-extrabold uppercase leading-none text-chalk">{t('v2.myVsb.noUpcoming')}</p>
-                <p className="mt-2 max-w-sm text-slate-300">{t('v2.myVsb.nextWaiting')}</p>
                 <Link to="/sessions" className="v2-btn-primary mt-5 !px-6 font-display uppercase tracking-wider">{t('v2.landing.findGame')} <ArrowRight className="h-4 w-4" aria-hidden /></Link>
               </div>
             </div>
@@ -285,13 +284,16 @@ export default function ProfilePage() {
         )}
       </section>
 
-      {/* ===== Settings: the quieter half of My VSB ===== */}
-      <div className="border-t border-ink-600 bg-ink-850">
-      <div className="vsb-gutter grid gap-x-16 lg:grid-cols-2">
-      <p className="vsb-meta pt-10 lg:col-span-2">{t('v2.myVsb.settings')}</p>
+      {/* ===== Zone 2: managing My VSB. Quieter and denser than the player hub above. ===== */}
+      <section aria-labelledby="manage-heading" className="border-t border-ink-600 bg-ink-850">
+      <div className="vsb-gutter grid gap-x-16 pb-6 lg:grid-cols-2">
+      <div className="pb-8 pt-12 lg:col-span-2 lg:pt-14">
+        <p className="vsb-meta mb-2">{t('v2.myVsb.settings')}</p>
+        <h2 id="manage-heading" className="vsb-display text-3xl sm:text-4xl">{t('v2.myVsb.manageTitle')}</h2>
+      </div>
       {/* ===== Volleyball profile ===== */}
       <section id="profile-section" aria-labelledby="vp-heading" className="scroll-mt-16 border-t border-ink-600 py-10">
-        <HubHeading id="vp-heading" action={!editingProfile && <button onClick={() => { setEditingProfile(true); setEditingAccount(false); }} className="hub-link">{t('v2.myVsb.edit')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
+        <HubHeading quiet id="vp-heading" action={!editingProfile && <button onClick={() => { setEditingProfile(true); setEditingAccount(false); }} className="hub-link">{t('v2.myVsb.edit')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
           {t('v2.profile.volleyballProfile')}
         </HubHeading>
         {editingProfile ? (
@@ -345,7 +347,7 @@ export default function ProfilePage() {
 
       {/* ===== Community visibility ===== */}
       <section id="community" aria-labelledby="community-vis-heading" className="scroll-mt-16 border-t border-ink-600 py-10">
-        <HubHeading id="community-vis-heading">{t('v2.community.visibilityTitle')}</HubHeading>
+        <HubHeading quiet id="community-vis-heading">{t('v2.community.visibilityTitle')}</HubHeading>
         <div className="flex items-start justify-between gap-6">
           <p className="text-slate-300">{t('v2.community.visibilityBody')}</p>
           <button type="button" role="switch" aria-checked={profile.show_in_community} aria-labelledby="community-vis-heading"
@@ -362,7 +364,7 @@ export default function ProfilePage() {
 
       {/* ===== Account & safety ===== */}
       <section id="settings" aria-labelledby="acct-heading" className="scroll-mt-16 border-t border-ink-600 py-10">
-        <HubHeading id="acct-heading" action={!editingAccount && <button onClick={() => { setEditingAccount(true); setEditingProfile(false); }} className="hub-link">{t('v2.myVsb.manage')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
+        <HubHeading quiet id="acct-heading" action={!editingAccount && <button onClick={() => { setEditingAccount(true); setEditingProfile(false); }} className="hub-link">{t('v2.myVsb.manage')} <ArrowRight className="h-4 w-4" aria-hidden /></button>}>
           {t('v2.myVsb.account')}
         </HubHeading>
         {editingAccount ? (
@@ -411,15 +413,17 @@ export default function ProfilePage() {
         )}
       </section>
       </div>
-      </div>
+      </section>
     </div>
   );
 }
 
-function HubHeading({ id, children, action }: { id: string; children: ReactNode; action?: ReactNode }) {
+// `quiet`: a settings sub-heading under "Manage My VSB" (h3, smaller).
+function HubHeading({ id, children, action, quiet = false }: { id: string; children: ReactNode; action?: ReactNode; quiet?: boolean }) {
+  const H = quiet ? 'h3' : 'h2';
   return (
-    <div className="mb-6 flex items-end justify-between gap-4">
-      <h2 id={id} className="vsb-display text-3xl sm:text-4xl">{children}</h2>
+    <div className={`flex flex-wrap items-end justify-between gap-x-4 gap-y-2 ${quiet ? 'mb-5' : 'mb-6'}`}>
+      <H id={id} className={quiet ? 'font-display text-2xl font-bold uppercase tracking-wide text-chalk' : 'vsb-display text-3xl sm:text-4xl'}>{children}</H>
       {action}
     </div>
   );
@@ -438,7 +442,7 @@ function BigStat({ label, value }: { label: string; value: number | undefined })
   return (
     <div className="flex flex-col-reverse">
       <dt className="vsb-meta mt-1">{label}</dt>
-      <dd className="font-display text-6xl font-extrabold leading-none text-chalk">{typeof value === 'number' ? String(value).padStart(2, '0') : '-'}</dd>
+      <dd className="font-display text-5xl font-extrabold leading-none text-chalk sm:text-6xl">{typeof value === 'number' ? String(value).padStart(2, '0') : '-'}</dd>
     </div>
   );
 }
@@ -457,23 +461,19 @@ function NextGame({ game, lang }: { game: MyGame; lang: string }) {
   const d = dateParts(game.session.session_date, lang);
   const pending = game.booking_status === 'Pending Payment';
   return (
-    <Link to={`/bookings/${game.id}`} className="group relative block overflow-hidden border border-ink-600 transition-colors hover:border-vsb-500">
-      <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-30" />
-      <div className="absolute inset-0 bg-gradient-to-r from-ink via-ink/80 to-ink/30" aria-hidden />
-      <div className="relative flex items-end gap-6 p-6">
-        <p className="font-display uppercase leading-none" aria-hidden>
-          <span className="block text-sm font-bold tracking-[0.2em] text-vsb-300">{d.weekday}</span>
-          <span className="block text-7xl font-extrabold text-chalk">{d.day}</span>
-          <span className="block text-sm font-bold tracking-[0.2em] text-chalk">{d.month}</span>
-        </p>
-        <div className="min-w-0 flex-1 pb-1">
-          <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk">{game.session.title}</p>
-          <p className="mt-2 text-slate-300">{[game.session.venue_name, game.session.court_number].filter(Boolean).join(' · ')}</p>
-          <p className="text-slate-400">{t('v2.session.timeRange', { start: formatTime(game.session.start_time), end: formatTime(game.session.end_time) })}</p>
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            <GameStateLabel state={pending ? 'awaiting-payment' : 'upcoming'} />
-            <span className="inline-flex items-center gap-1 font-display font-bold uppercase tracking-wider text-vsb-400 group-hover:text-vsb-300">{t('v2.myVsb.viewGame')} <ArrowRight className="h-4 w-4" aria-hidden /></span>
-          </div>
+    <Link to={`/bookings/${game.id}`} className="group flex items-end gap-6 border-y border-ink-600 py-6 transition-colors hover:bg-ink-850 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-vsb-400">
+      <p className="font-display uppercase leading-none" aria-hidden>
+        <span className="block text-sm font-bold tracking-[0.2em] text-vsb-300">{d.weekday}</span>
+        <span className="block text-6xl font-extrabold text-chalk sm:text-7xl">{String(d.day).padStart(2, '0')}</span>
+        <span className="block text-sm font-bold tracking-[0.2em] text-chalk">{d.month}</span>
+      </p>
+      <div className="min-w-0 flex-1 pb-1">
+        <p className="font-display text-2xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-3xl">{game.session.title}</p>
+        <p className="mt-2 text-slate-300">{t('v2.session.timeRange', { start: formatTime(game.session.start_time), end: formatTime(game.session.end_time) })}</p>
+        <p className="text-slate-400">{[game.session.venue_name, game.session.court_number].filter(Boolean).join(' · ')}</p>
+        <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-2">
+          <GameStateLabel state={pending ? 'awaiting-payment' : 'upcoming'} />
+          <span className="inline-flex items-center gap-1 font-display font-bold uppercase tracking-wider text-vsb-400 group-hover:text-vsb-300">{t('v2.myVsb.viewGame')} <ArrowRight className="h-4 w-4" aria-hidden /></span>
         </div>
       </div>
     </Link>

@@ -25,7 +25,7 @@ export function AuthLayout({ title, subtitle, children }: { title: ReactNode; su
       {/* Form side */}
       <div className="vsb-gutter flex items-start py-10 lg:items-center lg:py-16">
         <div className="w-full max-w-md lg:mx-auto">
-          <h1 className="vsb-display text-5xl">{title}</h1>
+          <h1 className="vsb-display text-4xl sm:text-5xl">{title}</h1>
           {subtitle && <p className="mt-2 text-slate-400">{subtitle}</p>}
           <div className="mt-8">{children}</div>
         </div>

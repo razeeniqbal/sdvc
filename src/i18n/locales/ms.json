@@ -238,8 +238,6 @@
     "policyTitle": "Dasar Tempahan & Pembatalan",
     "policyRule1": "Batalkan sekurang-kurangnya 24 jam sebelum sesi untuk membebaskan slot anda.",
     "policyRule2": "Semua tempahan tidak boleh dikembalikan.",
-    "policyRule3": "Slot anda dikunci sebaik sahaja dihantar, menunggu pengesahan admin.",
-    "policyRule4": "Admin kelab akan mengesahkan bayaran dan tempahan anda.",
     "agreeLabel": "Saya telah membaca dan bersetuju dengan dasar tempahan dan pembatalan kelab.",
     "lockMySlot": "Kunci Slot Saya & Teruskan Bayaran",
     "lockingSlot": "Sedang mengunci slot...",
@@ -406,12 +404,12 @@
       "allSessions_other": "Semua {{count}} sesi",
       "noSessionsTitle": "Gelanggang sunyi buat masa ini",
       "howMeta": "Cara ia berfungsi",
-      "step1Title": "Cari permainan",
-      "step1Desc": "Lihat sesi akan datang mengikut tarikh, tahap dan tempat, dan siapa yang sudah menyertai sebelum anda masuk.",
-      "step2Title": "Kenali rakan",
-      "step2Desc": "Tempah untuk diri sendiri dan bawa kawan. Setiap sesi menunjukkan pemain sebenar di gelanggang.",
-      "step3Title": "Main bersama",
-      "step3Desc": "Bayar dengan QR, muat naik resit, dan datang. Admin akan mengesahkan slot anda.",
+      "step1Title": "Cari",
+      "step1Desc": "Lihat permainan mengikut tarikh, tahap dan tempat, dan siapa yang sudah menyertai.",
+      "step2Title": "Tempah",
+      "step2Desc": "Tempah tempat anda, bawa kawan, dan bayar dengan QR.",
+      "step3Title": "Main",
+      "step3Desc": "Muat naik resit dan datang. Kelab akan mengesahkan tempat anda.",
       "identityMeta": "Identiti pemain VSB",
       "identityLine1": "Pemain anda.",
       "identityLine2": "Identiti VSB anda.",
@@ -427,9 +425,9 @@
       "communityBody": "Pemain baharu dan tetap, setter dan libero, semua tahap di gelanggang yang sama. VSB tempat pemain bola tampar santai Malaysia bertemu.",
       "everyPosition": "Semua posisi",
       "everyLevel": "Semua tahap",
-      "goodToKnow": "Perlu tahu",
       "cardSub": "Posisi · Tahap",
-      "watermark": "Main"
+      "watermark": "Main",
+      "questions": "Soalan"
     },
     "session": {
       "public": "Awam",
@@ -541,7 +539,8 @@
       "thisTicket": "Tiket ini",
       "paymentStatus": "Bayaran",
       "viewGame": "Lihat permainan",
-      "yourPlayerAlt": "Pemain VSB {{name}}"
+      "yourPlayerAlt": "Pemain VSB {{name}}",
+      "holder": "Pemain"
     },
     "card": {
       "played": "Dimain",
@@ -582,8 +581,7 @@
       "whatsNew": "Apa yang baharu"
     },
     "footer": {
-      "tagline": "Kenal · Main · Hubung · Bersama",
-      "builtFor": "Dibina untuk komuniti bola tampar.",
+      "tagline": "Lebih dari permainan.",
       "navLabel": "Pengaki"
     },
     "myVsb": {
@@ -609,10 +607,10 @@
       "statGames": "Permainan",
       "statVenues": "Tempat",
       "statUpcoming": "Akan datang",
-      "nextWaiting": "Permainan seterusnya menanti anda.",
       "storyStarts": "Kisah VSB anda bermula dengan permainan pertama.",
       "noPosition": "Posisi belum ditetapkan",
-      "settings": "Tetapan"
+      "settings": "Tetapan akaun & pemain",
+      "manageTitle": "Urus My VSB"
     },
     "games": {
       "meta": "VSB Saya / Permainan",
@@ -862,7 +860,8 @@
     "checkout": {
       "title": "Kunci tempat saya",
       "yourGame": "Permainan anda",
-      "yourSlot": "Tempat anda"
+      "yourSlot": "Tempat anda",
+      "payTo": "Bayar kepada"
     },
     "glasses": {
       "question": "Anda memakai cermin mata?",
@@ -905,7 +904,8 @@
       "payBy": "Bayar sebelum {{time}}",
       "receiptSent": "Resit dihantar, menunggu pengesahan kelab.",
       "moreUnpaid_one": "Anda ada {{count}} lagi permainan belum dibayar di My Games.",
-      "moreUnpaid_other": "Anda ada {{count}} lagi permainan belum dibayar di My Games."
+      "moreUnpaid_other": "Anda ada {{count}} lagi permainan belum dibayar di My Games.",
+      "yourNext": "Permainan anda seterusnya"
     }
   }
 }

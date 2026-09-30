@@ -8,7 +8,6 @@ import { sessionImage } from '@/lib/sessionMedia';
 import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { SessionStatusChip } from '@/components/vsb/SessionStatusChip';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
-import { GENDER_RING } from '@/lib/gender';
 
 const MAX_FACES = 7;
 
@@ -40,7 +39,7 @@ export function SessionRow({ session, to, roster, isPrivate }: SessionRowProps) 
       <div className="relative min-h-[9rem] overflow-hidden">
         <img src={sessionImage(session.cover_image_path)} alt="" loading="lazy" decoding="async" width={1024} height={356}
           className="absolute inset-0 h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]" />
-        <div className="absolute inset-0 bg-gradient-to-r from-ink/85 via-ink/40 to-transparent" aria-hidden />
+        <div className="absolute inset-0 bg-ink/45" aria-hidden />
         <p className="relative p-5 font-display uppercase leading-none">
           <span className="block text-sm font-bold tracking-[0.2em] text-vsb-300">{d.weekday}</span>
           <span className="block text-6xl font-extrabold text-chalk">{d.day}</span>
@@ -67,7 +66,7 @@ export function SessionRow({ session, to, roster, isPrivate }: SessionRowProps) 
           {faces.length > 0 ? (
             <div className="flex items-center -space-x-2" role="img" aria-label={t('v2.session.playersJoined', { count: roster?.length ?? 0 })}>
               {faces.map((p, i) => (
-                <PlayerAvatar key={i} name={p.display_name} src={p.avatar_url} guest={p.is_guest} size="sm" className={p.gender ? GENDER_RING[p.gender] : ''} />
+                <PlayerAvatar key={i} name={p.display_name} src={p.avatar_url} guest={p.is_guest} size="sm" />
               ))}
               {extra > 0 && <span className="inline-flex h-9 w-9 items-center justify-center rounded-full bg-ink-600 text-xs font-bold text-chalk ring-2 ring-ink">+{extra}</span>}
             </div>
@@ -80,7 +79,7 @@ export function SessionRow({ session, to, roster, isPrivate }: SessionRowProps) 
 
       {/* PRICE + ACTION */}
       <div className="flex items-center justify-between gap-4 border-t border-ink-600 p-5 md:col-span-2 xl:col-span-1 xl:flex-col xl:items-start xl:justify-center xl:border-t-0">
-        <p className="text-chalk">
+        <p className="whitespace-nowrap text-chalk">
           <span className="font-display text-4xl font-extrabold">{session.price > 0 ? formatCurrency(session.price).replace(/\.00$/, '') : 'TBC'}</span>
           <span className="ml-1 text-xs text-muted">{t('v2.session.perPlayer')}</span>
         </p>

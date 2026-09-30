@@ -10,9 +10,10 @@ Player-facing screens are being moved onto the VSB V2 brand (dark, athletic,
 community-first). Source of truth: `VSB_V2_Revamp_PRD.md` (kept outside the repo).
 Two experiences, one design system:
 - **VSB Play** (`PlayShell` in App.tsx): public + player screens — navbar,
-  footer, mobile tab bar. Primary nav is only SESSIONS (+ COMMUNITY once it
-  exists); everything personal (My Games = /bookings, profile, card, account)
-  lives under **My VSB** (/profile) via the avatar menu. Routes ≠ navigation.
+  footer, mobile tab bar. Primary nav is SESSIONS · COMMUNITY · MY VSB (the
+  same three on desktop and the phone tab bar); everything personal (My Games
+  = /bookings, profile, card, account) lives under **My VSB** (/profile) and
+  in the avatar menu. Routes ≠ navigation.
 - **VSB Admin** (`AdminShell`, src/components/admin): its own full-height
   console — sidebar on desktop, header + drawer below lg, no consumer
   navbar/footer. The waiting list lives inside the session workspace
@@ -101,10 +102,12 @@ Two experiences, one design system:
   card); otherwise thin `border-ink-600` rules and typography.
 - **One dominant idea per route**, not one template: Home = the community
   (hero fills the first viewport, then real sessions, community, identity,
-  good to know); Sessions = fixtures grouped This week / Next week / Later;
+  how it works 01 FIND / 02 BOOK / 03 PLAY with a few questions, and a closing
+  CTA with contact; session rules live on session details, not Home); Sessions = fixtures grouped This week / Next week / Later;
   Session details = this game (court | facts, price, action) then a
   full-width Who's Playing; My VSB = identity, then next on court | your
-  game, recent games, and settings in one quieter band; My Games = one
+  game, recent games, then a separate quieter "Manage My VSB" zone (settings,
+  h3 sub-headings, secondary buttons); My Games = one
   timeline (upcoming, then history by year and month; no tabs); Booking
   details = a game ticket (game | perforated stub with holder, reference,
   status); Checkout = your game | your slot; Confirmation = "You're on

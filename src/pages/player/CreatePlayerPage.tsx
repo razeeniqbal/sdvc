@@ -353,7 +353,7 @@ export default function CreatePlayerPage() {
                 <p className="vsb-display text-5xl text-chalk sm:text-6xl">{t('v2.create.readyTitle')}</p>
                 {avatar?.image && (
                   <img src={avatar.image} alt={t('v2.create.readyAlt', { name: profile.short_name || profile.full_name })}
-                    className="mt-6 h-[26rem] w-auto drop-shadow-[0_20px_40px_rgba(0,0,0,0.6)] sm:h-[32rem]" />
+                    className="mt-6 h-[26rem] w-auto sm:h-[32rem]" />
                 )}
                 <div className="mt-6 flex flex-wrap gap-3">
                   <button onClick={() => navigate('/profile')} className="v2-btn-primary !px-6 !py-3 font-display uppercase tracking-wider">{t('v2.create.toMyVsb')} <ArrowRight className="h-4 w-4" aria-hidden /></button>

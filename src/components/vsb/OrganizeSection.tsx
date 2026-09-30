@@ -48,7 +48,9 @@ export function OrganizeSection({ bare = false }: { bare?: boolean }) {
 
   return (
     <section id="organize" aria-labelledby="organize-heading" className={`scroll-mt-16 border-t border-ink-600 ${bare ? 'py-10' : 'vsb-gutter py-12'}`}>
-      <h2 id="organize-heading" className="vsb-display mb-6 text-3xl sm:text-4xl">{t('v2.organizer.title')}</h2>
+      {bare
+        ? <h3 id="organize-heading" className="mb-5 font-display text-2xl font-bold uppercase tracking-wide text-chalk">{t('v2.organizer.title')}</h3>
+        : <h2 id="organize-heading" className="vsb-display mb-6 text-3xl sm:text-4xl">{t('v2.organizer.title')}</h2>}
 
       {isOrganizer ? (
         <div className="max-w-3xl">
@@ -75,7 +77,7 @@ export function OrganizeSection({ bare = false }: { bare?: boolean }) {
           <label htmlFor="organize-msg" className="mb-1.5 mt-5 block text-sm font-medium text-slate-300">{t('v2.organizer.messageLabel')}</label>
           <textarea id="organize-msg" rows={3} maxLength={1000} value={message} onChange={(e) => setMessage(e.target.value)}
             placeholder={t('v2.organizer.messagePlaceholder')} className="v2-input !text-base" />
-          <button type="submit" disabled={sending} className="v2-btn-primary mt-4 !px-6 font-display uppercase tracking-wider">
+          <button type="submit" disabled={sending} className={`${bare ? 'v2-btn-secondary' : 'v2-btn-primary'} mt-4 !px-6 font-display uppercase tracking-wider`}>
             {sending && <Spinner className="h-4 w-4" />} {t('v2.organizer.apply')}
           </button>
         </form>
