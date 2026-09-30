@@ -9,7 +9,6 @@ import { Spinner } from '@/components/LoadingScreen';
 import { CapacityIndicator } from '@/components/vsb/CapacityIndicator';
 import { AdminPageHeader, OpsBadge, SectionTitle, Stat, type OpsTone } from '@/components/admin/AdminUI';
 import type { Booking } from '@/types/database';
-import { vsbAssets } from '@/lib/vsbAssets';
 
 interface AttentionItem { key: string; tone: OpsTone; count: number; title: string; detail: string; to: string; action: string }
 
@@ -140,8 +139,7 @@ export default function AdminDashboardPage() {
             const d = shortDate(next.session_date);
             const state = adminSessionState(next, today);
             return (
-              <div className="relative overflow-hidden border border-ink-600 bg-ink">
-                <img src={vsbAssets.court.horizontal1024.src} alt="" width={1024} height={356} className="absolute inset-0 h-full w-full object-cover opacity-15" />
+              <div className="relative overflow-hidden border border-ink-600 bg-ink-800">
                 <div className="relative grid gap-5 p-5 sm:grid-cols-[auto_1fr]">
                   <div className="font-display uppercase leading-none">
                     <p className="text-sm font-bold tracking-[0.2em] text-vsb-300">{d.wk}</p>

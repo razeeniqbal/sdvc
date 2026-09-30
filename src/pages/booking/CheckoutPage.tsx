@@ -18,6 +18,8 @@ import { PlayerAvatar } from '@/components/PlayerAvatar';
 import { MemberPicker } from '@/components/vsb/MemberPicker';
 import { TicketSkeleton } from '@/components/vsb/Skeletons';
 import { useMyAvatar } from '@/lib/avatars';
+import { useSessionPayee } from '@/lib/organizers';
+import { fetchClubSettings } from '@/lib/settings';
 
 // A friend is either a registered VSB member (memberId) or a typed-in guest.
 interface Companion {
@@ -55,6 +57,9 @@ export default function CheckoutPage() {
   // Already verified on the session details page immediately before this navigation —
   // skip asking a second time. A direct link to this URL has no such state, so it
   // still falls through to the passkey prompt below.
+  const [clubName, setClubName] = useState<string | null>(null);
+  const { organizer } = useSessionPayee(session?.id, null);
+  useEffect(() => { fetchClubSettings().then((st) => setClubName(st?.club_name || null)).catch(() => {}); }, []);
   const [unlocked, setUnlocked] = useState(() => !!(location.state as { passkeyVerified?: boolean } | null)?.passkeyVerified);
 
   useEffect(() => {
@@ -257,7 +262,7 @@ export default function CheckoutPage() {
 
       <header className="vsb-gutter border-b border-ink-600 py-8 lg:py-10">
         <BookingSteps current={1} />
-        <h1 className="vsb-display mt-6 text-5xl lg:text-6xl">{t('v2.checkout.title')}</h1>
+        <h1 className="vsb-display mt-6 text-4xl lg:text-5xl">{t('v2.checkout.title')}</h1>
       </header>
 
       {/* Your game (left) | your slot (right). On phones the slot, policy and
@@ -267,21 +272,18 @@ export default function CheckoutPage() {
           {/* The game */}
           <section aria-labelledby="co-game">
             <h2 id="co-game" className="vsb-meta mb-3">{t('v2.checkout.yourGame')}</h2>
-            <p className="font-display text-4xl font-extrabold uppercase leading-none tracking-wide text-chalk">{session.title}</p>
+            <p className="font-display text-3xl font-extrabold uppercase leading-none tracking-wide text-chalk sm:text-4xl">{session.title}</p>
             <dl className="mt-5 grid grid-cols-2 gap-x-6 gap-y-4 border-t border-ink-600 pt-5 sm:grid-cols-4">
               <Fact label={t('sessionDetails.dateLabel')} value={formatDateLocale(session.session_date, i18n.language, 'medium')} />
               <Fact label={t('sessionDetails.timeLabel')} value={t('v2.session.timeRange', { start: formatTime(session.start_time), end: formatTime(session.end_time) })} />
               <Fact label={t('sessionDetails.venueLabel')} value={session.venue_name} />
-              <Fact label={t('sessionDetails.courtLabel')} value={session.court_number || t('common.notSpecified')} />
+              {session.court_number && <Fact label={t('sessionDetails.courtLabel')} value={session.court_number} />}
             </dl>
           </section>
 
           {/* You */}
           <section aria-labelledby="co-player" className="border-t border-ink-600 pt-8">
-            <div className="mb-5 flex items-center gap-3">
-              <PlayerAvatar name={form.short_name || profile?.full_name || '?'} src={myAvatar?.thumb} size="md" />
-              <h2 id="co-player" className="vsb-display text-3xl">{t('checkout.playerDetails')}</h2>
-            </div>
+            <h2 id="co-player" className="mb-5 font-display text-2xl font-bold uppercase tracking-wide text-chalk">{t('checkout.playerDetails')}</h2>
             <div className="grid gap-4 sm:grid-cols-3">
               <div>
                 <label htmlFor="co-name" className={labelClass}>{t('checkout.displayName')}</label>
@@ -304,7 +306,7 @@ export default function CheckoutPage() {
 
           {/* Friends */}
           <section aria-labelledby="co-friends" className="border-t border-ink-600 pt-8">
-            <h2 id="co-friends" className="vsb-display text-3xl">{t('checkout.companionsTitle')}</h2>
+            <h2 id="co-friends" className="font-display text-2xl font-bold uppercase tracking-wide text-chalk">{t('checkout.companionsTitle')}</h2>
             <p className="mb-4 mt-1 text-sm text-slate-400">{t('checkout.companionsSubtitle')}</p>
             <div className="space-y-3">
               {companions.map((c, i) => c.kind === 'member' ? (
@@ -380,6 +382,9 @@ export default function CheckoutPage() {
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between"><dt className="text-slate-400">{t('checkout.totalPlayers')}</dt><dd className="font-semibold text-chalk">{totalPlayers}</dd></div>
               <div className="flex justify-between"><dt className="text-slate-400">{t('v2.booking.pricePerPlayer')}</dt><dd className="text-chalk">{session.price > 0 ? formatCurrency(session.price) : 'TBC'}</dd></div>
+              {(organizer || clubName) && (
+                <div className="flex justify-between gap-4"><dt className="text-slate-400">{t('v2.checkout.payTo')}</dt><dd className="truncate text-chalk">{organizer?.name || clubName}</dd></div>
+              )}
               {session.price > 0 && (
                 <div className="flex items-baseline justify-between border-t border-ink-600 pt-3">
                   <dt className="font-semibold text-chalk">{t('bookingConfirmation.amountDue')}</dt>
@@ -389,17 +394,15 @@ export default function CheckoutPage() {
             </dl>
 
             {/* Cancellation policy */}
-            <div className="border-l-2 border-amber-400 pl-4">
-              <p className="font-semibold text-amber-200">{t('checkout.policyTitle')}</p>
-              <ul className="mt-2 space-y-1 text-sm text-amber-300/90">
+            <div className="border-t border-ink-600 pt-5">
+              <p className="vsb-meta">{t('checkout.policyTitle')}</p>
+              <ul className="mt-2 space-y-1 text-sm text-slate-300">
                 <li>{t('checkout.policyRule1')}</li>
                 <li>{t('checkout.policyRule2')}</li>
-                <li>{t('checkout.policyRule3')}</li>
-                <li>{t('checkout.policyRule4')}</li>
               </ul>
-              <label className="mt-3 flex cursor-pointer items-start gap-2">
+              <label className="mt-4 flex cursor-pointer items-start gap-2">
                 <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} className="mt-1 h-4 w-4 accent-[#168BFF]" />
-                <span className="text-sm text-amber-100">{t('checkout.agreeLabel')}</span>
+                <span className="text-sm text-chalk">{t('checkout.agreeLabel')}</span>
               </label>
             </div>
 

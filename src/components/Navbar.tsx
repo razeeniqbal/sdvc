@@ -10,9 +10,9 @@ import { useMyAvatar } from '@/lib/avatars';
 import { openWhatsNew } from '@/lib/whatsNew';
 
 // VSB Play navigation. Primary areas only — routes are not navigation.
-//   SESSIONS  ·  COMMUNITY  in the bar; MY VSB lives in the avatar menu
-// (and in the phone tab bar, where there is no room for a menu label).
-// My Games, profile, card and account all live under My VSB; the logo is Home.
+//   SESSIONS  ·  COMMUNITY  ·  MY VSB  in the bar (the same three as the phone
+// tab bar). My Games, profile, card and account all live under My VSB and in
+// the avatar menu; the logo is Home.
 
 interface NavItem { to: string; label: string; icon: LucideIcon; end?: boolean }
 
@@ -47,6 +47,8 @@ export function Navbar() {
   }
 
   const displayName = profile?.short_name || profile?.full_name || '';
+  // My Games, bookings and confirmations are part of My VSB.
+  const inMyVsb = /^\/(profile|bookings|confirmation)/.test(location.pathname);
   const myAvatar = useMyAvatar(profile?.id);
   const itemClass = 'block px-4 py-2.5 text-sm font-semibold text-slate-200 hover:bg-ink-700 hover:text-white focus-visible:bg-ink-700 focus-visible:outline-none';
 
@@ -61,6 +63,7 @@ export function Navbar() {
           <div className="hidden h-full items-center gap-10 md:flex">
             <NavLink to="/sessions" className={topLink}>{t('nav.sessions')}</NavLink>
             <NavLink to="/community" className={topLink}>{t('v2.nav.community')}</NavLink>
+            <NavLink to="/profile" className={(a) => topLink({ isActive: a.isActive || inMyVsb })}>{t('v2.nav.myVsb')}</NavLink>
           </div>
         )}
 

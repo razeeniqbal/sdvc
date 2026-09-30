@@ -274,7 +274,7 @@ export default function AdminSettingsPage() {
               </label>
             </SettingsRow>
 
-            <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-end gap-3 border-t border-ink-600 bg-ink-850/95 px-4 py-3 backdrop-blur-sm sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
+            <div className="sticky bottom-0 z-10 -mx-4 flex items-center justify-end gap-3 border-t border-ink-600 bg-ink-850 px-4 py-3 sm:-mx-6 sm:px-6 lg:mx-0 lg:px-0">
               <span className="mr-auto text-xs text-muted">General, community and notification settings save together.</span>
               <button type="submit" disabled={saving} className="v2-btn-primary font-display uppercase tracking-wider">
                 {saving ? <Spinner className="h-4 w-4" /> : <Save className="h-4 w-4" aria-hidden />}

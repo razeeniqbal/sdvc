@@ -149,7 +149,7 @@ export function SessionDetailsView({ session, players, waiting = [], settings, n
             {session.price === 0 && <p className="mt-2 text-xs text-amber-300">{t('sessionDetails.tbcNote')}</p>}
             <div className="mt-6">{renderAction()}</div>
             <div className="mt-3 space-y-0.5 text-xs text-muted">
-              <p>{t('sessionDetails.bookingDeadline', { date: session.booking_close_at ? formatDateLocale(session.booking_close_at, i18n.language, 'medium') : t('common.none') })}</p>
+              {session.booking_close_at && <p>{t('sessionDetails.bookingDeadline', { date: formatDateLocale(session.booking_close_at, i18n.language, 'medium') })}</p>}
               <p>{t('sessionDetails.cancellationDeadline')} · <span className="text-amber-300">{t('sessionDetails.nonRefundable')}</span></p>
             </div>
           </div>

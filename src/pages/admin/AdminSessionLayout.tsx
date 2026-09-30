@@ -8,7 +8,6 @@ import { formatTime } from '@/lib/format';
 import { adminSessionState, localToday, PLACE_HOLDING, STATE_TONE, type AdminSession } from '@/lib/adminSessions';
 import { Spinner } from '@/components/LoadingScreen';
 import { OpsBadge } from '@/components/admin/AdminUI';
-import { sessionImage } from '@/lib/sessionMedia';
 import type { Session } from '@/types/database';
 import { useConsoleScope } from '@/lib/consoleScope';
 
@@ -77,7 +76,6 @@ export default function AdminSessionLayout() {
     <div>
       {/* Session context header */}
       <header className="relative overflow-hidden border-b border-ink-600 bg-ink">
-        <img src={sessionImage(session.cover_image_path)} alt="" width={973} height={335} className="absolute inset-0 h-full w-full object-cover opacity-[0.14]" />
         <div className="relative px-4 pt-5 sm:px-6 lg:px-10 lg:pt-7">
           <Link to="/admin/sessions" className="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[0.14em] text-muted hover:text-chalk">
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden /> Sessions

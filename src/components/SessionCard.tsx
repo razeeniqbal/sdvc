@@ -86,7 +86,7 @@ export function SessionCard({ session, to, roster, isPrivate }: SessionCardProps
         </div>
 
         <div className="mt-auto flex items-end justify-between pt-5">
-          <p className="text-chalk">
+          <p className="whitespace-nowrap text-chalk">
             <span className="font-display text-3xl font-extrabold">{session.price > 0 ? formatCurrency(session.price).replace(/\.00$/, '') : 'TBC'}</span>
             <span className="ml-1 text-xs text-muted">{t('v2.session.perPlayer')}</span>
           </p>

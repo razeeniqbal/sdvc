@@ -14,16 +14,16 @@ export function Footer() {
 
   const links = [
     { to: profile ? '/sessions' : '/register', label: t('nav.sessions') },
+    ...(profile ? [{ to: '/community', label: t('v2.nav.community') }] : []),
     { to: profile ? '/profile' : '/login', label: t('v2.nav.myVsb') },
   ];
 
   return (
     <footer className="mt-auto border-t border-ink-600 bg-ink">
-      <div className="vsb-gutter grid gap-10 py-12 md:grid-cols-[1fr_auto] md:items-end">
+      <div className="vsb-gutter grid gap-10 py-10 md:grid-cols-[1fr_auto] md:items-end">
         <div>
           <VsbLogo variant="lockup" className="h-10" />
-          <p className="vsb-meta mt-5 !text-slate-300">{t('v2.footer.tagline')}</p>
-          <p className="mt-2 text-sm text-muted">{t('v2.footer.builtFor')}</p>
+          <p className="mt-4 font-display text-lg font-bold uppercase tracking-[0.2em] text-slate-300">{t('v2.footer.tagline')}</p>
         </div>
         <nav aria-label={t('v2.footer.navLabel')} className="flex flex-wrap gap-x-8 gap-y-3 text-sm font-semibold uppercase tracking-[0.14em]">
           {links.map((l) => <Link key={l.label} to={l.to} className="text-slate-300 hover:text-white">{l.label}</Link>)}

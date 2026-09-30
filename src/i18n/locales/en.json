@@ -238,8 +238,6 @@
     "policyTitle": "Booking & Cancellation Policy",
     "policyRule1": "Cancel at least 24 hours before the session to free your slot.",
     "policyRule2": "All bookings are non-refundable.",
-    "policyRule3": "Your slot is locked once you submit, pending admin confirmation.",
-    "policyRule4": "The club admin will verify your payment and confirm your booking.",
     "agreeLabel": "I have read and agree to the club booking and cancellation policy.",
     "lockMySlot": "Lock My Slot & Proceed to Payment",
     "lockingSlot": "Locking slot...",
@@ -406,12 +404,12 @@
       "allSessions_other": "All {{count}} sessions",
       "noSessionsTitle": "Court’s quiet right now",
       "howMeta": "How it works",
-      "step1Title": "Find your game",
-      "step1Desc": "Browse upcoming sessions by date, level and venue, and see who's already in before you join.",
-      "step2Title": "Meet your people",
-      "step2Desc": "Book yourself and bring friends. Every session shows the real players on court.",
-      "step3Title": "Play together",
-      "step3Desc": "Pay by QR, upload your receipt, and turn up. The admin confirms your spot.",
+      "step1Title": "Find",
+      "step1Desc": "Browse games by date, level and venue, and see who's already in.",
+      "step2Title": "Book",
+      "step2Desc": "Book your place, bring a friend, and pay by QR.",
+      "step3Title": "Play",
+      "step3Desc": "Upload your receipt and turn up. The club confirms your place.",
       "identityMeta": "VSB player identity",
       "identityLine1": "Your player.",
       "identityLine2": "Your VSB identity.",
@@ -427,9 +425,9 @@
       "communityBody": "First-timers and regulars, setters and liberos, every level on the same court. VSB is where Malaysia’s social volleyball players find each other.",
       "everyPosition": "Every position",
       "everyLevel": "Every level",
-      "goodToKnow": "Good to know",
       "cardSub": "Position · Level",
-      "watermark": "Play"
+      "watermark": "Play",
+      "questions": "Questions"
     },
     "session": {
       "public": "Public",
@@ -541,7 +539,8 @@
       "thisTicket": "This ticket",
       "paymentStatus": "Payment",
       "viewGame": "View game",
-      "yourPlayerAlt": "{{name}}'s VSB player"
+      "yourPlayerAlt": "{{name}}'s VSB player",
+      "holder": "Player"
     },
     "card": {
       "played": "Played",
@@ -582,8 +581,7 @@
       "whatsNew": "What's new"
     },
     "footer": {
-      "tagline": "People · Play · Connect · Belong",
-      "builtFor": "Built for the volleyball community.",
+      "tagline": "More than a game.",
       "navLabel": "Footer"
     },
     "myVsb": {
@@ -609,10 +607,10 @@
       "statGames": "Games",
       "statVenues": "Venues",
       "statUpcoming": "Upcoming",
-      "nextWaiting": "Your next game is waiting.",
       "storyStarts": "Your VSB story starts with game one.",
       "noPosition": "Position not set",
-      "settings": "Settings"
+      "settings": "Account & player settings",
+      "manageTitle": "Manage My VSB"
     },
     "games": {
       "meta": "My VSB / Games",
@@ -862,7 +860,8 @@
     "checkout": {
       "title": "Secure my slot",
       "yourGame": "Your game",
-      "yourSlot": "Your slot"
+      "yourSlot": "Your slot",
+      "payTo": "Pay to"
     },
     "glasses": {
       "question": "Do you wear glasses?",
@@ -905,7 +904,8 @@
       "payBy": "Pay by {{time}}",
       "receiptSent": "Receipt sent, waiting for the club to confirm.",
       "moreUnpaid_one": "You have {{count}} more unpaid game in My Games.",
-      "moreUnpaid_other": "You have {{count}} more unpaid games in My Games."
+      "moreUnpaid_other": "You have {{count}} more unpaid games in My Games.",
+      "yourNext": "Your next game"
     }
   }
 }
