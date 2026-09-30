@@ -763,18 +763,14 @@
     "organizer": {
       "payTo": "Bayar kepada penganjur, {{name}}, untuk permainan ini.",
       "title": "Anjur permainan",
-      "intro": "Mahu menganjurkan permainan VSB sendiri? Penganjur mencipta sesi, mengesahkan bayaran dan mengurus senarai menunggu untuk permainan mereka, dan pemain membayar terus kepada mereka. Setiap permohonan disemak oleh admin.",
-      "messageLabel": "Ceritakan tentang permainan anda (pilihan)",
-      "messagePlaceholder": "Contohnya: di mana dan bila anda bermain, dan berapa ramai pemain biasanya menyertai.",
-      "apply": "Mohon jadi penganjur",
-      "applied": "Permohonan dihantar. Admin akan menyemaknya.",
-      "applyError": "Tidak dapat menghantar permohonan. Cuba lagi.",
+      "intro": "Mahu menganjurkan permainan VSB sendiri? Penganjur mencipta sesi, mengesahkan bayaran dan mengurus senarai menunggu untuk permainan mereka, dan pemain membayar terus kepada mereka. Untuk menjadi penganjur, hubungi admin kelab.",
       "pendingTitle": "Permohonan dihantar",
       "pendingBody": "Anda memohon pada {{date}}. Admin akan menyemaknya dan anda akan menerima pemberitahuan.",
-      "rejected": "Permohonan anda pada {{date}} tidak diluluskan. Anda boleh memohon semula.",
       "youAre": "Anda seorang penganjur. Cipta permainan, sahkan bayaran dan urus senarai menunggu dalam Konsol Penganjur.",
       "noQr": "Tambah QR pembayaran anda supaya pemain boleh membayar anda. Sehingga itu, mereka melihat QR kelab.",
-      "paymentQr": "QR pembayaran"
+      "paymentQr": "QR pembayaran",
+      "contactAdmin": "Mesej {{name}} di WhatsApp",
+      "contactMessage": "Hai, saya ingin menjadi penganjur VSB."
     },
     "friend": {
       "addMember": "Tambah pemain VSB",

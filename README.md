@@ -23,7 +23,7 @@ Live: [vsb.madebyrazeen.com](https://vsb.madebyrazeen.com)
 - **Booking**: book yourself plus **1 friend** (a typed-in guest or a registered VSB member), private sessions behind a passkey
 - **Payment**: organizer's or club's DuitNow QR, receipt upload (alerts admins on Telegram with Approve / Reject buttons)
 - **Holds**: unpaid places are held 12 hours (never past 2 hours before the game, at least 30 minutes); uploading a receipt stops the clock; expired places go to the waiting list automatically
-- **My VSB**: player card, real activity (games, venues, upcoming), next on court, **Your Game** (self-described playstyle, vibe, experience, reasons), recent games, profile and account settings, community visibility, apply to organize
+- **My VSB**: player card, real activity (games, venues, upcoming), next on court, **Your Game** (self-described playstyle, vibe, experience, reasons), recent games, profile and account settings, community visibility, how to become an organizer (message an admin)
 - **Create Player**: one photo becomes a personal VSB player in the house style, with a chosen pose and a glasses answer (1 free generation; admins can grant more)
 - **My Games**: one timeline of upcoming and past games; **Booking details** is a game ticket
 - **Community**: club roster grouped by position (members can hide themselves)
